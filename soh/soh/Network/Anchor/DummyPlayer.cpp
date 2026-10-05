@@ -241,6 +241,17 @@ void DummyPlayer_Update(Actor* actor, PlayState* play) {
                     horse->action         = ENHORSE_ACT_IDLE;
                     horse->stateFlags    |= ENHORSE_DRAW | ENHORSE_UNRIDEABLE;
                     horse->playerControlled = 0;
+                    // Actor_Spawn leaves actor->update as the native EnHorse_Update
+                    // (set by En_Horse_InitVars/EnHorse_Init). Without overriding it,
+                    // the phantom runs the FULL native update every frame — including
+                    // EnHorse_MountSideCheck/approach-to-player logic that reads
+                    // GET_PLAYER(play), i.e. THIS client's own real, local Link. That
+                    // is exactly what caused the "client gets teleported onto the
+                    // host's horse / controls glued together" bug when a mounted host
+                    // rides into a room where the client is also mounted: the phantom
+                    // actively tried to interact with the client's real player.
+                    // PhantomEpona_Update (below) replaces it with a minimal stub.
+                    phantom->update = PhantomEpona_Update;
                     // Persistent across room-boundary draws (same as DummyPlayer).
                     phantom->room = -1;
                     SPDLOG_INFO("[Anchor:Horse] Spawned phantom Epona for client {} (actor={})",

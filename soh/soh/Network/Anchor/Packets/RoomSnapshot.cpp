@@ -499,11 +499,21 @@ void Anchor::HandlePacket_RoomSnapshot(nlohmann::json payload) {
         // Late-joiner QoL: if a boss fight is already in progress, skip any
         // currently running intro/intermission cutscene so the player can
         // immediately participate in combat.
+        // EXCEPTION: Forest Temple Boss (Phantom Ganon). Its intro is not a
+        // standard cutscene-command sequence — it's driven directly by the
+        // BossGanondrof/EnfHG actors' own camera fields (cameraEye/cameraAt/etc.,
+        // painting-select, decoy-rider spawn). Force-terminating csCtx mid-way
+        // via func_8006450C leaves that actor-driven camera state inconsistent
+        // and crashes the client on the very next frame. Skip the forced-skip
+        // for this scene; the fight is short enough that a late joiner simply
+        // watches the remainder of the intro play out normally.
         if (anyLateJoinSkip && IsBossScene(gPlayState->sceneNum) &&
+            gPlayState->sceneNum != SCENE_FOREST_TEMPLE_BOSS &&
             gPlayState->csCtx.state != CS_STATE_IDLE) {
             func_8006450C(gPlayState, &gPlayState->csCtx);
         }
     }
+
 
     // ── Restore Battle Royale match state ────────────────────────────────────
     // Rebuild brMatchActive, brKillStreak, wantedClients, brEliminated and

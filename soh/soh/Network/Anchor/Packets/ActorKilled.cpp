@@ -62,16 +62,18 @@ void Anchor::HandlePacket_ActorKilled(nlohmann::json payload) {
         }
     }
 
-    // Determine which actor category lists to scan.
-    // Phase 5: extend to BG/PROP in addition to the original ENEMY/BOSS scope.
+    // Determine behaviour (collectible/clear-flag handling) from the reported category.
     bool isBgKill     = (receivedCategory == ACTORCAT_BG || receivedCategory == ACTORCAT_PROP);
     bool isEnemyKill  = (receivedCategory == ACTORCAT_ENEMY || receivedCategory == ACTORCAT_BOSS);
 
-    // Scan the matching category first; fall back to all four if category is unknown.
-    std::vector<int> catsToScan;
-    if (isEnemyKill)     catsToScan = { ACTORCAT_ENEMY, ACTORCAT_BOSS };
-    else if (isBgKill)   catsToScan = { ACTORCAT_BG,    ACTORCAT_PROP };
-    else                 catsToScan = { ACTORCAT_ENEMY, ACTORCAT_BOSS, ACTORCAT_BG, ACTORCAT_PROP };
+    // ALWAYS scan every category when looking for the actor to kill — do not
+    // restrict by receivedCategory. Some actors (e.g. En_Test/Stalfos) change
+    // category at runtime via Actor_ChangeCategory (ENEMY <-> PROP while
+    // "downed"); the sender's category at kill-time can therefore differ from
+    // whatever category the receiver's still-living local copy currently sits
+    // in. Since GetActorKey no longer encodes category, scanning all four
+    // lists is cheap and guarantees we still find the matching actor.
+    std::vector<int> catsToScan = { ACTORCAT_ENEMY, ACTORCAT_BOSS, ACTORCAT_BG, ACTORCAT_PROP };
 
     for (int cat : catsToScan) {
         Actor* actor = gPlayState->actorCtx.actorLists[cat].head;

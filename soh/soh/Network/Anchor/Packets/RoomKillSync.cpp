@@ -21,19 +21,19 @@ RoomKillTarget BuildTargetFromActorKey(const std::string& actorKey) {
     RoomKillTarget target;
     target.actorKey = actorKey;
 
-    // Legacy key format embeds actorId + home.pos as ints:
-    // scene_category_actorId_room_params_homeX_homeY_homeZ[_homeRotX_homeRotY_homeRotZ]
+    // Key format embeds actorId + home.pos as ints (category is NOT part of
+    // the key — see GetActorKey's comment in ActorStateUpdate.cpp):
+    // scene_actorId_room_params_homeX_homeY_homeZ[_homeRotX_homeRotY_homeRotZ]
     int sceneNum = 0;
-    int category = 0;
     int actorId = 0;
     int roomNum = 0;
     int params = 0;
     int homeX = 0;
     int homeY = 0;
     int homeZ = 0;
-    int parsed = sscanf(actorKey.c_str(), "%d_%d_%d_%d_%d_%d_%d_%d",
-                        &sceneNum, &category, &actorId, &roomNum, &params, &homeX, &homeY, &homeZ);
-    if (parsed == 8) {
+    int parsed = sscanf(actorKey.c_str(), "%d_%d_%d_%d_%d_%d_%d",
+                        &sceneNum, &actorId, &roomNum, &params, &homeX, &homeY, &homeZ);
+    if (parsed == 7) {
         target.actorId = (s16)actorId;
         target.hasApproxPos = true;
         target.approxPos.x = (f32)homeX;

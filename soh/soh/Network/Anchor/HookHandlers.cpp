@@ -1319,9 +1319,16 @@ void Anchor::RegisterHooks() {
         if (!roomState.syncEnemies) return;
 
         Actor* actor = (Actor*)actorRef;
-        if (actor->category != ACTORCAT_ENEMY && actor->category != ACTORCAT_BOSS) return;
-
         std::string key = GetActorKey(actor, gPlayState->sceneNum);
+        // Allow through actors whose CURRENT category is no longer ENEMY/BOSS if
+        // we previously tracked them as one (trackedEnemyHealth keyed by the same
+        // category-free key). En_Test/Stalfos flips to ACTORCAT_PROP while
+        // "downed" and may call Actor_Kill() for its permanent death in that
+        // category — without this, the kill would never be broadcast at all
+        // (the BG/PROP kill hook only fires when syncBGObjects is separately on).
+        bool wasTrackedEnemy = trackedEnemyHealth.count(key) > 0;
+        if (actor->category != ACTORCAT_ENEMY && actor->category != ACTORCAT_BOSS && !wasTrackedEnemy) return;
+
         SPDLOG_INFO("[Anchor:EnemySync] HOST: Actor killed | actorKey={} | pos=({:.1f},{:.1f},{:.1f})", 
                     key, actor->world.pos.x, actor->world.pos.y, actor->world.pos.z);
         trackedEnemyHealth.erase(key);
@@ -1946,7 +1953,13 @@ void Anchor::RegisterHooks() {
                         tagData["x"] = node->world.pos.x;
                         tagData["y"] = node->world.pos.y;
                         tagData["z"] = node->world.pos.z;
-                        SendPacket_RoomEvent("OCARINA_TAG_COMPLETED", "ocarina_tag_completed", tagData, false);
+                        // streaming=true: bypasses the idempotency dedup keyed on
+                        // sceneNum_roomNum_eventType_eventKey. The eventKey here is a
+                        // fixed constant (not per-actor-instance), so without
+                        // streaming only the FIRST tag completed in a room visit
+                        // would ever reach peers — any other/later tag (or the same
+                        // tag replayed) would be silently dropped as a "duplicate".
+                        SendPacket_RoomEvent("OCARINA_TAG_COMPLETED", "ocarina_tag_completed", tagData, true);
                         break;
                     }
                 }
@@ -1971,7 +1984,14 @@ void Anchor::RegisterHooks() {
                         std::string key = "timeblock_" + std::to_string((int)bgNode->world.pos.x) + "_" +
                                           std::to_string((int)bgNode->world.pos.y) + "_" +
                                           std::to_string((int)bgNode->world.pos.z);
-                        SendPacket_RoomEvent("TIMEBLOCK_SONG_COMPLETE", key, blockData, false);
+                        // streaming=true: Song of Time blocks TOGGLE visibility/switch
+                        // state each time the song is played (not a one-shot event).
+                        // Without streaming, the idempotency dedup (same position-based
+                        // key) would silently drop every replay of this exact block
+                        // after the first successful completion in this room visit —
+                        // which is exactly the "works once, then nearby peers stop
+                        // seeing it" symptom.
+                        SendPacket_RoomEvent("TIMEBLOCK_SONG_COMPLETE", key, blockData, true);
                     }
                     bgNode = bgNode->next;
                 }

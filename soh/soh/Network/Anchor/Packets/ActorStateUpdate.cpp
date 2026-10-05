@@ -17,16 +17,25 @@ extern PlayState* gPlayState;
  * Non-authority clients update the matching local actor's HP to maintain consistency.
  *
  * Actor identification uses a composite key:
- *   sceneNum + category + actorId + room + params + home.pos (spawn position)
+ *   sceneNum + actorId + room + params + home.pos (spawn position)
  * This uniquely identifies any actor instance across all clients since all clients
  * start with the same actor spawn data from the ROM.
+ *
+ * IMPORTANT: category is intentionally NOT part of this key. Several actors
+ * (e.g. En_Test/Stalfos via Actor_ChangeCategory, toggling ACTORCAT_ENEMY <->
+ * ACTORCAT_PROP while "downed" before reviving or dying for good) change
+ * category at runtime. If category were part of the key, the host's key for
+ * such an actor would stop matching the client's key the moment their local
+ * category observations diverge (which they always do, since non-authority
+ * clients never run the category-changing logic themselves) — e.g. ACTOR_KILLED
+ * for the permanent death (sent while category==PROP on the host) would never
+ * match the client's still-ACTORCAT_ENEMY local copy, leaving it alive forever.
  */
 
 std::string Anchor::GetActorKey(const Actor* actor, s16 sceneNum) {
     char buf[128];
-    snprintf(buf, sizeof(buf), "%d_%d_%d_%d_%d_%d_%d_%d_%d_%d_%d",
+    snprintf(buf, sizeof(buf), "%d_%d_%d_%d_%d_%d_%d_%d_%d_%d",
         (int)sceneNum,
-        (int)actor->category,
         (int)actor->id,
         (int)actor->room,
         (int)actor->params,
