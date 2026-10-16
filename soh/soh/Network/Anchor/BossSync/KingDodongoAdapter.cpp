@@ -105,7 +105,7 @@ void ApplyKdAction(BossDodongo* b, PlayState* play, int action, int corner, int 
         case KD_BLOWFIRE:  BossDodongo_SetupBlowFire(b); break;
         case KD_EXPLODE:   BossDodongo_SetupExplode(b); break;
         case KD_DAMAGED:   BossDodongo_SetupDamaged(b); break;
-        case KD_DEATH:     BossDodongo_SetupDeathCutscene(b); break;
+        case KD_DEATH:     break; // death runs via the native health<=0 path (BOSS_DEATH_COMMIT)
         default: break; // LayDown / Vulnerable / GetUp: local chain arrives on its own
     }
 }
@@ -119,6 +119,7 @@ struct DodongoTrackState {
     int lastCorner = -1;
     int lastDir = -1;
     std::deque<nlohmann::json> pendingEvents;
+    uint32_t lastSentSeq = 0;
 };
 
 std::unordered_map<std::string, DodongoTrackState> gDodongoTrack;
@@ -220,6 +221,12 @@ class KingDodongoAdapter : public BossSyncAdapter {
         if (!track.pendingEvents.empty()) {
             nlohmann::json next = track.pendingEvents.front();
             track.pendingEvents.pop_front();
+            // Monotonic seq assigned at send time: events queued on the same frame would
+            // otherwise share play->state.frames and be dropped by RoomEvent's seq dedup.
+            const uint32_t frame = (uint32_t)play->state.frames;
+            const uint32_t seq = std::max<uint32_t>(frame, track.lastSentSeq + 1);
+            track.lastSentSeq = seq;
+            next["seq"] = seq;
             return next;
         }
         return {};
@@ -401,7 +408,7 @@ class KingDodongoAdapter : public BossSyncAdapter {
             return;
         }
         if (st.mismatchSince == 0) {
-            st.mismatchSince = now;
+            st.mismatchSince = now ? now : 1;
             return;
         }
         if (now - st.mismatchSince > 10) {
