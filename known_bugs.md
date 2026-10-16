@@ -238,3 +238,12 @@ unverändert bei.
 - Ungetestet live (kein Zwei-Client-Test). Falls weiterhin kaputt: Pruefen, ob abhaengige BG-Aktoren
   vom Keyframe-Freeze (HookHandlers.cpp ~693) blockiert werden. Geschwister (Lightswitch, Bg_Bdan_Switch,
   Bg_Menkuri_Eye) noch nicht behandelt.
+
+## Workflow: Cutscene-Haenger (coop-fixes)
+- "Cutscenes enden gelegentlich nicht": Ursache war ein per ACTOR_KILLED/ROOM_KILL_SYNC mitten in der Cutscene
+  getoeteter Boss-Aktor (Actor_Kill beendet nie csCtx/player->csAction), plus eine Recovery, die standardmaessig aus war
+  (syncCutscenes) und player->csAction nicht freigab.
+- Fix: Watchdog auf Nicht-Master-Clients (HookHandlers.cpp), unabhaengig von syncCutscenes: csCtx nicht-IDLE,
+  cutsceneIndex < 0xFFF0, kein lebender Owner-Aktor (CutsceneOwnerAlive) fuer 20 Frames -> Anchor::ReleaseOrphanedCutscene
+  (Subkameras, Player csAction 7, csCtx, Letterbox/HUD). Zusaetzlich Release vor Actor_Kill eines Bosses mid-cutscene und
+  IDLE-Paket vom Master wird auch ohne syncCutscenes akzeptiert. Forest-Boss ausgenommen. Ungetestet live.

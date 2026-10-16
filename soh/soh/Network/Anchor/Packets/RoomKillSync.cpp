@@ -220,6 +220,10 @@ void Anchor::HandlePacket_RoomKillSync(nlohmann::json payload) {
             // health==0 for a while before calling Actor_Kill themselves.
             // ROOM_KILL_SYNC is an authoritative "remove now" signal.
             matchedActor->colChkInfo.health = 0;
+            if (gPlayState->csCtx.state != CS_STATE_IDLE && gSaveContext.cutsceneIndex < 0xFFF0 &&
+                gPlayState->sceneNum != SCENE_FOREST_TEMPLE_BOSS && matchedActor->category == ACTORCAT_BOSS) {
+                ReleaseOrphanedCutscene("boss killed mid-cs");
+            }
             Actor_Kill(matchedActor);
             appliedKills++;
             if (usedFallback) {

@@ -213,6 +213,10 @@ float OTRGetDimensionFromLeftEdge(float v);
 float OTRGetDimensionFromRightEdge(float v);
 }
 
+// Orphaned-cutscene watchdog state (see Cutscene Sync region).
+static u32 csOrphanFrames = 0;
+static u32 csFrozenFrames = 0;
+
 void Anchor::RegisterHooks() {
 
     // #region Hooks that are required for basic Anchor functionality
@@ -874,6 +878,8 @@ void Anchor::RegisterHooks() {
 
     // Clear tracked health maps whenever the scene changes so stale keys don't accumulate.
     COND_HOOK(OnSceneInit, isConnected, [&](s16 sceneNum) {
+        csOrphanFrames = 0;
+        csFrozenFrames = 0;
         trackedEnemyHealth.clear();
         trackedNonAuthEnemyHealth.clear();
         pendingRemoteHealthOverride.clear();
@@ -1905,6 +1911,54 @@ void Anchor::RegisterHooks() {
         }
 
         prevCsState = curCsState;
+    });
+    // #endregion
+
+    // Orphaned-cutscene watchdog (non-master clients only, independent of syncCutscenes).
+    // An actor-driven cutscene (cutsceneIndex < 0xFFF0) can only be ended by its owning
+    // actor; if that actor was killed mid-cutscene by a remote kill packet, nothing ends it.
+    COND_HOOK(OnGameFrameUpdate, isConnected, [&]() {
+        if (!IsSaveLoaded() || !gPlayState || IsRoomMaster() || clients.empty()) {
+            csOrphanFrames = 0;
+            csFrozenFrames = 0;
+            return;
+        }
+        if (gSaveContext.cutsceneIndex >= 0xFFF0 || gPlayState->transitionTrigger != TRANS_TRIGGER_OFF ||
+            gPlayState->sceneNum == SCENE_FOREST_TEMPLE_BOSS) {
+            csOrphanFrames = 0;
+            csFrozenFrames = 0;
+            return;
+        }
+
+        Player* player = GET_PLAYER(gPlayState);
+        if (gPlayState->csCtx.state == CS_STATE_IDLE) {
+            csOrphanFrames = 0;
+            // Link frozen by a boss csAction whose actor is dead, with csCtx already idle.
+            if (player != NULL && player->csAction != 0 && player->csAction != 7 && player->csActor != NULL &&
+                player->csActor->update == NULL) {
+                if (++csFrozenFrames >= 20) {
+                    csFrozenFrames = 0;
+                    ReleaseOrphanedCutscene("player csActor gone");
+                }
+            } else {
+                csFrozenFrames = 0;
+            }
+            return;
+        }
+        csFrozenFrames = 0;
+
+        if (CutsceneOwnerAlive()) {
+            csOrphanFrames = 0;
+            return;
+        }
+
+        // Master reported its cutscene over within the last 2 s and we have no owner: release at once.
+        bool masterIdleRecent = csMasterIdleScene == (s16)gPlayState->sceneNum &&
+                                (u32)(gPlayState->state.frames - csMasterIdleFrame) < 40;
+        if (masterIdleRecent || ++csOrphanFrames >= 20) {
+            csOrphanFrames = 0;
+            ReleaseOrphanedCutscene(masterIdleRecent ? "master idle latch" : "owner actor gone");
+        }
     });
     // #endregion
 

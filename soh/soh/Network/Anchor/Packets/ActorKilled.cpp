@@ -85,6 +85,10 @@ void Anchor::HandlePacket_ActorKilled(nlohmann::json payload) {
                     // drop state, even if EnemyPositionUpdate already set it to 0.
                     actor->colChkInfo.health = 0;
                 }
+                if (gPlayState->csCtx.state != CS_STATE_IDLE && gSaveContext.cutsceneIndex < 0xFFF0 &&
+                    gPlayState->sceneNum != SCENE_FOREST_TEMPLE_BOSS && actor->category == ACTORCAT_BOSS) {
+                    ReleaseOrphanedCutscene("boss killed mid-cs");
+                }
                 Actor_Kill(actor);
 
                 // For boss actors: the game-native death sequence (which runs on the

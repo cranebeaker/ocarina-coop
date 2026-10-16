@@ -330,6 +330,11 @@ class Anchor : public Network {
     void StartEponaExchange(const PendingExchangeItem& item);
     void FlushPhysicalFlagQueue();
     void SendPacket_TriggerCutscene(u8 csState);
+    bool CutsceneOwnerAlive();
+    void ReleaseOrphanedCutscene(const char* reason);
+    // Frame/scene of the last CS_STATE_IDLE release received from the master.
+    u32 csMasterIdleFrame = 0;
+    s16 csMasterIdleScene = -1;
     void HandlePacket_TriggerCutscene(nlohmann::json payload);
     void SendPacket_BgKeyframeSync(const Actor* actor);
     void HandlePacket_BgKeyframeSync(nlohmann::json payload);
