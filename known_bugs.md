@@ -272,3 +272,9 @@ unverändert bei.
 ## Workflow: Dodongo's Cavern Bomben-Sync (nur aus Code abgeleitet, nicht live getestet)
 - Neu: BG_SPOT16_BOMBSTONE (Flag -> AC_HIT), BG_DDAN_KD (ROOM_EVENT DDAN_KD_LOWER startet Animation, Flag-Fallback snappt Treppe), BG_DODOAGO (ROOM_EVENT DODOAGO_EYE teilt Augen-Zustand roomCtx.unk_74, Flag oeffnet Kiefer). Behebt Deadlock "A links, B rechts".
 - Offen: Augen-Zustand bei Late-Join nicht wiederhergestellt; Bombenblumen-Explosion selbst (EN_BOMBF/EN_BOM) weiter nur lokal (bewusst, kein AT-Collider-Sync). Braucht syncItemsAndFlags.
+
+## Workflow: Boss-Todessequenz (Hit-Callback-only)
+
+- Problem: BOSS_DEATH_COMMIT fand den Boss nie (Adapter-Keys haben 11 Felder inkl. category, GetActorKey 10 Felder), der Gohma-Fix war damit toter Code. Zusaetzlich laeuft die Todessequenz von Gohma/Phantom-Ganon/Bongo/Twinrova nur im Hit-Callback, den Clients nie ausfuehren.
+- Fix: Master sendet ueber den OnBossDefeat-Hook das Room-Event BOSS_DEFEAT_START; Clients rufen `Boss*_NetworkForceDefeat` (Kopie des Hit-Callback-Endes) fuer Goma, Ganondrof (real), Sst (Kopf), Tw (Twinrova). ACTOR_KILLED fuer einen Boss in der Sequenz wird zurueckgestellt (deferredBossKills, Hard-Kill nach 2400 Frames). Master-Overkill durch Client-Schlag startet die native Sequenz statt Actor_Kill. BOSS_DEATH_COMMIT ist nur noch HP, BOSS_SUBACTOR_KILL nutzt beide Key-Formate (Mini-Bosse ausgenommen).
+- Nicht behandelt: Barinade, Volvagia, Morpha, King Dodongo, Ganondorf, Ganon2 (Roh-Offset-Bugs in KingDodongo/Ganon2/Twinrova-Adaptern bleiben). Nicht live getestet.

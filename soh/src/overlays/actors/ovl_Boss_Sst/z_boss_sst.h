@@ -60,4 +60,6 @@ typedef enum {
     /*  1 */ BONGO_RIGHT_HAND
 } BossSstType;
 
+s32 BossSst_NetworkForceDefeat(BossSst* boss, PlayState* play);
+
 #endif

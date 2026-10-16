@@ -11,6 +11,9 @@ extern "C" {
 #include "src/overlays/actors/ovl_En_Ru1/z_en_ru1.h"
 #include "src/overlays/actors/ovl_Bg_Ydan_Sp/z_bg_ydan_sp.h"
 #include "src/overlays/actors/ovl_Boss_Goma/z_boss_goma.h"
+#include "src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.h"
+#include "src/overlays/actors/ovl_Boss_Sst/z_boss_sst.h"
+#include "src/overlays/actors/ovl_Boss_Tw/z_boss_tw.h"
 #include "src/overlays/actors/ovl_Bg_Spot02_Objects/z_bg_spot02_objects.h"
 #include "src/overlays/actors/ovl_Obj_Timeblock/z_obj_timeblock.h"
 #include "src/overlays/actors/ovl_Bg_Ddan_Kd/z_bg_ddan_kd.h"
@@ -21,6 +24,21 @@ extern PlayState* gPlayState;
 namespace {
 bool IsBossSyncEventType(const std::string& eventType) {
     return eventType.rfind("BOSS_", 0) == 0;
+}
+
+// Boss adapters build their actor keys with an extra "category" field (11 fields), whereas
+// Anchor::GetActorKey has 10 fields and excludes category. Accept both formats.
+bool BossKeyMatches(const Actor* actor, s16 sceneNum, const std::string& key) {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "%d_%d_%d_%d_%d_%d_%d_%d_%d_%d", (int)sceneNum, (int)actor->id, (int)actor->room,
+             (int)actor->params, (int)actor->home.pos.x, (int)actor->home.pos.y, (int)actor->home.pos.z,
+             (int)actor->home.rot.x, (int)actor->home.rot.y, (int)actor->home.rot.z);
+    if (key == buf) return true;
+    snprintf(buf, sizeof(buf), "%d_%d_%d_%d_%d_%d_%d_%d_%d_%d_%d", (int)sceneNum, (int)actor->category,
+             (int)actor->id, (int)actor->room, (int)actor->params, (int)actor->home.pos.x,
+             (int)actor->home.pos.y, (int)actor->home.pos.z, (int)actor->home.rot.x, (int)actor->home.rot.y,
+             (int)actor->home.rot.z);
+    return key == buf;
 }
 }
 
@@ -558,33 +576,70 @@ void Anchor::HandlePacket_RoomEvent(nlohmann::json payload) {
         std::string bossActorKey = eventData.value("bossActorKey", eventKey);
         if (bossActorKey.empty()) return;
 
+        // HP only. The native death sequence is driven by BOSS_DEFEAT_START (adapter-originated
+        // commits can be spurious, so no cutscene is forced here).
         for (int cat : { ACTORCAT_BOSS, ACTORCAT_ENEMY }) {
             Actor* actor = gPlayState->actorCtx.actorLists[cat].head;
             while (actor != nullptr) {
-                if (GetActorKey(actor, gPlayState->sceneNum) == bossActorKey) {
+                if (BossKeyMatches(actor, gPlayState->sceneNum, bossActorKey)) {
                     if (actor->update != nullptr && actor->colChkInfo.health != 0) {
                         actor->colChkInfo.health = 0;
-                        // Some bosses only check for death inside their own on-hit
-                        // collision callback, never as a per-frame health poll.
-                        // Gohma is confirmed affected: a non-authority client never
-                        // lands the real killing blow locally (damage is forwarded
-                        // to the master for evaluation), so its local copy would
-                        // never notice hp==0 and just keeps running its normal AI
-                        // until the later ACTOR_KILLED packet force-removes it —
-                        // leaving battle music playing and skipping the warp/heart
-                        // spawn that only the native death sequence performs.
-                        // BossGoma_SetupDefeated is non-static (external linkage)
-                        // and self-contained, so it's safe to invoke directly here
-                        // to force the same local cinematic the master is playing.
-                        if (actor->id == ACTOR_BOSS_GOMA) {
-                            BossGoma_SetupDefeated((BossGoma*)actor, gPlayState);
-                        }
                     }
                     return;
                 }
                 actor = actor->next;
             }
         }
+
+    } else if (eventType == "BOSS_DEFEAT_START") {
+        // Master reports the boss entered its native death sequence. Force the same sequence
+        // locally (the hit callback never runs on a non-authority client).
+        if (IsRoomMaster()) return;
+        const std::string bossActorKey = eventData.value("bossActorKey", eventKey);
+        const int defeatActorId = eventData.value("defeatActorId", -1);
+        const int defeatParams = eventData.value("defeatParams", 0);
+        if (bossActorKey.empty() || defeatActorId < 0) return;
+
+        Actor* target = nullptr;
+        Actor* fallback = nullptr;
+        for (int cat : { ACTORCAT_BOSS, ACTORCAT_ENEMY }) {
+            for (Actor* a = gPlayState->actorCtx.actorLists[cat].head; a != nullptr; a = a->next) {
+                if (a->id != defeatActorId || a->update == nullptr) continue;
+                if (BossKeyMatches(a, gPlayState->sceneNum, bossActorKey)) { target = a; break; }
+                if (a->params == defeatParams && fallback == nullptr) fallback = a;
+            }
+            if (target) break;
+        }
+        if (target == nullptr) target = fallback;
+        if (target == nullptr) {
+            SPDLOG_WARN("[Anchor:BossSync] CLIENT: BOSS_DEFEAT_START actor not found | key={} id={}", bossActorKey,
+                        defeatActorId);
+            return;
+        }
+
+        s32 applied = 0;
+        switch (target->id) {
+            case ACTOR_BOSS_GOMA:
+                applied = BossGoma_NetworkForceDefeat((BossGoma*)target, gPlayState);
+                break;
+            case ACTOR_BOSS_GANONDROF:
+                applied = BossGanondrof_NetworkForceDefeat((BossGanondrof*)target, gPlayState);
+                break;
+            case ACTOR_BOSS_SST:
+                applied = BossSst_NetworkForceDefeat((BossSst*)target, gPlayState);
+                break;
+            case ACTOR_BOSS_TW:
+                applied = BossTw_NetworkForceDefeat((BossTw*)target, gPlayState);
+                break;
+            default:
+                break;
+        }
+        if (applied) {
+            // Register under the ACTOR_KILLED key so the later kill is deferred.
+            bossDefeatStartedKeys.insert(GetActorKey(target, gPlayState->sceneNum));
+        }
+        SPDLOG_INFO("[Anchor:BossSync] CLIENT: BOSS_DEFEAT_START | key={} id={} applied={}", bossActorKey,
+                    (int)target->id, (int)applied);
 
     } else if (eventType == "GND_PAINTING_SELECT") {
         // Force the SAME real/fake painting choice the master already rolled —
@@ -657,8 +712,9 @@ void Anchor::HandlePacket_RoomEvent(nlohmann::json payload) {
         for (int cat = 0; cat < ACTORCAT_MAX; ++cat) {
             Actor* actor = gPlayState->actorCtx.actorLists[cat].head;
             while (actor != nullptr) {
-                if (GetActorKey(actor, gPlayState->sceneNum) == targetActorKey) {
-                    if (actor->update != nullptr) {
+                if (BossKeyMatches(actor, gPlayState->sceneNum, targetActorKey)) {
+                    // Mini-bosses (Big Octo) keep their native death animation.
+                    if (actor->update != nullptr && !eventData.value("isMiniBoss", false)) {
                         Actor_Kill(actor);
                     }
                     return;

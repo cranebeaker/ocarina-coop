@@ -6,7 +6,12 @@ extern "C" {
 #include "variables.h"
 #include "functions.h"
 extern PlayState* gPlayState;
+#include "src/overlays/actors/ovl_Boss_Goma/z_boss_goma.h"
+#include "src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.h"
+#include "src/overlays/actors/ovl_Boss_Sst/z_boss_sst.h"
+#include "src/overlays/actors/ovl_Boss_Tw/z_boss_tw.h"
 }
+#include "soh/Enhancements/game-interactor/GameInteractor_Hooks.h"
 
 /**
  * PLAYER_ATTACK_ACTOR
@@ -91,6 +96,32 @@ void Anchor::HandlePacket_PlayerAttackActor(nlohmann::json payload) {
                 if (actor->colChkInfo.health == 0) {
                     SPDLOG_INFO("[Anchor:EnemySync] HOST: Overkill finalize | actorKey={} | pos=({:.1f},{:.1f},{:.1f})",
                                 actorKey, actor->world.pos.x, actor->world.pos.y, actor->world.pos.z);
+                    // Bosses: a client-dealt killing blow never runs the hit callback on the
+                    // master, so start the native death sequence instead of hard-killing.
+                    // The OnBossDefeat hook makes the master announce BOSS_DEFEAT_START.
+                    if (actor->category == ACTORCAT_BOSS) {
+                        s32 started = 0;
+                        switch (actor->id) {
+                            case ACTOR_BOSS_GOMA:
+                                started = BossGoma_NetworkForceDefeat((BossGoma*)actor, gPlayState);
+                                break;
+                            case ACTOR_BOSS_GANONDROF:
+                                started = BossGanondrof_NetworkForceDefeat((BossGanondrof*)actor, gPlayState);
+                                break;
+                            case ACTOR_BOSS_SST:
+                                started = BossSst_NetworkForceDefeat((BossSst*)actor, gPlayState);
+                                break;
+                            case ACTOR_BOSS_TW:
+                                started = BossTw_NetworkForceDefeat((BossTw*)actor, gPlayState);
+                                break;
+                            default:
+                                break;
+                        }
+                        if (started) {
+                            GameInteractor_ExecuteOnBossDefeat(actor);
+                            return;
+                        }
+                    }
                     ApplyNativeEnemyDeathSideEffects(actor);
                     Actor_Kill(actor);
                 }

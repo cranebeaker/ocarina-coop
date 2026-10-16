@@ -395,6 +395,60 @@ void Anchor::RegisterHooks() {
         }
     });
 
+    // Boss death sequence sync: the master announces that a boss entered its native death sequence
+    // (fired from the boss hit callback). Clients force the same sequence (see RoomEvent.cpp).
+    COND_HOOK(OnBossDefeat, isConnected, [&](void* refActor) {
+        Actor* boss = static_cast<Actor*>(refActor);
+        if (boss == nullptr || !IsSaveLoaded() || !gPlayState || !roomState.syncEnemies || !IsRoomMaster()) return;
+        switch (boss->id) {
+            case ACTOR_BOSS_GOMA:
+            case ACTOR_BOSS_GANONDROF:
+            case ACTOR_BOSS_SST:
+            case ACTOR_BOSS_TW:
+                break;
+            default:
+                return;
+        }
+        const std::string key = GetActorKey(boss, gPlayState->sceneNum);
+        if (!bossDefeatStartedKeys.insert(key).second) return;
+        const uint32_t frames = gPlayState->state.frames;
+        SPDLOG_INFO("[Anchor:BossSync] HOST: BOSS_DEFEAT_START | key={} | id={}", key, (int)boss->id);
+        SendPacket_RoomEvent("BOSS_DEFEAT_START", key,
+                             { { "bossActorKey", key },
+                               { "defeatActorId", (int)boss->id },
+                               { "defeatParams", (int)boss->params },
+                               { "seq", frames },
+                               { "masterFrame", frames } },
+                             false);
+    });
+
+    // Client side: remove deferred boss kills once the boss finished its own death sequence,
+    // or hard-kill it when the deadline passes (safety net).
+    COND_HOOK(OnGameFrameUpdate, isConnected, [&]() {
+        if (deferredBossKills.empty() || !IsSaveLoaded() || !gPlayState || IsEnemyAuthority()) return;
+        const uint32_t frames = gPlayState->state.frames;
+        for (auto it = deferredBossKills.begin(); it != deferredBossKills.end();) {
+            Actor* found = nullptr;
+            for (Actor* a = gPlayState->actorCtx.actorLists[ACTORCAT_BOSS].head; a != nullptr; a = a->next) {
+                if (a->update != nullptr && GetActorKey(a, gPlayState->sceneNum) == it->first) {
+                    found = a;
+                    break;
+                }
+            }
+            if (found == nullptr) {
+                it = deferredBossKills.erase(it);
+            } else if (frames >= it->second) {
+                found->colChkInfo.health = 0;
+                applyingRemoteKill = true;
+                Actor_Kill(found);
+                applyingRemoteKill = false;
+                it = deferredBossKills.erase(it);
+            } else {
+                ++it;
+            }
+        }
+    });
+
     COND_HOOK(OnItemReceive, isConnected, [&](GetItemEntry itemEntry) {
         // Handle vanilla dungeon items a bit differently
         if (itemEntry.modIndex == MOD_NONE &&
@@ -1011,6 +1065,8 @@ void Anchor::RegisterHooks() {
         // Phase 6a: processed room events are scene-scoped — clear on every scene change
         // so the same event can fire fresh when the room is re-entered.
         processedRoomEvents.clear();
+        bossDefeatStartedKeys.clear();
+        deferredBossKills.clear();
         puzzleSwitchStateByKey.clear();
         announcedPuzzleSwitchSolveByKey.clear();
         lastBossEventSeqByKey.clear();

@@ -5470,3 +5470,16 @@ void BossTw_Reset(void) {
     sTwInitalized = false;
     memset(sTwEffects, 0, sizeof(sTwEffects));
 }
+
+// Co-op (Anchor): runs the tail of the hit callback on a non-authority client. Returns 1 if applied.
+s32 BossTw_NetworkForceDefeat(BossTw* this, PlayState* play) {
+    if (this == NULL || this->actor.update == NULL || this != sTwinrovaPtr ||
+        this->actionFunc == BossTw_TwinrovaDeathCS) {
+        return 0;
+    }
+    this->actor.colChkInfo.health = 0;
+    BossTw_TwinrovaSetupDeathCS(this, play);
+    Enemy_StartFinishingBlow(play, &this->actor);
+    Audio_PlayActorSound2(&this->actor, NA_SE_EN_TWINROBA_YOUNG_DEAD);
+    return 1;
+}

@@ -1493,3 +1493,15 @@ void BossGanondrof_Draw(Actor* thisx, PlayState* play) {
     CLOSE_DISPS(play->state.gfxCtx);
     osSyncPrintf("DRAW END %d\n", this->actor.params);
 }
+
+// Co-op (Anchor): runs the tail of the hit callback on a non-authority client. Returns 1 if applied.
+s32 BossGanondrof_NetworkForceDefeat(BossGanondrof* this, PlayState* play) {
+    if (this == NULL || this->actor.update == NULL || this->actor.params != GND_REAL_BOSS ||
+        this->actionFunc == BossGanondrof_Death) {
+        return 0;
+    }
+    this->actor.colChkInfo.health = 0;
+    BossGanondrof_SetupDeath(this, play);
+    Enemy_StartFinishingBlow(play, &this->actor);
+    return 1;
+}

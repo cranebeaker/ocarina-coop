@@ -177,4 +177,6 @@ typedef struct BossTw {
     /* 0x06B0 */ f32 subCamYawStep;
 } BossTw; // size = 0x06B4
 
+s32 BossTw_NetworkForceDefeat(BossTw* boss, PlayState* play);
+
 #endif

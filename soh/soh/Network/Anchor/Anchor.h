@@ -274,6 +274,13 @@ class Anchor : public Network {
     // (OnSceneInit) so events fire fresh when the same room is re-entered.
     std::unordered_set<std::string> processedRoomEvents;
 
+    // Boss death sync (BOSS_DEFEAT_START): GetActorKey of bosses whose native death sequence was
+    // started (master: hook fired, client: forced via NetworkForceDefeat). Cleared on scene init.
+    std::unordered_set<std::string> bossDefeatStartedKeys;
+    // Client side: ACTOR_KILLED for a boss in its death sequence is deferred so the sequence can
+    // finish (heart container, warp, camera release). Value = frame deadline for a hard kill.
+    std::unordered_map<std::string, uint32_t> deferredBossKills;
+
     // Link-movable puzzle switch sync:
     // Tracks local per-room switch state transitions for push-block style
     // puzzles and ensures we only broadcast a solve event once per room+switch.

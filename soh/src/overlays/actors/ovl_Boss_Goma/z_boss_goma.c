@@ -2190,3 +2190,14 @@ void BossGoma_SpawnChildGohma(BossGoma* this, PlayState* play, s16 i) {
 
     this->childrenGohmaState[i] = 1;
 }
+
+// Co-op (Anchor): runs the tail of the hit callback on a non-authority client. Returns 1 if applied.
+s32 BossGoma_NetworkForceDefeat(BossGoma* this, PlayState* play) {
+    if (this == NULL || this->actor.update == NULL || this->actionFunc == BossGoma_Defeated) {
+        return 0;
+    }
+    this->actor.colChkInfo.health = 0;
+    BossGoma_SetupDefeated(this, play);
+    Enemy_StartFinishingBlow(play, &this->actor);
+    return 1;
+}

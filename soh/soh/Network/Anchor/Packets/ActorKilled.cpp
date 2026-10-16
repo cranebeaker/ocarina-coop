@@ -118,6 +118,20 @@ void Anchor::HandlePacket_ActorKilled(nlohmann::json payload) {
                     // drop state, even if EnemyPositionUpdate already set it to 0.
                     actor->colChkInfo.health = 0;
                 }
+                // Boss already running its forced native death sequence (BOSS_DEFEAT_START):
+                // do not cut it short. The sequence spawns the heart container / warp at its end.
+                // A frame deadline in HookHandlers hard-kills it if it never finishes.
+                if (actor->category == ACTORCAT_BOSS && bossDefeatStartedKeys.count(actorKey) &&
+                    actor->update != nullptr) {
+                    const s32 bossRoom = (actor->room >= 0) ? actor->room
+                                                            : (s32)gPlayState->roomCtx.curRoom.num;
+                    Flags_SetTempClear(gPlayState, bossRoom);
+                    Flags_SetClear(gPlayState, bossRoom);
+                    deferredBossKills[actorKey] = gPlayState->state.frames + 2400;
+                    SPDLOG_INFO("[Anchor:ActorSync] CLIENT: ACTOR_KILLED deferred (boss death sequence running) | actorKey={}",
+                                actorKey);
+                    return;
+                }
                 if (gPlayState->csCtx.state != CS_STATE_IDLE && gSaveContext.cutsceneIndex < 0xFFF0 &&
                     gPlayState->sceneNum != SCENE_FOREST_TEMPLE_BOSS && actor->category == ACTORCAT_BOSS) {
                     ReleaseOrphanedCutscene("boss killed mid-cs");

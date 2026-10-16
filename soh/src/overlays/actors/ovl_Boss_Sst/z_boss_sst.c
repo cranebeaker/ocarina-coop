@@ -3302,3 +3302,16 @@ void BossSst_Reset(void) {
     sStaticColor.g = 0;
     sStaticColor.b = 0;
 }
+
+// Co-op (Anchor): runs the tail of the hit callback on a non-authority client. Returns 1 if applied.
+s32 BossSst_NetworkForceDefeat(BossSst* this, PlayState* play) {
+    if (this == NULL || this->actor.update == NULL || this != sHead || sHands[LEFT] == NULL ||
+        sHands[RIGHT] == NULL || this->actionFunc == BossSst_HeadDeath || this->actionFunc == BossSst_HeadMelt ||
+        this->actionFunc == BossSst_HeadFinish) {
+        return 0;
+    }
+    this->actor.colChkInfo.health = 0;
+    Enemy_StartFinishingBlow(play, &this->actor);
+    BossSst_HeadSetupDeath(this, play);
+    return 1;
+}

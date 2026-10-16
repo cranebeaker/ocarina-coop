@@ -118,4 +118,6 @@ typedef struct BossGanondrof {
     /* 0x052C */ ColliderCylinder colliderSpear;
 } BossGanondrof; // size = 0x0578
 
+s32 BossGanondrof_NetworkForceDefeat(BossGanondrof* boss, PlayState* play);
+
 #endif

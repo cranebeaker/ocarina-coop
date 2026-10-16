@@ -155,4 +155,6 @@ typedef struct BossGoma {
 
 void BossGoma_SetupDefeated(BossGoma* boss, PlayState* play);
 
+s32 BossGoma_NetworkForceDefeat(BossGoma* boss, PlayState* play);
+
 #endif
