@@ -1446,6 +1446,13 @@ void Anchor::RegisterHooks() {
         EraseStableActorKey(static_cast<Actor*>(actorRef));
     });
 
+    // Room-unload sweeps (func_80031B14 kills every actor of the old room after a room
+    // change) are not real kills: ignore actors that belong to neither loaded room.
+    auto IsRoomUnloadKill = [](const Actor* a) {
+        if (!gPlayState || a->room < 0) return false;
+        return a->room != (s8)gPlayState->roomCtx.curRoom.num && a->room != (s8)gPlayState->roomCtx.prevRoom.num;
+    };
+
     // Authority: broadcast enemy deaths so all clients can kill their local copy.
     // Also track any collectibles that spawned in the same frame via recentCollectibleSpawns.
     COND_ID_HOOK(OnActorSpawn, ACTOR_EN_ITEM00, isConnected, [&](void* actorRef) {
@@ -1508,6 +1515,7 @@ void Anchor::RegisterHooks() {
         if (!roomState.syncEnemies) return;
 
         Actor* actor = (Actor*)actorRef;
+        if (IsRoomUnloadKill(actor)) return;
         std::string key = GetActorKey(actor, gPlayState->sceneNum);
         // Allow through actors whose CURRENT category is no longer ENEMY/BOSS if
         // we previously tracked them as one (trackedEnemyHealth keyed by the same
@@ -1561,6 +1569,7 @@ void Anchor::RegisterHooks() {
         // copy from that packet.  Sending ROOM_KILL_SYNC from the client for a
         // boss creates a "already dead" flood loop on the authority — skip it.
         if (actor->category != ACTORCAT_ENEMY) return;
+        if (IsRoomUnloadKill(actor)) return;
 
         std::string actorKey = GetActorKey(actor, gPlayState->sceneNum);
         std::string roomKey = std::to_string(gPlayState->sceneNum) + "_" +

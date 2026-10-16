@@ -62,7 +62,7 @@ bool Anchor::IsOwnerInSameRoom() const {
 
     for (auto& [id, client] : clients) {
         if (id != masterClientId) continue;
-        bool masterHere = client.sceneNum == myScene && client.curRoomNum == myRoom;
+        bool masterHere = client.online && client.isSaveLoaded && client.sceneNum == myScene && client.curRoomNum == myRoom;
         if (masterHere) {
             SPDLOG_DEBUG("[Anchor:EnemySync] CLIENT: IsOwnerInSameRoom=true | scene=0x{:02x} room={} | masterScene=0x{:02x} masterRoom={}",
                          myScene, myRoom, client.sceneNum, client.curRoomNum);

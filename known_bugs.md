@@ -278,3 +278,12 @@ unverändert bei.
 - Problem: BOSS_DEATH_COMMIT fand den Boss nie (Adapter-Keys haben 11 Felder inkl. category, GetActorKey 10 Felder), der Gohma-Fix war damit toter Code. Zusaetzlich laeuft die Todessequenz von Gohma/Phantom-Ganon/Bongo/Twinrova nur im Hit-Callback, den Clients nie ausfuehren.
 - Fix: Master sendet ueber den OnBossDefeat-Hook das Room-Event BOSS_DEFEAT_START; Clients rufen `Boss*_NetworkForceDefeat` (Kopie des Hit-Callback-Endes) fuer Goma, Ganondrof (real), Sst (Kopf), Tw (Twinrova). ACTOR_KILLED fuer einen Boss in der Sequenz wird zurueckgestellt (deferredBossKills, Hard-Kill nach 2400 Frames). Master-Overkill durch Client-Schlag startet die native Sequenz statt Actor_Kill. BOSS_DEATH_COMMIT ist nur noch HP, BOSS_SUBACTOR_KILL nutzt beide Key-Formate (Mini-Bosse ausgenommen).
 - Nicht behandelt: Barinade, Volvagia, Morpha, King Dodongo, Ganondorf, Ganon2 (Roh-Offset-Bugs in KingDodongo/Ganon2/Twinrova-Adaptern bleiben). Nicht live getestet.
+
+## Workflow ocarina-wf: Deku-Tree-Gegner unsynchron / unkillbar
+
+- Raumwechsel-Unload (func_80031B14 killt alle Actors des alten Raums) wurde als echter Kill gewertet (ACTOR_KILLED-Broadcast bzw. endlos erneut gesendete pendingRoomKills). OnActorKill-Hooks (Authority + Client) ignorieren jetzt Actors, deren Raum weder curRoom noch prevRoom ist.
+- GetActorKey: EN_FIREFLY (Keese) aendert params zur Laufzeit (Fackel-Entzuendung); Key nutzt nur noch das Perch-Bit (params & 1), damit Kill/HP/Position-Pakete weiter matchen.
+- ROOM_KILL_SYNC-Fallback: Radius 200 -> 16 und nur lebende Actors (update != null); verhindert Massaker an gleichartigen Nachbarn.
+- IsOwnerInSameRoom: Master muss online + save-geladen sein, sonst wird Schaden lokal angewendet (kein unsterblicher Gegner).
+- Bereits vorhanden (kein Eingriff): applyingRemoteKill-Guard gegen Kill-Echo, Owner-Raum-Pruefung im Schaden-Intercept.
+- Offen: Listen-Index-basierte Keys, Self-Heal fuer verlorene Kills, Retry-Cap fuer pendingRoomKills. Nicht live getestet.

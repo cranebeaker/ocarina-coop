@@ -53,7 +53,7 @@ Actor* FindClosestActorOfTypeInRoom(s16 sceneNum, s8 roomNum, s16 actorId, const
     for (int cat : { ACTORCAT_ENEMY, ACTORCAT_BOSS }) {
         Actor* actor = gPlayState->actorCtx.actorLists[cat].head;
         while (actor != nullptr) {
-            if (actor->id != actorId || actor->room != roomNum) {
+            if (actor->id != actorId || actor->room != roomNum || actor->update == nullptr) {
                 actor = actor->next;
                 continue;
             }
@@ -208,7 +208,7 @@ void Anchor::HandlePacket_RoomKillSync(nlohmann::json payload) {
         // if the exact key is gone/drifted but we know the actor type and spawn area,
         // take the nearest matching actor in the same room.
         if (!found && target.actorId >= 0 && target.hasApproxPos) {
-            matchedActor = FindClosestActorOfTypeInRoom(sceneNum, roomNum, target.actorId, target.approxPos, 200.0f);
+            matchedActor = FindClosestActorOfTypeInRoom(sceneNum, roomNum, target.actorId, target.approxPos, 16.0f);
             if (matchedActor != nullptr) {
                 found = true;
                 usedFallback = true;
