@@ -1,162 +1,100 @@
+# Ocarina of Time co-op: the whole game, synced
 
-🇩🇪 [Deutsche Version / German version](README_DE.md)
+Play **The Legend of Zelda: Ocarina of Time** together on PC, start to finish, in the same
+world. Enemies, bosses, switches, puzzles, cutscenes and day and night are shared, not just
+items.
 
----.
+This is a fork of **Shipwright-Online** by fReEsPiRiT-Spiritsoft, which itself builds on
+**Ship of Harkinian** (the PC port by HarbourMasters) and its **Anchor** multiplayer layer.
+Shipwright-Online added host-authority sync (one player's game runs the enemies and bosses,
+everyone else follows). This repo fixes the co-op bugs it still had and extends sync to the
+rest of the game.
 
-## Ship of Harkinian — This Fork: Fully Synchronized Co‑op / MMO Experience
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cranebeaker)
 
-This is a fork of Ship of Harkinian with the goal of implementing a host-authority server/client architecture that fully synchronizes enemy, world, and boss state so the game feels like a modern MMO-style co-op experience.
+## Play in three steps
 
-- Original project: https://github.com/HarbourMasters/Shipwright
-- This fork builds on that base and adds extensive network synchronization systems for deterministic multiplayer gameplay.
-- Core focus: host-authority room logic, actor state syncing, boss transitions, item progression, and shared world events across connected clients.
+You need your **own** Ocarina of Time N64 ROM (see "About the ROM" below). Nothing from the
+game is included here.
 
----
+1. Download the latest `OoT-Coop-<version>.zip` from [Releases](../../releases) and unzip it
+   anywhere.
+2. Double-click **Play Co-op.bat**. The first time, it asks for your name and a room code,
+   then the game asks you to pick your ROM file and builds its game data from it (this takes
+   a few minutes, once).
+3. Everyone who types the **same room code** is in the same world. Start or load a file and
+   play.
 
-<a href="features.md">
-  <img src="https://img.shields.io/badge/All%20Features-features.md-orange?style=for-the-badge&logo=readme" alt="All Features">
-</a>
+It connects through the public Anchor server (`anchor.hm64.org`), so there are no IP
+addresses or port forwarding. No release is up yet; the first one comes after testing.
 
-### 📥 Downloads
+### About the ROM
 
-<a href="https://github.com/fReEsPiRiT-Spiritsoft/Shipwright-Online/releases">
-  <img src="https://img.shields.io/badge/DOWNLOADS-darkgray?style=for-the-badge" alt="Downloads">
-</a>
+- Use the **NTSC 1.0 (US)** version as a `.z64` file. All players should use the same
+  version. Other supported versions are listed in
+  [docs/supportedHashes.json](docs/supportedHashes.json).
+- You can check your file at https://ship.equipment/.
+- Dump it from a cartridge or disc you own. We do not condone piracy, and no ROM, game asset
+  or Nintendo file is in this repo or its releases.
 
-This project aims to turn SoH into a server/client multiplayer version with fully synchronized co-op progression and shared gameplay state.
+## Status
 
-# Features Added (Host-Authority Co-op Prototype)
+**Early beta.** Every fix here was made by reading the game and network code and is checked
+to compile. **Not yet proven:** a real playthrough by two people on separate PCs. Treat
+every dungeon after the Deku Tree as untested until someone reports back. Reports are
+welcome in [Issues](../../issues).
 
-This fork implements a host-authority multiplayer architecture designed for enemy and world synchronization during co-op and randomizer play.
+Fixed so far (details and root causes in [known_bugs.md](known_bugs.md)):
 
-### Core Synchronization & Combat Mechanics
-* **Host-Authority Enemy Sync:** Forces the freeze flag on all client-side actors (`actor->flags |= ACTOR_FLAG_27` / `Actor_SetFreezeFlags`) when players are in the same room. This prevents physics desyncs and rubberbanding by streaming `world.pos`, `world.rot.y`, and `skelAnime` states directly from the host.
-* **Client-to-Host Damage Routing:** Hooks into the collision engine (`acHit` / `ColliderCylinder`) to intercept client-side weapon hits. The local damage calculation is intercepted on the client and forwarded via network packets to the host. The host evaluates the hit using native engine routines and triggers the synced death sequence.
-* **Dynamic Aggro Spoofing:** Evaluates distances (`Math3D_Vec3fDistSq`) on the host between enemies and both players. If the client is closer, the enemy AI targeting pointer is swapped to the client dummy, forcing enemies to track and attack the client.
-* **Configurable Enemy Sync Radius:** The host can define a world-unit radius within which enemy positions and animations are broadcast. Outside this radius, the client runs its own local AI without network traffic. Radius and tick rate (5 / 10 / 20 Hz) are configurable live from the admin panel.
-* **Configurable Enemy Sync Tick Rate:** Enemy position and animation data can be throttled to 5 Hz (every 4th frame), 10 Hz (every 2nd frame), or 20 Hz (every frame) to trade smoothness against bandwidth.
+- Eye, floor and crystal switches now update on every player's screen.
+- Cutscenes started by an NPC or object no longer leave one player stuck.
+- Day and night state is shared, so night enemies match.
+- Water levels (Deku Tree, Lake Hylia, Water Temple) stay in step.
 
-### Dynamic World & Progression Logic
-* **Dynamic Room Switching:** Pauses network actor syncing when players separate into different scenes or rooms. Client-side freeze flags are lifted immediately so each client can continue local gameplay without memory or nullpointer crashes.
-* **State Merging & Re-Entry Catch-Up:** When players rejoin in the same area, the engine tracks who entered first. If the client cleared out enemies while exploring alone, a death list packet triggers `Actor_Kill` on the corresponding IDs on the host before host-authority sync resumes.
-* **Out-of-Radius Kill Persistence:** Enemy kills made by a non-authority player outside the sync radius (or while the authority was in a different room) are queued locally and forwarded the moment the authority enters the same room, so no cleared room can ever reset on the other player's screen.
-* **Physical Item Exchange Mode:** When enabled from the admin panel, received items and scene flags are buffered instead of applied instantly. Items are only handed to the receiving player once both players are within roughly one meter of each other. The handover triggers the native hold-item-above-head animation and a localized in-game textbox: *"You received [Item] from [Name]!"*
+In progress: boss death sequences for every boss, King Dodongo's attacks, Deku Tree enemies,
+Dodongos that get stuck fleeing, bombable walls and bomb flowers, and the gaps found in
+sweeps of the later dungeons and Ganon's Castle.
 
-### Environment & Global State
-* **Cross-Zone Day/Time Synchronization:** Synchronizes the global time state (`gSaveContext.dayTime`) across the network, enforcing the host as the primary timekeeper.
-* **Global Time-Lock Feature:** Checks `sceneNum` for both players. If either the host or the client enters an area where time naturally stops (for example Kakariko Village, Market, or dungeons), the time counter freezes globally for both players, even if the other player is currently in Hyrule Field.
+## Known issues
 
-## Website
+- Scripted cutscenes (for example the first time you enter an area) can still leave one
+  player waiting. Teleporting to the host from the network menu unsticks it.
+- More open items are listed in [known_bugs.md](known_bugs.md).
 
-Official Website: https://www.shipofharkinian.com/
+## How it works
 
-## Discord
+- Every player runs the full game. The Anchor server relays packets between players in the
+  same room; it does not run any game logic.
+- For each room, one player is the "roommaster". Their game runs enemy AI and bosses and
+  streams positions, animations and boss state to the others. Hits by other players are sent
+  to the roommaster, who applies the damage.
+- Switch, chest and clear flags sync both ways, and one-off world events (bombed walls,
+  water levels, boss deaths) are sent as room events that every player applies once.
+- The co-op code lives in `soh/soh/Network/Anchor/`.
 
-Official Discord: https://discord.com/invite/shipofharkinian
+## Building
 
-If you're having any trouble after reading through this `README`, feel free to ask for help in the Support text channels. Please keep in mind that we do not condone piracy.
+See [docs/BUILDING.md](docs/BUILDING.md) (Windows: Visual Studio 2022 with the v143 tools,
+CMake, Python 3). If `CMAKE_TOOLCHAIN_FILE` is set in your environment for another platform,
+unset it before configuring.
 
-# Quick Start
+## Part of coop-anything
 
-The Ship does not include any copyrighted assets.  You are required to provide a supported copy of the game.
+This is one entry in [coop-anything](https://github.com/cranebeaker/coop-anything), a
+community playbook and directory for adding co-op to single-player classics.
 
-### 1. Verify your ROM dump
-You can verify you have dumped a supported copy of the game by using the compatibility checker at https://ship.equipment/. If you'd prefer to manually validate your ROM dump, you can cross-reference its `sha1` hash with the hashes [here](docs/supportedHashes.json).
+## Credits
 
-### 2. Download The Ship of Harkinian from [Releases](https://github.com/HarbourMasters/Shipwright/releases)
+- **Ship of Harkinian** by HarbourMasters: https://github.com/HarbourMasters/Shipwright
+- **Anchor** by garrettjoecox: https://github.com/garrettjoecox/anchor
+- **Shipwright-Online** by fReEsPiRiT-Spiritsoft:
+  https://github.com/fReEsPiRiT-Spiritsoft/Shipwright-Online (its original README is kept as
+  [README_SHIPWRIGHT_ONLINE.md](README_SHIPWRIGHT_ONLINE.md))
+- The OoT decompilation project (zeldaret).
+- The Legend of Zelda: Ocarina of Time is the property of Nintendo. This project is not
+  affiliated with or endorsed by Nintendo.
 
-### 3. Launch the Game!
-#### Windows
-* Extract the zip
-* Launch `soh.exe`
+## License
 
-#### Linux
-* Place your supported copy of the game in the same folder as the appimage.
-* Execute `soh.appimage`.  You may have to `chmod +x` the appimage via terminal.
-
-#### macOS
-* Run `soh.app`. When prompted, select your supported copy of the game.
-* You should see a notification saying `Processing OTR`, then, once the process is complete, you should get a notification saying `OTR Successfully Generated`, then the game should start.
-
-#### Nintendo Switch
-* Run one of the PC releases to generate an `oot.o2r` and/or `oot-mq.o2r` file. After launching the game on PC, you will be able to find these files in the same directory as `soh.exe` or `soh.appimage`. On macOS, these files can be found in `/Users/<username>/Library/Application Support/com.shipofharkinian.soh/`
-* Copy the files to your sd card
-```
-sdcard
-└── switch
-    └── soh
-        ├── oot-mq.o2r
-        ├── oot.o2r
-        ├── soh.nro
-        └── soh.o2r
-```
-* Launch via Atmosphere's `Game+R` launcher method.
-
-### 4. Play!
-
-Congratulations, you are now sailing with the Ship of Harkinian! Have fun!
-
-# Configuration
-
-### Default keyboard configuration
-| N64 | A | B | Z | Start | Analog stick | C buttons | D-Pad |
-| - | - | - | - | - | - | - | - |
-| Keyboard | X | C | Z | Space | WASD | Arrow keys | TFGH |
-
-### Other shortcuts
-| Keys | Action |
-| - | - |
-| ESC | Toggle menu |
-| F2 | Toggle capture mouse input |
-| F5 | Save state |
-| F6 | Change state |
-| F7 | Load state |
-| F9 | Toggle Text-to-Speech (Windows and Mac only) |
-| F11 | Fullscreen |
-| Tab | Toggle Alternate assets |
-| Ctrl+R | Reset |
-
-# Project Overview
-Ship of Harkinian (SOH) is built atop a custom library dubbed libultraship (LUS). Back in the N64 days, there was an SDK distributed to developers named libultra; LUS is designed to mimic the functionality of libultra on modern hardware. In addition, we are dependant on the source code provided by the OOT decompilation project.
-
-In order for the game to function, you will require a **legally acquired** ROM for Ocarina of Time. Click [here](https://ship.equipment/) to check the compatibility of your specific rom. Any copyrighted assets are extracted from the ROM and reformatted as a .o2r archive file which the code uses.
-
-### Graphics Backends
-Currently, there are three rendering APIs supported: DirectX11 (Windows), OpenGL (all platforms), and Metal (MacOS). You can change which API to use in the `Settings` menu of the menubar, which requires a restart.  If you're having an issue with crashing, you can change the API in the `shipofharkinian.json` file by finding the line `gfxbackend:""` and changing the value to `sdl` for OpenGL. DirectX 11 is the default on Windows.
-
-# Custom Assets
-
-Custom assets are packed in `.otr` archive files. To use custom assets, place them in the `mods` folder.
-
-If you're interested in creating and/or packing your own custom asset `.otr` files, check out the following tools:
-* [**retro - OTR generator**](https://github.com/HarbourMasters64/retro)
-* [**fast64 - Blender plugin**](https://github.com/HarbourMasters/fast64)
-
-# Development
-### Building
-
-If you want to manually compile SoH, please consult the [building instructions](docs/BUILDING.md).
-
-### Playtesting
-If you want to playtest a continuous integration build, you can find them at the links below. Keep in mind that these are for playtesting only, and you will likely encounter bugs and possibly crashes. 
-
-* [Windows](https://nightly.link/HarbourMasters/Shipwright/workflows/generate-builds/develop/soh-windows.zip)
-* [macOS](https://nightly.link/HarbourMasters/Shipwright/workflows/generate-builds/develop/soh-mac.zip)
-* [Linux](https://nightly.link/HarbourMasters/Shipwright/workflows/generate-builds/develop/soh-linux.zip)
-
-### Further Reading
-More detailed documentation can be found in the 'docs' directory, including the aforementioned [building instructions](docs/BUILDING.md).
-
-* [Credits](docs/CREDITS.md)
-* [Custom Music](docs/CUSTOM_MUSIC.md)
-* [Controller Mapping](docs/GAME_CONTROLLER_DB.md)
-* [Modding](docs/MODDING.md)
-* [Versioning](docs/VERSIONING.md)
-
-<a href="https://github.com/Kenix3/libultraship/">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="./docs/poweredbylus.darkmode.png">
-    <img alt="Powered by libultraship" src="./docs/poweredbylus.lightmode.png">
-  </picture>
-</a>
-#
+Same as Ship of Harkinian, see [LICENSE](LICENSE) where present and the upstream repository.
+Game assets are not included and are never distributed.
