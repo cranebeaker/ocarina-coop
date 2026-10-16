@@ -345,6 +345,16 @@ class Anchor : public Network {
     void SetDummyPlayerClientId(const Actor* actor, uint32_t clientId);
 
     static std::string GetActorKey(const Actor* actor, s16 sceneNum);
+    // Baby Dodongo (EN_DODOJR) overwrites home.pos when it burrows, which would drift its key.
+    // The key computed at init is cached here and reused by GetActorKey.
+    static void CacheStableActorKey(const Actor* actor, s16 sceneNum);
+    static void EraseStableActorKey(const Actor* actor);
+    static void ClearStableActorKeys();
+    // Replays the native death side effects (shared overlay globals / clear flag) that
+    // Actor_Kill bypasses. Currently: Dodongo's Cavern Lizalfos miniboss pair (EN_ZF).
+    static void ApplyNativeEnemyDeathSideEffects(Actor* actor);
+    // True while a remote-originated Actor_Kill is being applied (suppresses re-queue/echo).
+    bool applyingRemoteKill = false;
 
     void HandlePacket_Ping(nlohmann::json payload);
     void HandlePacket_Pong(nlohmann::json payload);

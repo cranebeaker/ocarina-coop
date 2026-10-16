@@ -32,7 +32,35 @@ extern PlayState* gPlayState;
  * match the client's still-ACTORCAT_ENEMY local copy, leaving it alive forever.
  */
 
+static std::unordered_map<const Actor*, std::string> sStableActorKeys;
+
+static std::string BuildActorKey(const Actor* actor, s16 sceneNum) {
+    char buf[128];
+    snprintf(buf, sizeof(buf), "%d_%d_%d_%d_%d_%d_%d_%d_%d_%d",
+        (int)sceneNum, (int)actor->id, (int)actor->room, (int)actor->params,
+        (int)actor->home.pos.x, (int)actor->home.pos.y, (int)actor->home.pos.z,
+        (int)actor->home.rot.x, (int)actor->home.rot.y, (int)actor->home.rot.z);
+    return std::string(buf);
+}
+
+void Anchor::CacheStableActorKey(const Actor* actor, s16 sceneNum) {
+    if (actor == nullptr || actor->id != ACTOR_EN_DODOJR) return;
+    sStableActorKeys[actor] = BuildActorKey(actor, sceneNum);
+}
+
+void Anchor::EraseStableActorKey(const Actor* actor) {
+    sStableActorKeys.erase(actor);
+}
+
+void Anchor::ClearStableActorKeys() {
+    sStableActorKeys.clear();
+}
+
 std::string Anchor::GetActorKey(const Actor* actor, s16 sceneNum) {
+    if (actor->id == ACTOR_EN_DODOJR && !sStableActorKeys.empty()) {
+        auto it = sStableActorKeys.find(actor);
+        if (it != sStableActorKeys.end()) return it->second;
+    }
     char buf[128];
     snprintf(buf, sizeof(buf), "%d_%d_%d_%d_%d_%d_%d_%d_%d_%d",
         (int)sceneNum,

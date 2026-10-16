@@ -263,3 +263,8 @@ unverändert bei.
 - Fix: Host sendet BOSS_ACTION_STATE (actionFunc-Id, Ecke unk_1A0, Richtung unk_1A2; Queue, 1 Event/Frame). Follower rufen die originalen BossDodongo_SetupX auf. Neuer VB_BOSS_DODONGO_LOCAL_DECISION (nur Anchor-Follower = false) sperrt Walk-Exits, Walk-/Roll-Eckenwechsel, Inhale-Bomben-Check und Inhale-Unterbrechung. Reconcile (FollowerTick) nach >10 Frames Abweichung. BOSS_DEATH_COMMIT setzt health=0. Snapshot enthaelt Aktion/Ecke.
 - HP-Zugriff jetzt ueber BossDodongo-Struct statt festem Offset 0x194 (64-bit-Layout weicht ab).
 - Offen: Follower-Schwerttreffer erreichen den Host nicht (colChkInfo.health bei KD immer 0). Volvagia/Morpha/EnFhg nutzen weiter feste Offsets -> auditieren.
+
+## Workflow: Dodongo / Baby Dodongo / Lizalfos fliehen und sind unkillbar (coop-fixes)
+- Ursache (aus Code abgeleitet, nicht live getestet): Actor_Kill ueberspringt EnZf_SetupDie/EnZf_Die, daher bleiben die Overlay-Globals D_80B4A1B0/D_80B4A1B4 des Dodongo's-Cavern-Lizalfos-Minibosspaars falsch gesetzt (Ueberlebender immun, kein AC-Collider, clearFlag nie gesetzt). Baby Dodongo ueberschreibt home.pos beim Eingraben -> Actor-Key driftet.
+- Fix: Anchor::ApplyNativeEnemyDeathSideEffects (Overkill-Pfad, ACTOR_KILLED, ROOM_KILL_SYNC); stabiler Key-Cache fuer EN_DODOJR (OnActorInit/OnActorDestroy); applyingRemoteKill verhindert, dass ein Remote-Kill als lokaler Kill neu eingereiht wird (Endlos-ROOM_KILL_SYNC).
+- Nicht umgesetzt: synthetischer AC_HIT fuer native Todesanimation von EN_ZF/EN_DODONGO auf der Authority (zu riskant ohne Live-Test); Fallback-Verschaerfung in RoomKillSync.

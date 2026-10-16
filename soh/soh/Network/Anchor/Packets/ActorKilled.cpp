@@ -23,6 +23,39 @@ extern PlayState* gPlayState;
  * receive this packet and kill their local copy.
  */
 
+extern "C" {
+extern s16 D_80B4A1B0;
+extern s16 D_80B4A1B4;
+void func_800F5B58(void);
+}
+#include "overlays/actors/ovl_En_Zf/z_en_zf.h"
+
+void Anchor::ApplyNativeEnemyDeathSideEffects(Actor* actor) {
+    if (actor == nullptr || !gPlayState) return;
+    // Only live (not already dying/killed) miniboss Lizalfos. EnZf_Die moves the actor to
+    // ACTORCAT_PROP, and Actor_Kill nulls update, so both guard against double application.
+    if (actor->id != ACTOR_EN_ZF || actor->params < ENZF_TYPE_LIZALFOS_MINIBOSS_A) return;
+    if (actor->update == nullptr || actor->category != ACTORCAT_ENEMY) return;
+
+    // Mirrors EnZf_SetupDie + EnZf_Die (z_en_zf.c) without touching unk_3F4 (cosmetic).
+    const s16 before = D_80B4A1B4;
+    if (before != -1) {
+        Actor* partner = (actor->prev != nullptr) ? actor->prev : actor->next;
+        if (partner != nullptr && partner->colChkInfo.health < 3) {
+            partner->colChkInfo.health = 3;
+        }
+    }
+    D_80B4A1B0 = 0;
+    if (before == -1) {
+        Flags_SetSwitch(gPlayState, ((EnZf*)actor)->clearFlag);
+        func_800F5B58();
+    } else {
+        D_80B4A1B4 = -1;
+    }
+    SPDLOG_INFO("[Anchor:EnemySync] Lizalfos miniboss death side effects | params={} | D_80B4A1B4 {} -> {}",
+                (int)actor->params, (int)before, (int)D_80B4A1B4);
+}
+
 void Anchor::SendPacket_ActorKilled(const Actor* actor) {
     if (!IsSaveLoaded()) return;
 
@@ -89,7 +122,12 @@ void Anchor::HandlePacket_ActorKilled(nlohmann::json payload) {
                     gPlayState->sceneNum != SCENE_FOREST_TEMPLE_BOSS && actor->category == ACTORCAT_BOSS) {
                     ReleaseOrphanedCutscene("boss killed mid-cs");
                 }
-                Actor_Kill(actor);
+                ApplyNativeEnemyDeathSideEffects(actor);
+                {
+                    applyingRemoteKill = true;
+                    Actor_Kill(actor);
+                    applyingRemoteKill = false;
+                }
 
                 // For boss actors: the game-native death sequence (which runs on the
                 // master) normally calls Flags_SetTempClear / Flags_SetClear for the

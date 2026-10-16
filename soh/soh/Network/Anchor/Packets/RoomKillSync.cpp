@@ -224,7 +224,10 @@ void Anchor::HandlePacket_RoomKillSync(nlohmann::json payload) {
                 gPlayState->sceneNum != SCENE_FOREST_TEMPLE_BOSS && matchedActor->category == ACTORCAT_BOSS) {
                 ReleaseOrphanedCutscene("boss killed mid-cs");
             }
+            ApplyNativeEnemyDeathSideEffects(matchedActor);
+            applyingRemoteKill = true;
             Actor_Kill(matchedActor);
+            applyingRemoteKill = false;
             appliedKills++;
             if (usedFallback) {
                 SPDLOG_INFO("[Anchor:EnemySync] {}: ROOM_KILL_SYNC fallback matched | actorKey={} | actorId={} | room={}",

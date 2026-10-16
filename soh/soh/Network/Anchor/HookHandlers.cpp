@@ -960,6 +960,7 @@ void Anchor::RegisterHooks() {
         // Enemies respawn on every room entry, so per-scene kill lists are stale
         // after a scene transition.  Clear to avoid phantom kills on next visit.
         pendingRoomKills.clear();
+        ClearStableActorKeys();
         // The Epona proxy actor belongs to the unloaded scene — reset state machine.
         eponaExchange = {};
         // All phantom horse actors belong to the unloaded scene.  Their Actor*
@@ -1317,6 +1318,15 @@ void Anchor::RegisterHooks() {
         trackedNonAuthEnemyHealth[key] = actor->colChkInfo.health;
     });
 
+    // Baby Dodongo burrowing rewrites home.pos; remember the init-time key so sync stays stable.
+    COND_ID_HOOK(OnActorInit, ACTOR_EN_DODOJR, isConnected, [&](void* actorRef) {
+        if (!IsSaveLoaded()) return;
+        CacheStableActorKey(static_cast<Actor*>(actorRef), gPlayState->sceneNum);
+    });
+    COND_ID_HOOK(OnActorDestroy, ACTOR_EN_DODOJR, isConnected, [&](void* actorRef) {
+        EraseStableActorKey(static_cast<Actor*>(actorRef));
+    });
+
     // Authority: broadcast enemy deaths so all clients can kill their local copy.
     // Also track any collectibles that spawned in the same frame via recentCollectibleSpawns.
     COND_ID_HOOK(OnActorSpawn, ACTOR_EN_ITEM00, isConnected, [&](void* actorRef) {
@@ -1422,6 +1432,7 @@ void Anchor::RegisterHooks() {
     // queued and flushed when the authority next enters this room.
     COND_HOOK(OnActorKill, isConnected, [&](void* actorRef) {
         if (!IsSaveLoaded() || IsEnemyAuthority()) return;
+        if (applyingRemoteKill) return;
         if (!roomState.syncEnemies) return;
         if (!gPlayState) return;
 
