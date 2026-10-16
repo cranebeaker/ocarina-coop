@@ -253,6 +253,13 @@ float OTRGetDimensionFromRightEdge(float v);
 static u32 csOrphanFrames = 0;
 static u32 csFrozenFrames = 0;
 
+// Room-unload sweeps (func_80031B14 kills every actor of the old room after a room
+// change) are not real kills: ignore actors that belong to neither loaded room.
+static bool IsRoomUnloadKill(const Actor* a) {
+    if (!gPlayState || a->room < 0) return false;
+    return a->room != (s8)gPlayState->roomCtx.curRoom.num && a->room != (s8)gPlayState->roomCtx.prevRoom.num;
+}
+
 void Anchor::RegisterHooks() {
 
     // #region Hooks that are required for basic Anchor functionality
@@ -1464,10 +1471,6 @@ void Anchor::RegisterHooks() {
 
     // Room-unload sweeps (func_80031B14 kills every actor of the old room after a room
     // change) are not real kills: ignore actors that belong to neither loaded room.
-    auto IsRoomUnloadKill = [](const Actor* a) {
-        if (!gPlayState || a->room < 0) return false;
-        return a->room != (s8)gPlayState->roomCtx.curRoom.num && a->room != (s8)gPlayState->roomCtx.prevRoom.num;
-    };
 
     // Authority: broadcast enemy deaths so all clients can kill their local copy.
     // Also track any collectibles that spawned in the same frame via recentCollectibleSpawns.

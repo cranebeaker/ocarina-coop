@@ -360,7 +360,7 @@ class Anchor : public Network {
     static void ClearStableActorKeys();
     // Replays the native death side effects (shared overlay globals / clear flag) that
     // Actor_Kill bypasses. Currently: Dodongo's Cavern Lizalfos miniboss pair (EN_ZF).
-    static void ApplyNativeEnemyDeathSideEffects(Actor* actor);
+    static void ApplyNativeEnemyDeathSideEffects(Actor* actor, bool exactKeyMatch = false);
     // True while a remote-originated Actor_Kill is being applied (suppresses re-queue/echo).
     bool applyingRemoteKill = false;
 

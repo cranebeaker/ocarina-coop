@@ -38,19 +38,22 @@ extern "C" {
 #include "overlays/actors/ovl_En_Wf/z_en_wf.h"
 }
 
-void Anchor::ApplyNativeEnemyDeathSideEffects(Actor* actor) {
+void Anchor::ApplyNativeEnemyDeathSideEffects(Actor* actor, bool exactKeyMatch) {
     if (actor == nullptr || !gPlayState) return;
     // Forest Temple Stalfos room: BgMoriBigst counts its EnTest children in home.rot.z and only
     // EnTest decrements it (z_en_test.c: parent->home.rot.z--). Mirror that for remote kills.
     if (actor->id == ACTOR_EN_TEST && actor->parent != nullptr && actor->parent->id == ACTOR_BG_MORI_BIGST &&
-        actor->parent->home.rot.z > 0) {
+        actor->update != nullptr && actor->parent->home.rot.z > 0) {
         actor->parent->home.rot.z--;
     }
     // Forest Temple Meg (real sister, unk_194 == 0 && unk_195 == 0): native death unsets switch 0x1B
     // (z_en_po_sisters.c). 0x1B is excluded from flag sync, so apply it locally.
-    if (actor->id == ACTOR_EN_PO_SISTERS && gPlayState->sceneNum == SCENE_FOREST_TEMPLE) {
+    // Only for an exact-key match (not the nearest-actor fallback), a still-live actor, and only if the
+    // switch is currently set, so the elevator state sharing this bit cannot be cleared spuriously.
+    if (exactKeyMatch && actor->id == ACTOR_EN_PO_SISTERS && actor->update != nullptr &&
+        gPlayState->sceneNum == SCENE_FOREST_TEMPLE) {
         EnPoSisters* po = (EnPoSisters*)actor;
-        if (po->unk_194 == 0 && po->unk_195 == 0) {
+        if (po->unk_194 == 0 && po->unk_195 == 0 && Flags_GetSwitch(gPlayState, 0x1B)) {
             Flags_UnsetSwitch(gPlayState, 0x1B);
         }
     }
@@ -61,6 +64,12 @@ void Anchor::ApplyNativeEnemyDeathSideEffects(Actor* actor) {
         while (hand != nullptr) {
             Actor* nextHand = hand->next;
             if (hand->id == ACTOR_EN_DHA && hand->parent == actor) {
+                // Mirror EnDha's own release so Link never points at a freed hand.
+                Player* player = GET_PLAYER(gPlayState);
+                if (player != nullptr && player->actor.parent == hand) {
+                    player->stateFlags2 &= ~PLAYER_STATE2_GRABBED_BY_ENEMY;
+                    player->actor.parent = nullptr;
+                }
                 Actor_Kill(hand);
             }
             hand = nextHand;
@@ -206,7 +215,7 @@ void Anchor::HandlePacket_ActorKilled(nlohmann::json payload) {
                     gPlayState->sceneNum != SCENE_FOREST_TEMPLE_BOSS && actor->category == ACTORCAT_BOSS) {
                     ReleaseOrphanedCutscene("boss killed mid-cs");
                 }
-                ApplyNativeEnemyDeathSideEffects(actor);
+                ApplyNativeEnemyDeathSideEffects(actor, true);
                 {
                     applyingRemoteKill = true;
                     Actor_Kill(actor);
