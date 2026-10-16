@@ -449,9 +449,11 @@ void Anchor::RegisterHooks() {
             if (found == nullptr) {
                 it = deferredBossKills.erase(it);
             } else if (frames >= it->second) {
-                // May erase other deferred entries (Bongo hands), so restart the scan afterwards.
+                // HardKillDeferredBoss erases this entry and possibly others (Bongo hands), which
+                // invalidates `it`, so copy the key first and restart the scan afterwards.
+                const std::string key = it->first;
                 HardKillDeferredBoss(found);
-                deferredBossKills.erase(it->first);
+                deferredBossKills.erase(key);
                 it = deferredBossKills.begin();
             } else {
                 ++it;
