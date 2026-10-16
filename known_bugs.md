@@ -252,3 +252,8 @@ unverändert bei.
 - Behoben (nur aus Code abgeleitet, nicht live getestet): nightFlag wird jetzt vom Host mit TIME_SYNC gesendet (sofort bei Wechsel) und vom Client ueberschrieben -> Zugbruecke Hyrule Field/Schloss, Stalchild-/Poe-Despawn kippen gleichzeitig.
 - Behoben: Client-Schadens-Intercept greift nur noch, wenn der Owner in derselben Szene/Raum ist (lokale Gegner ohne Host sind sonst unkillbar).
 - Offen: Stalchild-Spawns (EnEncount1/EnSkb) sind weiter lokal/zufaellig, Keys stimmen nicht ueberein; EnPoField-Key driftet (params/home.y). Achtung: VB_ENCOUNT1_SPAWN_STALCHILD_OR_WOLFOS nie auf false setzen (Endlosschleife).
+
+## Workflow: Deku Tree / Lake Hylia / Water Temple Wasserstand
+- Bg_Ydan_Hasi (Wasser + 3 Bloecke), Bg_Spot06_Objects (Wasserebene) und Bg_Mizu_Water (Typ 0) laufen jetzt lokal auf allen Clients (flag-getrieben) statt per BG-Keyframe eingefroren; aus Keyframe-Senden/Blend ausgenommen (IsFlagDrivenWaterBgActor).
+- Water Temple: OCARINA_TAG_COMPLETED fuer Flags 0x1C-0x1E ignoriert syncRadius.
+- Offen: Late-Join-Replay des Wasserstands (RoomSnapshot), Timer-Drift bis ~35 s bei Late-Join. Nicht live getestet.

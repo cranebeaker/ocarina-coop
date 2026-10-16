@@ -28,6 +28,8 @@ extern "C" {
 #include "src/overlays/actors/ovl_Bg_Spot17_Bakudankabe/z_bg_spot17_bakudankabe.h"
 #include "src/overlays/actors/ovl_Bg_Ydan_Maruta/z_bg_ydan_maruta.h"
 #include "src/overlays/actors/ovl_Bg_Ydan_Sp/z_bg_ydan_sp.h"
+#include "src/overlays/actors/ovl_Bg_Ydan_Hasi/z_bg_ydan_hasi.h"
+#include "src/overlays/actors/ovl_Bg_Mizu_Water/z_bg_mizu_water.h"
 #include "src/overlays/actors/ovl_Door_Shutter/z_door_shutter.h"
 #include "src/overlays/actors/ovl_En_Door/z_en_door.h"
 #include "src/overlays/actors/ovl_En_Si/z_en_si.h"
@@ -44,9 +46,36 @@ extern "C" {
 extern PlayState* gPlayState;
 extern MapData* gMapData;
 
+// Water/level actors whose derived state (colHeader waterBoxes ySurface, timers,
+// draw=NULL, Flags_UnsetSwitch) is only written inside Update. They must run
+// locally on every client (driven by already-synced switch/event flags), not be
+// frozen and position-keyframed. Post-Init params: Bg_Ydan_Hasi = params&0xFF,
+// Bg_Spot06_Objects = (params>>8)&0xFF (2 == LHO_WATER_PLANE).
+// Bg_Ydan_Hasi params 0 (floating block) stays keyframe-driven (local sin phase).
+bool IsFlagDrivenWaterBgActor(const Actor* a) {
+    if (a == nullptr) {
+        return false;
+    }
+    switch (a->id) {
+        case ACTOR_BG_YDAN_HASI:
+            return a->params == HASI_WATER || a->params == HASI_THREE_BLOCKS;
+        case ACTOR_BG_SPOT06_OBJECTS:
+            return a->params == 2;
+        case ACTOR_BG_MIZU_WATER:
+            // Level is flag-driven (0x1C-0x1E); keyframes would fight StepToF.
+            return ((const BgMizuWater*)a)->type == 0;
+        default:
+            return false;
+    }
+}
+
 bool ShouldKeepDungeonBgActorUpdating(const Actor* actor) {
     if (actor == nullptr) {
         return false;
+    }
+
+    if (IsFlagDrivenWaterBgActor(actor)) {
+        return true;
     }
 
     // Only the Octo-platform (params==0, drives the Big Octo child-state
@@ -1784,6 +1813,10 @@ void Anchor::RegisterHooks() {
                     actor = actor->next;
                     continue;
                 }
+                if (IsFlagDrivenWaterBgActor(actor)) {
+                    actor = actor->next;
+                    continue;
+                }
                 // Regular BG actors (platforms, doors, elevators) are only ever
                 // broadcast by the authority. Link-movable puzzle blocks are the
                 // exception: they are pushed by whichever client stands next to
@@ -1856,6 +1889,10 @@ void Anchor::RegisterHooks() {
                 }
                 // EN_GOROIWA: spawn-only sync, runs locally after that.
                 if (actor->id == ACTOR_EN_GOROIWA) {
+                    actor = actor->next;
+                    continue;
+                }
+                if (IsFlagDrivenWaterBgActor(actor)) {
                     actor = actor->next;
                     continue;
                 }

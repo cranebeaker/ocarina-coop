@@ -454,15 +454,19 @@ void Anchor::HandlePacket_RoomEvent(nlohmann::json payload) {
             eventData.value("y", 0.0f),
             eventData.value("z", 0.0f),
         };
-        if (roomState.syncRadius > 0) {
+        const s16 switchFlag = (s16)eventData.value("switchFlag", -1);
+        const s16 type = (s16)eventData.value("type", 0);
+        // Water Temple water level flags (0x1C-0x1E) are global to the temple:
+        // apply regardless of distance, the level is not position-local.
+        const bool isWaterTempleLevel = gPlayState->sceneNum == SCENE_WATER_TEMPLE && switchFlag >= 0x1C &&
+                                        switchFlag <= 0x1E;
+        if (roomState.syncRadius > 0 && !isWaterTempleLevel) {
             Player* player = GET_PLAYER(gPlayState);
             if (!player) return;
             const f32 rSq = (f32)roomState.syncRadius * (f32)roomState.syncRadius;
             if (Math3D_Vec3fDistSq(&player->actor.world.pos, &pos) > rSq) return;
         }
 
-        const s16 switchFlag = (s16)eventData.value("switchFlag", -1);
-        const s16 type = (s16)eventData.value("type", 0);
         if (switchFlag >= 0 && !Flags_GetSwitch(gPlayState, switchFlag)) {
             Flags_SetSwitch(gPlayState, switchFlag);
         }
