@@ -328,3 +328,21 @@ void BgDodoago_Reset(void) {
     sBgDodoagoDisableBombCatcher = 0;
     sBgDodoagoTimer = 0;
 }
+s32 BgDodoago_IsWaiting(BgDodoago* this) {
+    return this->actionFunc == BgDodoago_WaitExplosives || this->actionFunc == BgDodoago_LightOneEye;
+}
+
+// Mark an eye as lit (remote client lit it). Does not touch the action state.
+void BgDodoago_ForceLightEye(BgDodoago* this, PlayState* play, s32 eye) {
+    if ((eye == BGDODOAGO_EYE_LEFT || eye == BGDODOAGO_EYE_RIGHT) && play->roomCtx.unk_74[eye] != 255) {
+        play->roomCtx.unk_74[eye] = 255;
+    }
+}
+
+// Open the jaw (switch flag already set by a remote client).
+void BgDodoago_ForceOpenJaw(BgDodoago* this, PlayState* play) {
+    play->roomCtx.unk_74[BGDODOAGO_EYE_LEFT] = 255;
+    play->roomCtx.unk_74[BGDODOAGO_EYE_RIGHT] = 255;
+    this->state = 0;
+    BgDodoago_SetupAction(this, BgDodoago_OpenJaw);
+}

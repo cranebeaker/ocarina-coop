@@ -200,3 +200,19 @@ void BgDdanKd_Reset(void) {
     sBgDdanKdAccel.y = -0.45f;
     sBgDdanKdAccel.z = 0.0f;
 }
+s32 BgDdanKd_IsWaiting(BgDdanKd* this) {
+    return this->actionFunc == BgDdanKd_CheckForExplosions;
+}
+
+// Start the lowering animation without the one-point cutscene (remote client).
+void BgDdanKd_ForceLower(BgDdanKd* this, PlayState* play) {
+    if (this->actionFunc == BgDdanKd_CheckForExplosions) {
+        BgDdanKd_SetupAction(this, BgDdanKd_LowerStairs);
+    }
+}
+
+// Snap to the final lowered position (same as Init with the switch set).
+void BgDdanKd_ForceSnapLowered(BgDdanKd* this, PlayState* play) {
+    this->dyna.actor.world.pos.y = this->dyna.actor.home.pos.y - 200.0f - 20.0f;
+    BgDdanKd_SetupAction(this, BgDdanKd_DoNothing);
+}

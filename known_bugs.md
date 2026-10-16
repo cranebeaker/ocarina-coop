@@ -268,3 +268,7 @@ unverändert bei.
 - Ursache (aus Code abgeleitet, nicht live getestet): Actor_Kill ueberspringt EnZf_SetupDie/EnZf_Die, daher bleiben die Overlay-Globals D_80B4A1B0/D_80B4A1B4 des Dodongo's-Cavern-Lizalfos-Minibosspaars falsch gesetzt (Ueberlebender immun, kein AC-Collider, clearFlag nie gesetzt). Baby Dodongo ueberschreibt home.pos beim Eingraben -> Actor-Key driftet.
 - Fix: Anchor::ApplyNativeEnemyDeathSideEffects (Overkill-Pfad, ACTOR_KILLED, ROOM_KILL_SYNC); stabiler Key-Cache fuer EN_DODOJR (OnActorInit/OnActorDestroy); applyingRemoteKill verhindert, dass ein Remote-Kill als lokaler Kill neu eingereiht wird (Endlos-ROOM_KILL_SYNC).
 - Nicht umgesetzt: synthetischer AC_HIT fuer native Todesanimation von EN_ZF/EN_DODONGO auf der Authority (zu riskant ohne Live-Test); Fallback-Verschaerfung in RoomKillSync.
+
+## Workflow: Dodongo's Cavern Bomben-Sync (nur aus Code abgeleitet, nicht live getestet)
+- Neu: BG_SPOT16_BOMBSTONE (Flag -> AC_HIT), BG_DDAN_KD (ROOM_EVENT DDAN_KD_LOWER startet Animation, Flag-Fallback snappt Treppe), BG_DODOAGO (ROOM_EVENT DODOAGO_EYE teilt Augen-Zustand roomCtx.unk_74, Flag oeffnet Kiefer). Behebt Deadlock "A links, B rechts".
+- Offen: Augen-Zustand bei Late-Join nicht wiederhergestellt; Bombenblumen-Explosion selbst (EN_BOMBF/EN_BOM) weiter nur lokal (bewusst, kein AT-Collider-Sync). Braucht syncItemsAndFlags.

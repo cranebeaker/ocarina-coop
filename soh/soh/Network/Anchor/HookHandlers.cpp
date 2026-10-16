@@ -41,6 +41,9 @@ extern "C" {
 #include "src/overlays/actors/ovl_Obj_Bombiwa/z_obj_bombiwa.h"
 #include "src/overlays/actors/ovl_Obj_Hamishi/z_obj_hamishi.h"
 #include "src/overlays/actors/ovl_Bg_Hidan_Dalm/z_bg_hidan_dalm.h"
+#include "src/overlays/actors/ovl_Bg_Ddan_Kd/z_bg_ddan_kd.h"
+#include "src/overlays/actors/ovl_Bg_Dodoago/z_bg_dodoago.h"
+#include "src/overlays/actors/ovl_Bg_Spot16_Bombstone/z_bg_spot16_bombstone.h"
 #include "src/overlays/actors/ovl_Bg_Hidan_Kowarerukabe/z_bg_hidan_kowarerukabe.h"
 #include "objects/gameplay_keep/gameplay_keep.h"
 
@@ -452,6 +455,66 @@ void Anchor::RegisterHooks() {
             actor->collider.base.acFlags |= AC_HIT;
         }
     });
+
+    // Dodongo's Cavern boulder on Death Mountain Trail: flag -> force hit.
+    COND_ID_HOOK(ShouldActorUpdate, ACTOR_BG_SPOT16_BOMBSTONE, isConnected, [&](void* refActor, bool* should) {
+        BgSpot16Bombstone* actor = static_cast<BgSpot16Bombstone*>(refActor);
+
+        if (BgSpot16Bombstone_IsWaiting(actor) && Flags_GetSwitch(gPlayState, actor->switchFlag)) {
+            actor->colliderCylinder.base.acFlags |= AC_HIT;
+        }
+    });
+
+    // Dodongo's Cavern falling stairs: switch flag arrives only after the remote animation ended;
+    // snap to the lowered state so keyframes from the authority match.
+    COND_ID_HOOK(ShouldActorUpdate, ACTOR_BG_DDAN_KD, isConnected, [&](void* refActor, bool* should) {
+        BgDdanKd* actor = static_cast<BgDdanKd*>(refActor);
+
+        if (BgDdanKd_IsWaiting(actor) && Flags_GetSwitch(gPlayState, actor->dyna.actor.params)) {
+            BgDdanKd_ForceSnapLowered(actor, gPlayState);
+        }
+    });
+
+    // Broadcast start of the lowering so peers animate it too.
+    COND_ID_HOOK(OnActorUpdate, ACTOR_BG_DDAN_KD, isConnected, ([&](void* refActor) {
+        if (!IsSaveLoaded() || !gPlayState) return;
+        BgDdanKd* actor = static_cast<BgDdanKd*>(refActor);
+        const std::string key = GetActorKey((Actor*)actor, gPlayState->sceneNum);
+
+        static std::unordered_map<std::string, bool> lastWaiting;
+        const bool wasWaiting = lastWaiting.count(key) ? lastWaiting[key] : true;
+        const bool isWaiting = BgDdanKd_IsWaiting(actor) != 0;
+        lastWaiting[key] = isWaiting;
+
+        if (wasWaiting && !isWaiting && !Flags_GetSwitch(gPlayState, actor->dyna.actor.params)) {
+            SendPacket_RoomEvent("DDAN_KD_LOWER", key, nlohmann::json{}, false);
+        }
+    }));
+
+    // Dodongo head: flag -> open jaw on clients still waiting.
+    COND_ID_HOOK(ShouldActorUpdate, ACTOR_BG_DODOAGO, isConnected, [&](void* refActor, bool* should) {
+        BgDodoago* actor = static_cast<BgDodoago*>(refActor);
+
+        if (BgDodoago_IsWaiting(actor) && Flags_GetSwitch(gPlayState, actor->dyna.actor.params & 0x3F)) {
+            BgDodoago_ForceOpenJaw(actor, gPlayState);
+        }
+    });
+
+    // Eye state lives in roomCtx.unk_74 (client-local); share lit eyes so that
+    // A lighting the left and B the right eye can open the jaw.
+    COND_ID_HOOK(OnActorUpdate, ACTOR_BG_DODOAGO, isConnected, ([&](void* refActor) {
+        if (!IsSaveLoaded() || !gPlayState) return;
+        BgDodoago* actor = static_cast<BgDodoago*>(refActor);
+
+        static s16 prevEye[2] = { 0, 0 };
+        for (int i = 0; i < 2; i++) {
+            const s16 cur = gPlayState->roomCtx.unk_74[i];
+            if (BgDodoago_IsWaiting(actor) && prevEye[i] < 255 && cur == 255) {
+                SendPacket_RoomEvent("DODOAGO_EYE", std::to_string(i), nlohmann::json{ { "eye", i } }, false);
+            }
+            prevEye[i] = cur;
+        }
+    }));
 
     COND_ID_HOOK(ShouldActorUpdate, ACTOR_BG_BREAKWALL, isConnected, [&](void* refActor, bool* should) {
         BgBreakwall* actor = static_cast<BgBreakwall*>(refActor);

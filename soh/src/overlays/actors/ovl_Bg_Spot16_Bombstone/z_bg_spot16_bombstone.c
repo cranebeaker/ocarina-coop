@@ -552,3 +552,6 @@ void BgSpot16Bombstone_Reset(void) {
     sPlayerBomb = NULL;
     sTimer = 0;
 }
+s32 BgSpot16Bombstone_IsWaiting(BgSpot16Bombstone* this) {
+    return this->actionFunc == func_808B5950;
+}

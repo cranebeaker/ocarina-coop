@@ -17,4 +17,9 @@ typedef struct BgDdanKd {
     /* 0x01C4 */ BgDdanKdActionFunc actionFunc;
 } BgDdanKd; // size = 0x01C8
 
+// Anchor co-op helpers (only called while connected)
+s32 BgDdanKd_IsWaiting(BgDdanKd* self);
+void BgDdanKd_ForceLower(BgDdanKd* self, PlayState* play);
+void BgDdanKd_ForceSnapLowered(BgDdanKd* self, PlayState* play);
+
 #endif

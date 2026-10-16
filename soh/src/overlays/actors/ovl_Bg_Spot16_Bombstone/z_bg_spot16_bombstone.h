@@ -25,4 +25,7 @@ typedef struct BgSpot16Bombstone {
     /* 0x0214 */ s8 bombiwaBankIndex;
 } BgSpot16Bombstone; // size = 0x0218
 
+// Anchor co-op helper
+s32 BgSpot16Bombstone_IsWaiting(BgSpot16Bombstone* self);
+
 #endif

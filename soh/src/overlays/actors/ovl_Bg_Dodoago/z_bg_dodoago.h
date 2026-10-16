@@ -22,4 +22,9 @@ typedef struct BgDodoago {
     /* 0x024C */ BgDodoagoActionFunc actionFunc;
 } BgDodoago; // size = 0x0250
 
+// Anchor co-op helpers (only called while connected)
+s32 BgDodoago_IsWaiting(BgDodoago* self);
+void BgDodoago_ForceLightEye(BgDodoago* self, PlayState* play, s32 eye);
+void BgDodoago_ForceOpenJaw(BgDodoago* self, PlayState* play);
+
 #endif

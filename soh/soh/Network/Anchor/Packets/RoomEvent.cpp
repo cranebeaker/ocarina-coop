@@ -13,6 +13,8 @@ extern "C" {
 #include "src/overlays/actors/ovl_Boss_Goma/z_boss_goma.h"
 #include "src/overlays/actors/ovl_Bg_Spot02_Objects/z_bg_spot02_objects.h"
 #include "src/overlays/actors/ovl_Obj_Timeblock/z_obj_timeblock.h"
+#include "src/overlays/actors/ovl_Bg_Ddan_Kd/z_bg_ddan_kd.h"
+#include "src/overlays/actors/ovl_Bg_Dodoago/z_bg_dodoago.h"
 extern PlayState* gPlayState;
 }
 
@@ -488,6 +490,29 @@ void Anchor::HandlePacket_RoomEvent(nlohmann::json payload) {
             }
         }
         Sfx_PlaySfxCentered(NA_SE_SY_CORRECT_CHIME);
+
+    } else if (eventType == "DDAN_KD_LOWER") {
+        // Dodongo's Cavern stairs: start the lowering animation without the cutscene.
+        if (!gPlayState) return;
+        for (Actor* a = gPlayState->actorCtx.actorLists[ACTORCAT_BG].head; a != nullptr; a = a->next) {
+            if (a->id == ACTOR_BG_DDAN_KD && GetActorKey(a, gPlayState->sceneNum) == eventKey) {
+                BgDdanKd_ForceLower((BgDdanKd*)a, gPlayState);
+                break;
+            }
+        }
+
+    } else if (eventType == "DODOAGO_EYE") {
+        // Dodongo head: a remote client lit an eye; mirror it locally.
+        if (!gPlayState) return;
+        const int eye = eventData.value("eye", -1);
+        for (Actor* a = gPlayState->actorCtx.actorLists[ACTORCAT_BG].head; a != nullptr; a = a->next) {
+            if (a->id == ACTOR_BG_DODOAGO) {
+                if (BgDodoago_IsWaiting((BgDodoago*)a)) {
+                    BgDodoago_ForceLightEye((BgDodoago*)a, gPlayState, eye);
+                }
+                break;
+            }
+        }
 
     } else if (eventType == "TIMEBLOCK_SONG_COMPLETE") {
         // See send-side comment in HookHandlers.cpp: ObjTimeblock's
