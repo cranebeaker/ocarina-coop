@@ -96,5 +96,6 @@ community playbook and directory for adding co-op to single-player classics.
 
 ## License
 
-Same as Ship of Harkinian, see [LICENSE](LICENSE) where present and the upstream repository.
-Game assets are not included and are never distributed.
+Ship of Harkinian and Shipwright-Online ship without a license file; the changes in this
+fork are offered on the same terms as upstream. Game assets are not included and are never
+distributed.
