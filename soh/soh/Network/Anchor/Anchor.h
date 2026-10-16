@@ -556,5 +556,8 @@ class AnchorRoomWindow : public Ship::GuiWindow {
     void UpdateElement() override{};
 };
 
+// Re-syncs ObjSwitch actors (eye/floor/crystal) after a remote switch flag change.
+void Anchor_ApplyRemoteSwitchFlagToObjSwitch(s16 sceneNum, s16 flag, bool isOn);
+
 #endif // __cplusplus
 #endif // NETWORK_ANCHOR_H

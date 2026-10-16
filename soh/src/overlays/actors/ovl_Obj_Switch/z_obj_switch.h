@@ -65,4 +65,24 @@ typedef struct ObjSwitch {
     };
 } ObjSwitch; // size = 0x0258
 
+// Exposed for the Anchor network layer (remote switch-flag resync)
+void ObjSwitch_FloorPressInit(ObjSwitch* self);
+void ObjSwitch_FloorReleaseInit(ObjSwitch* self);
+void ObjSwitch_FloorUp(ObjSwitch* self, PlayState* play);
+void ObjSwitch_FloorPress(ObjSwitch* self, PlayState* play);
+void ObjSwitch_FloorDown(ObjSwitch* self, PlayState* play);
+void ObjSwitch_FloorRelease(ObjSwitch* self, PlayState* play);
+void ObjSwitch_EyeClosingInit(ObjSwitch* self);
+void ObjSwitch_EyeOpeningInit(ObjSwitch* self);
+void ObjSwitch_EyeOpen(ObjSwitch* self, PlayState* play);
+void ObjSwitch_EyeClosing(ObjSwitch* self, PlayState* play);
+void ObjSwitch_EyeClosed(ObjSwitch* self, PlayState* play);
+void ObjSwitch_EyeOpening(ObjSwitch* self, PlayState* play);
+void ObjSwitch_CrystalTurnOnInit(ObjSwitch* self);
+void ObjSwitch_CrystalTurnOffInit(ObjSwitch* self);
+void ObjSwitch_CrystalOff(ObjSwitch* self, PlayState* play);
+void ObjSwitch_CrystalTurnOn(ObjSwitch* self, PlayState* play);
+void ObjSwitch_CrystalOn(ObjSwitch* self, PlayState* play);
+void ObjSwitch_CrystalTurnOff(ObjSwitch* self, PlayState* play);
+
 #endif

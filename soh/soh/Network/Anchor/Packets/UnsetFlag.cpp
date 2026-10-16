@@ -105,5 +105,9 @@ void Anchor::HandlePacket_UnsetFlag(nlohmann::json payload) {
         effect->parameters[1] = flagType;
         effect->parameters[2] = flag;
         effect->Apply();
+
+        if (flagType == FLAG_SCENE_SWITCH) {
+            Anchor_ApplyRemoteSwitchFlagToObjSwitch(sceneNum, flag, false);
+        }
     }
 }

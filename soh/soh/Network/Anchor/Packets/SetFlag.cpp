@@ -6,6 +6,7 @@
 
 extern "C" {
 #include "functions.h"
+#include "src/overlays/actors/ovl_Obj_Switch/z_obj_switch.h"
 
 extern PlayState* gPlayState;
 }
@@ -61,6 +62,72 @@ static void Anchor_ApplyKingZoraMovedFallback() {
             actor->world.pos.z = lastPoint->z;
             actor->home.pos = actor->world.pos;
             return;
+        }
+        actor = actor->next;
+    }
+}
+
+/**
+ * Remote switch flags are written straight into the flag words, but ObjSwitch
+ * actors (eye, floor plate, crystal) only react to their own collision, so they
+ * never notice the change. Kick their state machines into the matching
+ * transition. Only called from network receive paths.
+ */
+void Anchor_ApplyRemoteSwitchFlagToObjSwitch(s16 sceneNum, s16 flag, bool isOn) {
+    if (Anchor::Instance == nullptr || !Anchor::Instance->isConnected) {
+        return;
+    }
+    if (!gPlayState || sceneNum != gPlayState->sceneNum || flag < 0 || flag >= 0x20) {
+        return;
+    }
+
+    Actor* actor = gPlayState->actorCtx.actorLists[ACTORCAT_SWITCH].head;
+    while (actor != nullptr) {
+        if (actor->id == ACTOR_OBJ_SWITCH && ((actor->params >> 8) & 0x3F) == flag && !(actor->params & 0x80)) {
+            ObjSwitch* sw = (ObjSwitch*)actor;
+            s32 type = actor->params & 7;
+            s32 sub = (actor->params >> 4) & 7;
+            ObjSwitchActionFunc fn = sw->actionFunc;
+
+            if (isOn) {
+                if (type == OBJSWITCH_TYPE_EYE) {
+                    if (fn == ObjSwitch_EyeOpen || fn == ObjSwitch_EyeOpening) {
+                        sw->cooldownOn = false;
+                        ObjSwitch_EyeClosingInit(sw);
+                    }
+                } else if (type == OBJSWITCH_TYPE_FLOOR || type == OBJSWITCH_TYPE_FLOOR_RUSTY) {
+                    // Held plates (sub 2/3) are driven by local weight; leave them alone.
+                    if (sub <= OBJSWITCH_SUBTYPE_FLOOR_1 && (fn == ObjSwitch_FloorUp || fn == ObjSwitch_FloorRelease)) {
+                        sw->cooldownOn = false;
+                        ObjSwitch_FloorPressInit(sw);
+                    }
+                } else if (type == OBJSWITCH_TYPE_CRYSTAL || type == OBJSWITCH_TYPE_CRYSTAL_TARGETABLE) {
+                    if (sub <= OBJSWITCH_SUBTYPE_CRYSTAL_1 &&
+                        (fn == ObjSwitch_CrystalOff || fn == ObjSwitch_CrystalTurnOff)) {
+                        sw->cooldownOn = false;
+                        ObjSwitch_CrystalTurnOnInit(sw);
+                    }
+                }
+            } else {
+                // Subtype 0 variants poll the flag themselves when closing/releasing; only toggles need a kick.
+                if (type == OBJSWITCH_TYPE_EYE) {
+                    if (sub == OBJSWITCH_SUBTYPE_EYE_1 && (fn == ObjSwitch_EyeClosed || fn == ObjSwitch_EyeClosing)) {
+                        sw->cooldownOn = false;
+                        ObjSwitch_EyeOpeningInit(sw);
+                    }
+                } else if (type == OBJSWITCH_TYPE_FLOOR || type == OBJSWITCH_TYPE_FLOOR_RUSTY) {
+                    if (sub == OBJSWITCH_SUBTYPE_FLOOR_1 && (fn == ObjSwitch_FloorDown || fn == ObjSwitch_FloorPress)) {
+                        sw->cooldownOn = false;
+                        ObjSwitch_FloorReleaseInit(sw);
+                    }
+                } else if (type == OBJSWITCH_TYPE_CRYSTAL || type == OBJSWITCH_TYPE_CRYSTAL_TARGETABLE) {
+                    if (sub == OBJSWITCH_SUBTYPE_CRYSTAL_1 &&
+                        (fn == ObjSwitch_CrystalOn || fn == ObjSwitch_CrystalTurnOn)) {
+                        sw->cooldownOn = false;
+                        ObjSwitch_CrystalTurnOffInit(sw);
+                    }
+                }
+            }
         }
         actor = actor->next;
     }
@@ -149,6 +216,10 @@ void Anchor::HandlePacket_SetFlag(nlohmann::json payload) {
         effect->parameters[1] = flagType;
         effect->parameters[2] = flag;
         effect->Apply();
+
+        if (flagType == FLAG_SCENE_SWITCH) {
+            Anchor_ApplyRemoteSwitchFlagToObjSwitch(sceneNum, flag, true);
+        }
     }
 }
 
@@ -203,6 +274,10 @@ void Anchor::FlushPhysicalFlagQueue() {
             effect->parameters[1] = f.flagType;
             effect->parameters[2] = f.flag;
             effect->Apply();
+
+            if (f.flagType == FLAG_SCENE_SWITCH) {
+                Anchor_ApplyRemoteSwitchFlagToObjSwitch(f.sceneNum, f.flag, true);
+            }
         }
     }
 }

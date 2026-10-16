@@ -225,3 +225,16 @@ unverändert bei.
 - Bei King Dodongo die interne Action-State-/Timer-Felder aus
 	`z_boss_dodongo.h` gegen die generische Positionssync prüfen, ohne zunächst
 	`actionFunc`-Pointer zu übertragen.
+
+## Coop-Fix-Workflow: Obj_Switch (Auge/Boden/Kristall) Remote-Resync
+
+- Problem: Ein per SET_FLAG/UNSET_FLAG empfangener Schalter-Flag wurde zwar gesetzt, aber der
+  `ACTOR_OBJ_SWITCH` selbst (Augenschalter schliesst nicht, Bodenplatte/Kristall bleiben optisch aus)
+  las den Flag nie neu (nur lokale Kollision). Betraf v.a. EYE_0/EYE_1, FLOOR_0/1, CRYSTAL_0/1.
+- Fix: `Anchor_ApplyRemoteSwitchFlagToObjSwitch` (SetFlag.cpp) wird aus HandlePacket_SetFlag,
+  FlushPhysicalFlagQueue und HandlePacket_UnsetFlag aufgerufen und stoesst die passende Transition an
+  (EyeClosingInit, FloorPressInit, CrystalTurnOnInit bzw. Opening/Release/TurnOff fuer Toggle-Subtypen).
+  Gehaltene Platten (FLOOR_2/3) und eisgefrorene Augen bleiben unberuehrt. Kein Effekt ohne Anchor-Verbindung.
+- Ungetestet live (kein Zwei-Client-Test). Falls weiterhin kaputt: Pruefen, ob abhaengige BG-Aktoren
+  vom Keyframe-Freeze (HookHandlers.cpp ~693) blockiert werden. Geschwister (Lightswitch, Bg_Bdan_Switch,
+  Bg_Menkuri_Eye) noch nicht behandelt.
