@@ -322,6 +322,9 @@ class Anchor : public Network {
     // (either player is in a timeless scene).  Client uses this to suppress local dayTime
     // advancement between sync packets.
     bool remoteTimeFrozen = false;
+    u8 remoteNightFlag = 0;
+    bool hasRemoteNightFlag = false;
+    std::chrono::steady_clock::time_point lastTimeSyncRecvAt{};
 
     nlohmann::json PrepClientState();
     nlohmann::json PrepRoomState();

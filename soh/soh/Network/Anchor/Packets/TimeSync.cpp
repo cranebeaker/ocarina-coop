@@ -48,6 +48,7 @@ void Anchor::SendPacket_TimeSync() {
     payload["type"]    = TIME_SYNC;
     payload["dayTime"] = (uint16_t)gSaveContext.dayTime;
     payload["frozen"]  = localTimeless || remoteTimeless;
+    payload["night"]   = (uint8_t)gSaveContext.nightFlag;
 
     SendJsonToRemote(payload);
 }
@@ -57,4 +58,11 @@ void Anchor::HandlePacket_TimeSync(nlohmann::json payload) {
 
     gSaveContext.dayTime = payload.value("dayTime", (uint16_t)gSaveContext.dayTime);
     remoteTimeFrozen    = payload.value("frozen", false);
+    if (payload.contains("night")) {
+        // nightFlag is derived locally each frame; the host's value is authoritative
+        // so day/night-dependent actors (drawbridge, Stalchildren, Poes) flip together.
+        remoteNightFlag = (u8)payload.value("night", 0);
+        hasRemoteNightFlag = true;
+        lastTimeSyncRecvAt = std::chrono::steady_clock::now();
+    }
 }

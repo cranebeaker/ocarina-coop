@@ -961,6 +961,9 @@ void Anchor::RegisterHooks() {
     COND_HOOK(OnBeforeActorUpdate, isConnected, [&](void* actorRef) {
         if (!IsSaveLoaded() || IsEnemyAuthority()) return;
         if (!roomState.syncEnemies) return; // sync off → vanilla behaviour
+        // No authority in this scene/room: take damage locally (kills are queued
+        // in pendingRoomKills), otherwise hits on local-only enemies are lost.
+        if (!IsOwnerInSameRoom()) return;
 
         // Avoid dropping client hits when the owner is briefly unreachable.
         bool ownerReachable = false;
@@ -1517,12 +1520,15 @@ void Anchor::RegisterHooks() {
             static bool  lastShouldFreeze   = false;
             static u32   lastTimeSyncFrame  = 0;
             const  u32   curFrame          = (u32)gPlayState->state.frames;
-            if ((shouldFreeze != lastShouldFreeze || (curFrame - lastTimeSyncFrame) >= 60u)
+            static u8    lastNightHost      = 0xFF;
+            const  bool  nightChanged       = (lastNightHost != (u8)gSaveContext.nightFlag);
+            if ((shouldFreeze != lastShouldFreeze || nightChanged || (curFrame - lastTimeSyncFrame) >= 60u)
                 && IsAnyClientInSameRoom()) {
                 SendPacket_TimeSync();
                 lastTimeSyncFrame = curFrame;
             }
             lastShouldFreeze = shouldFreeze;
+            lastNightHost = (u8)gSaveContext.nightFlag;
 
         } else {
             // CLIENT -----------------------------------------------------
@@ -1534,6 +1540,12 @@ void Anchor::RegisterHooks() {
                 gSaveContext.dayTime = lastDayTimeClient;
             } else {
                 lastDayTimeClient = gSaveContext.dayTime;
+            }
+            // nightFlag is re-derived locally from dayTime every frame; force the
+            // host's value (while syncs are fresh) so both clients flip together.
+            if (!shouldFreeze && hasRemoteNightFlag && gTimeIncrement != 0 &&
+                (std::chrono::steady_clock::now() - lastTimeSyncRecvAt) < std::chrono::seconds(6)) {
+                gSaveContext.nightFlag = remoteNightFlag;
             }
         }
     });  // end time-sync OnGameFrameUpdate

@@ -247,3 +247,8 @@ unverändert bei.
   cutsceneIndex < 0xFFF0, kein lebender Owner-Aktor (CutsceneOwnerAlive) fuer 20 Frames -> Anchor::ReleaseOrphanedCutscene
   (Subkameras, Player csAction 7, csCtx, Letterbox/HUD). Zusaetzlich Release vor Actor_Kill eines Bosses mid-cutscene und
   IDLE-Paket vom Master wird auch ohne syncCutscenes akzeptiert. Forest-Boss ausgenommen. Ungetestet live.
+
+## Workflow: Nacht-Gegner / Tageszeit-Spawns (teilweise behoben)
+- Behoben (nur aus Code abgeleitet, nicht live getestet): nightFlag wird jetzt vom Host mit TIME_SYNC gesendet (sofort bei Wechsel) und vom Client ueberschrieben -> Zugbruecke Hyrule Field/Schloss, Stalchild-/Poe-Despawn kippen gleichzeitig.
+- Behoben: Client-Schadens-Intercept greift nur noch, wenn der Owner in derselben Szene/Raum ist (lokale Gegner ohne Host sind sonst unkillbar).
+- Offen: Stalchild-Spawns (EnEncount1/EnSkb) sind weiter lokal/zufaellig, Keys stimmen nicht ueberein; EnPoField-Key driftet (params/home.y). Achtung: VB_ENCOUNT1_SPAWN_STALCHILD_OR_WOLFOS nie auf false setzen (Endlosschleife).
