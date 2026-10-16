@@ -342,6 +342,7 @@ class Anchor : public Network {
     void SendPacket_TriggerCutscene(u8 csState);
     bool CutsceneOwnerAlive();
     void ReleaseOrphanedCutscene(const char* reason);
+    void HardKillDeferredBoss(Actor* boss);
     // Frame/scene of the last CS_STATE_IDLE release received from the master.
     u32 csMasterIdleFrame = 0;
     s16 csMasterIdleScene = -1;

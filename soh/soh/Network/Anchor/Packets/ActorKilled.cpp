@@ -169,6 +169,25 @@ void Anchor::HandlePacket_ActorKilled(nlohmann::json payload) {
                     // drop state, even if EnemyPositionUpdate already set it to 0.
                     actor->colChkInfo.health = 0;
                 }
+                // Bongo Bongo hands: the head's death sequence (BossSst_HeadFinish) kills the hands itself and
+                // dereferences them, so never free a hand while the head is still running its sequence.
+                if (actor->id == ACTOR_BOSS_SST && actor->params != -1 /* BONGO_HEAD */ &&
+                    actor->update != nullptr) {
+                    bool headRunning = false;
+                    for (Actor* h = gPlayState->actorCtx.actorLists[ACTORCAT_BOSS].head; h != nullptr; h = h->next) {
+                        if (h->id == ACTOR_BOSS_SST && h->params == -1 && h->update != nullptr &&
+                            bossDefeatStartedKeys.count(GetActorKey(h, sceneNum))) {
+                            headRunning = true;
+                            break;
+                        }
+                    }
+                    if (headRunning) {
+                        deferredBossKills[actorKey] = gPlayState->state.frames + 2400;
+                        SPDLOG_INFO("[Anchor:ActorSync] CLIENT: ACTOR_KILLED deferred (Bongo hand, head death running) | actorKey={}",
+                                    actorKey);
+                        return;
+                    }
+                }
                 // Boss already running its forced native death sequence (BOSS_DEFEAT_START):
                 // do not cut it short. The sequence spawns the heart container / warp at its end.
                 // A frame deadline in HookHandlers hard-kills it if it never finishes.
@@ -219,4 +238,44 @@ void Anchor::HandlePacket_ActorKilled(nlohmann::json payload) {
 
     SPDLOG_WARN("[Anchor:ActorSync] CLIENT: ACTOR_KILLED actor not found | actorKey={} | category={} | scene=0x{:02x}",
                 actorKey, receivedCategory, sceneNum);
+}
+
+/**
+ * Deadline hard-kill for a boss whose forced death sequence never finished. Runs the same release /
+ * side-effect / clear-flag steps as the immediate ACTOR_KILLED path. Bongo Bongo is killed as a unit
+ * (hands first) so no surviving actor keeps a dangling sHead/sHands pointer.
+ */
+void Anchor::HardKillDeferredBoss(Actor* boss) {
+    if (boss == nullptr || !gPlayState) return;
+    if (gPlayState->csCtx.state != CS_STATE_IDLE && gSaveContext.cutsceneIndex < 0xFFF0 &&
+        gPlayState->sceneNum != SCENE_FOREST_TEMPLE_BOSS && boss->category == ACTORCAT_BOSS) {
+        ReleaseOrphanedCutscene("boss death deadline");
+    }
+    const s32 bossRoom = (boss->room >= 0) ? boss->room : (s32)gPlayState->roomCtx.curRoom.num;
+    auto kill = [&](Actor* a) {
+        if (a == nullptr || a->update == nullptr) return;
+        a->colChkInfo.health = 0;
+        ApplyNativeEnemyDeathSideEffects(a);
+        applyingRemoteKill = true;
+        Actor_Kill(a);
+        applyingRemoteKill = false;
+        deferredBossKills.erase(GetActorKey(a, gPlayState->sceneNum));
+    };
+    if (boss->id == ACTOR_BOSS_SST) {
+        Actor* head = nullptr;
+        for (Actor* a = gPlayState->actorCtx.actorLists[ACTORCAT_BOSS].head; a != nullptr; a = a->next) {
+            if (a->id != ACTOR_BOSS_SST) continue;
+            if (a->params == -1) head = a;
+        }
+        for (Actor* a = gPlayState->actorCtx.actorLists[ACTORCAT_BOSS].head; a != nullptr;) {
+            Actor* next = a->next;
+            if (a->id == ACTOR_BOSS_SST && a->params != -1) kill(a);
+            a = next;
+        }
+        kill(head != nullptr ? head : boss);
+    } else {
+        kill(boss);
+    }
+    Flags_SetTempClear(gPlayState, bossRoom);
+    Flags_SetClear(gPlayState, bossRoom);
 }

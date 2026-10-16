@@ -442,11 +442,10 @@ void Anchor::RegisterHooks() {
             if (found == nullptr) {
                 it = deferredBossKills.erase(it);
             } else if (frames >= it->second) {
-                found->colChkInfo.health = 0;
-                applyingRemoteKill = true;
-                Actor_Kill(found);
-                applyingRemoteKill = false;
-                it = deferredBossKills.erase(it);
+                // May erase other deferred entries (Bongo hands), so restart the scan afterwards.
+                HardKillDeferredBoss(found);
+                deferredBossKills.erase(it->first);
+                it = deferredBossKills.begin();
             } else {
                 ++it;
             }

@@ -29,12 +29,13 @@ bool IsBossSyncEventType(const std::string& eventType) {
 
 // Boss adapters build their actor keys with an extra "category" field (11 fields), whereas
 // Anchor::GetActorKey has 10 fields and excludes category. Accept both formats.
-bool BossKeyMatches(const Actor* actor, s16 sceneNum, const std::string& key) {
+bool BossKeyMatches(const Actor* actor, s16 sceneNum, const std::string& key, bool allowCategoryKey = true) {
     char buf[128];
     snprintf(buf, sizeof(buf), "%d_%d_%d_%d_%d_%d_%d_%d_%d_%d", (int)sceneNum, (int)actor->id, (int)actor->room,
              (int)actor->params, (int)actor->home.pos.x, (int)actor->home.pos.y, (int)actor->home.pos.z,
              (int)actor->home.rot.x, (int)actor->home.rot.y, (int)actor->home.rot.z);
     if (key == buf) return true;
+    if (!allowCategoryKey) return false;
     snprintf(buf, sizeof(buf), "%d_%d_%d_%d_%d_%d_%d_%d_%d_%d_%d", (int)sceneNum, (int)actor->category,
              (int)actor->id, (int)actor->room, (int)actor->params, (int)actor->home.pos.x,
              (int)actor->home.pos.y, (int)actor->home.pos.z, (int)actor->home.rot.x, (int)actor->home.rot.y,
@@ -726,7 +727,9 @@ void Anchor::HandlePacket_RoomEvent(nlohmann::json payload) {
         for (int cat = 0; cat < ACTORCAT_MAX; ++cat) {
             Actor* actor = gPlayState->actorCtx.actorLists[cat].head;
             while (actor != nullptr) {
-                if (BossKeyMatches(actor, gPlayState->sceneNum, targetActorKey)) {
+                // Only 10-field keys, as before: adapters' 11-field keys are handled by their own ApplyEvent
+                // (native death animation for supports/zappers/tentacles/hands); no hard-kill for those.
+                if (BossKeyMatches(actor, gPlayState->sceneNum, targetActorKey, false)) {
                     // Mini-bosses (Big Octo) keep their native death animation.
                     if (actor->update != nullptr && !eventData.value("isMiniBoss", false)) {
                         Actor_Kill(actor);
