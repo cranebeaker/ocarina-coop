@@ -26,7 +26,7 @@ game is included here.
    play.
 
 It connects through the public Anchor server (`anchor.hm64.org`), so there are no IP
-addresses or port forwarding. No release is up yet; the first one comes after testing.
+addresses or port forwarding. The first release is coming soon.
 
 ### About the ROM
 
