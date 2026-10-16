@@ -1,6 +1,7 @@
 #include "soh/Network/Anchor/Anchor.h"
 #include <nlohmann/json.hpp>
 #include <libultraship/libultraship.h>
+#include "soh/cvar_prefixes.h"
 
 extern "C" {
 #include "variables.h"
@@ -30,6 +31,12 @@ void func_800F5B58(void);
 }
 #include "overlays/actors/ovl_En_Zf/z_en_zf.h"
 #include "overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.h"
+extern "C" {
+#include "overlays/actors/ovl_En_Dh/z_en_dh.h"
+#include "overlays/actors/ovl_En_Ik/z_en_ik.h"
+#include "overlays/actors/ovl_En_Rd/z_en_rd.h"
+#include "overlays/actors/ovl_En_Wf/z_en_wf.h"
+}
 
 void Anchor::ApplyNativeEnemyDeathSideEffects(Actor* actor) {
     if (actor == nullptr || !gPlayState) return;
@@ -45,6 +52,35 @@ void Anchor::ApplyNativeEnemyDeathSideEffects(Actor* actor) {
         EnPoSisters* po = (EnPoSisters*)actor;
         if (po->unk_194 == 0 && po->unk_195 == 0) {
             Flags_UnsetSwitch(gPlayState, 0x1B);
+        }
+    }
+    // Dead Hand: its En_Dha hands self-kill when parent->params == ENDH_DEATH. A remote kill skips
+    // the native death, so the hands would keep a dangling parent pointer. Kill them here.
+    if (actor->id == ACTOR_EN_DH) {
+        Actor* hand = gPlayState->actorCtx.actorLists[ACTORCAT_ENEMY].head;
+        while (hand != nullptr) {
+            Actor* nextHand = hand->next;
+            if (hand->id == ACTOR_EN_DHA && hand->parent == actor) {
+                Actor_Kill(hand);
+            }
+            hand = nextHand;
+        }
+        actor->params = ENDH_DEATH;
+        return;
+    }
+    // Death-end switch flags that the native routines set after the death animation (skipped by
+    // remote/overkill kills). Same guards as the actors themselves.
+    if (!CVarGetInteger(CVAR_ENHANCEMENT("RandomizedEnemies"), 0) &&
+        !CVarGetInteger(CVAR_REMOTE_CROWD_CONTROL("Enabled"), 0)) {
+        if (actor->id == ACTOR_EN_IK) {
+            EnIk* ik = (EnIk*)actor;
+            if (actor->params != 0 && ik->switchFlags != 0xFF) Flags_SetSwitch(gPlayState, ik->switchFlags);
+        } else if (actor->id == ACTOR_EN_RD) {
+            s16 f = ((EnRd*)actor)->rdFlags & 0x7F;
+            if (!Flags_GetSwitch(gPlayState, f)) Flags_SetSwitch(gPlayState, f);
+        } else if (actor->id == ACTOR_EN_WF) {
+            EnWf* wf = (EnWf*)actor;
+            if (wf->switchFlag != 0xFF) Flags_SetSwitch(gPlayState, wf->switchFlag);
         }
     }
     // Only live (not already dying/killed) miniboss Lizalfos. EnZf_Die moves the actor to

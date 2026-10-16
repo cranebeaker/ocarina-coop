@@ -65,6 +65,9 @@ std::string Anchor::GetActorKey(const Actor* actor, s16 sceneNum) {
     // independently per client. Keep only the perch bit so the key stays stable.
     int keyParams = (int)actor->params;
     if (actor->id == ACTOR_EN_FIREFLY) keyParams = (int)(actor->params & 1);
+    // Dead Hand uses params as a runtime state machine (wait/grab/bomb/death) and Bg_Ice_Objects
+    // sets params while sliding; both differ per client, so exclude them (home pos/rot still disambiguate).
+    if (actor->id == ACTOR_EN_DH || actor->id == ACTOR_BG_ICE_OBJECTS) keyParams = 0;
     char buf[128];
     snprintf(buf, sizeof(buf), "%d_%d_%d_%d_%d_%d_%d_%d_%d_%d",
         (int)sceneNum,

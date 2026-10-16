@@ -295,3 +295,9 @@ unverändert bei.
 - RoomEvent: JABU_ACTOR_SPAWN war toter Code im WEB_BURNED-Zweig; jetzt eigener Zweig (Big Octo / EN_BX Relay).
 - ApplyNativeEnemyDeathSideEffects: Stalfos-Zaehler (BgMoriBigst home.rot.z--) und Meg (Flag 0x1B unset) bei Remote-Kill.
 - Offen: Octo-Plattform BattleInProgress-Handoff (Jabu), Wasserstand-Query beim spaeten Beitritt, Bg-Mover-Jitter, BgHidanRock Keyframes. Nicht live getestet.
+
+## Workflow: Shadow/Spirit/Well/Ice/GTG sweep
+- GetActorKey ignoriert params fuer En_Dh und Bg_Ice_Objects (Laufzeit-Zustand), damit Schaden/Position/Keyframes den Actor wiederfinden.
+- Overkill (Remote-Todesstoss): En_Dh startet EnDh_SetupDeath (En_Dha-Haende sterben selbst), ACTOR_KILLED-Empfaenger killt die Haende; En_Ik/En_Rd/En_Wf setzen ihr Todes-Switch-Flag (Nabooru-Ik wird nicht hart gekillt).
+- Bg_Jya_Megami (Spirit-Gesicht) pollt jetzt das Switch-Flag.
+- Offen (nicht umgesetzt): bidirektionale BG-Keyframes + Settle-Keyframe (Anspruch "Roommaster wendet Keyframes an" stimmt im Code nicht), Obj_Lightswitch-Poll, GTG Menkuri-Eye/Silberrubine Zaehler-Sync. Ungetestet live.

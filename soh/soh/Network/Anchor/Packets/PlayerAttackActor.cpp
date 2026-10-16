@@ -10,6 +10,8 @@ extern PlayState* gPlayState;
 #include "src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.h"
 #include "src/overlays/actors/ovl_Boss_Sst/z_boss_sst.h"
 #include "src/overlays/actors/ovl_Boss_Tw/z_boss_tw.h"
+#include "src/overlays/actors/ovl_En_Dh/z_en_dh.h"
+void EnDh_SetupDeath(EnDh* dh);
 }
 #include "soh/Enhancements/game-interactor/GameInteractor_Hooks.h"
 
@@ -122,6 +124,15 @@ void Anchor::HandlePacket_PlayerAttackActor(nlohmann::json payload) {
                             return;
                         }
                     }
+                    // Dead Hand: run its native death (sets ENDH_DEATH so En_Dha hands self-kill);
+                    // it calls Actor_Kill itself, which triggers ACTOR_KILLED.
+                    if (actor->id == ACTOR_EN_DH) {
+                        if (actor->params != ENDH_DEATH) EnDh_SetupDeath((EnDh*)actor);
+                        return;
+                    }
+                    // Nabooru Iron Knuckle (params 0): its native health<=10 branch handles the defeat
+                    // cutscene on the authority; do not hard-kill it.
+                    if (actor->id == ACTOR_EN_IK && actor->params == 0) return;
                     ApplyNativeEnemyDeathSideEffects(actor);
                     Actor_Kill(actor);
                 }

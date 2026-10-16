@@ -20,6 +20,7 @@ extern "C" {
 #include "src/overlays/actors/ovl_Bg_Hidan_Hamstep/z_bg_hidan_hamstep.h"
 #include "src/overlays/actors/ovl_Bg_Hidan_Hrock/z_bg_hidan_hrock.h"
 #include "src/overlays/actors/ovl_Bg_Ice_Shelter/z_bg_ice_shelter.h"
+#include "src/overlays/actors/ovl_Bg_Jya_Megami/z_bg_jya_megami.h"
 #include "src/overlays/actors/ovl_Bg_Jya_Bombchuiwa/z_bg_jya_bombchuiwa.h"
 #include "src/overlays/actors/ovl_Bg_Jya_Bombiwa/z_bg_jya_bombiwa.h"
 #include "src/overlays/actors/ovl_Bg_Mizu_Bwall/z_bg_mizu_bwall.h"
@@ -232,6 +233,8 @@ void func_808887C4(BgHidanHamstep* bgHidanHamstep, PlayState* play);
 void func_808896B8(BgHidanHrock* bgHidanHrock, PlayState* play);
 void BgIceShelter_Idle(BgIceShelter* bgIceShelter, PlayState* play);
 void BgIceShelter_SetupMelt(BgIceShelter* bgIceShelter);
+void BgJyaMegami_DetectLight(BgJyaMegami* bgJyaMegami, PlayState* play);
+void BgJyaMegami_SetupExplode(BgJyaMegami* bgJyaMegami);
 void ObjBombiwa_Break(ObjBombiwa* objBombiwa, PlayState* play);
 void ObjHamishi_Break(ObjHamishi* objHamishi, PlayState* play);
 void BgJyaBombchuiwa_WaitForExplosion(BgJyaBombchuiwa* bgJyaBombchuiwa, PlayState* play);
@@ -608,6 +611,19 @@ void Anchor::RegisterHooks() {
         if (actor->actionFunc == BgIceShelter_Idle && Flags_GetSwitch(gPlayState, actor->dyna.actor.params & 0x3F)) {
             BgIceShelter_SetupMelt(actor);
             Audio_PlayActorSound2(&actor->dyna.actor, NA_SE_EV_ICE_MELT);
+        }
+    });
+
+    // Spirit Temple goddess face only checks its switch flag in Init; a peer already in the room
+    // would keep the face after the flag is synced. Poll it like Ice_Shelter.
+    COND_ID_HOOK(ShouldActorUpdate, ACTOR_BG_JYA_MEGAMI, isConnected, [&](void* refActor, bool* should) {
+        BgJyaMegami* actor = static_cast<BgJyaMegami*>(refActor);
+
+        if (actor->actionFunc == BgJyaMegami_DetectLight &&
+            Flags_GetSwitch(gPlayState, actor->dyna.actor.params & 0x3F)) {
+            BgJyaMegami_SetupExplode(actor);
+            SoundSource_PlaySfxAtFixedWorldPos(gPlayState, &actor->dyna.actor.world.pos, 100,
+                                               NA_SE_EV_FACE_EXPLOSION);
         }
     });
 
