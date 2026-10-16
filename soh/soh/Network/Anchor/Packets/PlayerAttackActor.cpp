@@ -8,6 +8,7 @@ extern "C" {
 extern PlayState* gPlayState;
 #include "src/overlays/actors/ovl_Boss_Goma/z_boss_goma.h"
 #include "src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.h"
+#include "src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.h"
 #include "src/overlays/actors/ovl_Boss_Sst/z_boss_sst.h"
 #include "src/overlays/actors/ovl_Boss_Tw/z_boss_tw.h"
 #include "src/overlays/actors/ovl_En_Dh/z_en_dh.h"
@@ -110,6 +111,15 @@ void Anchor::HandlePacket_PlayerAttackActor(nlohmann::json payload) {
                             case ACTOR_BOSS_GANONDROF:
                                 started = BossGanondrof_NetworkForceDefeat((BossGanondrof*)actor, gPlayState);
                                 break;
+                            case ACTOR_BOSS_GANON:
+                                started = BossGanon_NetworkForceDefeat((BossGanon*)actor, gPlayState);
+                                break;
+                            case ACTOR_BOSS_GANON2:
+                                // Ganon's death (and the phase-1 knockdown) only start from his own
+                                // collision callback; never hard-kill him. Leave 1 HP so the next
+                                // native hit does the real transition.
+                                actor->colChkInfo.health = 1;
+                                return;
                             case ACTOR_BOSS_SST:
                                 started = BossSst_NetworkForceDefeat((BossSst*)actor, gPlayState);
                                 break;

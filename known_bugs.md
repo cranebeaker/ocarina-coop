@@ -301,3 +301,10 @@ unverändert bei.
 - Overkill (Remote-Todesstoss): En_Dh startet EnDh_SetupDeath (En_Dha-Haende sterben selbst), ACTOR_KILLED-Empfaenger killt die Haende; En_Ik/En_Rd/En_Wf setzen ihr Todes-Switch-Flag (Nabooru-Ik wird nicht hart gekillt).
 - Bg_Jya_Megami (Spirit-Gesicht) pollt jetzt das Switch-Flag.
 - Offen (nicht umgesetzt): bidirektionale BG-Keyframes + Settle-Keyframe (Anspruch "Roommaster wendet Keyframes an" stimmt im Code nicht), Obj_Lightswitch-Poll, GTG Menkuri-Eye/Silberrubine Zaehler-Sync. Ungetestet live.
+
+## Workflow sweep-ganon-overworld
+
+- Ganon2Adapter las den Feuerring-Alpha (Offset 0x324) als HP und schrieb ihn auf Peers zurueck. Jetzt echte HP (colChkInfo.health), nur absenken, nie auf 0, kein BOSS_DEATH_COMMIT mehr.
+- Ganondorf: Ein Todesstoss eines Clients wurde auf dem Master per Actor_Kill ausgefuehrt (keine Todes-Cutscene, kein Kollaps). Jetzt BossGanon_NetworkForceDefeat plus BOSS_DEFEAT_START an die Clients.
+- Ganon (Phase 2): Overkill-Paket killt ihn nicht mehr, HP bleibt 1, damit der native Treffer Knockdown/Tod ausloest.
+- Nicht behoben: Bg_Ganon_Otyuka Kill-Relay, Kollaps-Zelda-Schalter (UNSET), Late-Join-Intro in Ganon-Szenen. Ungetestet (kein Zwei-Client-Test).

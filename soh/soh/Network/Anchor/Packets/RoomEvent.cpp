@@ -12,6 +12,7 @@ extern "C" {
 #include "src/overlays/actors/ovl_Bg_Ydan_Sp/z_bg_ydan_sp.h"
 #include "src/overlays/actors/ovl_Boss_Goma/z_boss_goma.h"
 #include "src/overlays/actors/ovl_Boss_Ganondrof/z_boss_ganondrof.h"
+#include "src/overlays/actors/ovl_Boss_Ganon/z_boss_ganon.h"
 #include "src/overlays/actors/ovl_Boss_Sst/z_boss_sst.h"
 #include "src/overlays/actors/ovl_Boss_Tw/z_boss_tw.h"
 #include "src/overlays/actors/ovl_Bg_Spot02_Objects/z_bg_spot02_objects.h"
@@ -634,6 +635,9 @@ void Anchor::HandlePacket_RoomEvent(nlohmann::json payload) {
                 break;
             case ACTOR_BOSS_GANONDROF:
                 applied = BossGanondrof_NetworkForceDefeat((BossGanondrof*)target, gPlayState);
+                break;
+            case ACTOR_BOSS_GANON:
+                applied = BossGanon_NetworkForceDefeat((BossGanon*)target, gPlayState);
                 break;
             case ACTOR_BOSS_SST:
                 applied = BossSst_NetworkForceDefeat((BossSst*)target, gPlayState);

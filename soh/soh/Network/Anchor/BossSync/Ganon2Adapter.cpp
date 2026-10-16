@@ -17,7 +17,7 @@ namespace {
 
 struct Ganon2TrackState {
     bool initialized = false;
-    float lastHpNorm = 1.0f;
+    int lastHp = 0;
     int lastPhaseId = -1;
     std::deque<nlohmann::json> pendingEvents;
 };
@@ -41,14 +41,13 @@ std::string BuildActorKeyLocal(const Actor* actor, s16 sceneNum) {
     return std::string(buf);
 }
 
-int ComputePhaseFromGanon2Health(float healthNorm) {
-    if (healthNorm <= 0.0f) {
+// Real health lives in colChkInfo.health (starts at 30, knockdown below 21, death at 0).
+// The float at 0x324 is the arena fire-ring alpha and must not be read or written.
+int ComputePhaseFromGanon2Health(int hp) {
+    if (hp <= 0) {
         return 3;
     }
-    if (healthNorm <= 0.33f) {
-        return 2;
-    }
-    if (healthNorm <= 0.66f) {
+    if (hp < 21) {
         return 1;
     }
     return 0;
@@ -80,90 +79,53 @@ class Ganon2Adapter : public BossSyncAdapter {
         const std::string ganon2Key = BuildActorKeyLocal(actor, play->sceneNum);
         Ganon2TrackState& track = gGanon2Track[ganon2Key];
 
-        const char* actorPtr = (const char*)actor;
-        const float* healthField = (const float*)(actorPtr + 0x324);
-        const float healthNorm = (*healthField > 1.0f) ? 1.0f : (*healthField < 0.0f) ? 0.0f : *healthField;
-        const int phaseNow = ComputePhaseFromGanon2Health(healthNorm);
+        const int hp = (int)ReadClampedBossHealth(actor);
+        const int phaseNow = ComputePhaseFromGanon2Health(hp);
+
+        auto makeEvent = [&](const char* type, int phase) {
+            nlohmann::json event;
+            event["eventType"] = type;
+            event["eventKey"] = ganon2Key;
+            event["bossActorKey"] = ganon2Key;
+            event["bossActorId"] = (int)actor->id;
+            event["phaseId"] = phase;
+            event["hp"] = hp;
+            event["seq"] = (uint32_t)play->state.frames;
+            event["masterFrame"] = (uint32_t)play->state.frames;
+            event["lateJoinCanSkipIntro"] = true;
+            return event;
+        };
 
         if (!track.initialized) {
             track.initialized = true;
-            track.lastHpNorm = healthNorm;
+            track.lastHp = hp;
             track.lastPhaseId = phaseNow;
-
-            nlohmann::json event;
-            event["eventType"] = "BOSS_STAGE_ENTER";
-            event["eventKey"] = ganon2Key;
-            event["bossActorKey"] = ganon2Key;
-            event["bossActorId"] = (int)actor->id;
-            event["phaseId"] = phaseNow;
-            event["healthNormalized"] = healthNorm;
-            event["healthPercent"] = (int)(healthNorm * 100.0f);
+            nlohmann::json event = makeEvent("BOSS_STAGE_ENTER", phaseNow);
             event["subState"] = "ganon2_intro";
-            event["seq"] = (uint32_t)play->state.frames;
-            event["masterFrame"] = (uint32_t)play->state.frames;
-            event["lateJoinCanSkipIntro"] = true;
             return event;
         }
 
-        if (healthNorm == 0.0f && track.lastHpNorm > 0.0f) {
-            track.lastHpNorm = healthNorm;
+        // No BOSS_DEATH_COMMIT here: Ganon's death (and phase-1 knockdown) only start from his own
+        // collision callback; a remote hp=0 would leave the peer's boss stuck without a sequence.
+        if (hp < track.lastHp) {
+            const int oldHp = track.lastHp;
+            track.lastHp = hp;
             track.lastPhaseId = phaseNow;
-
-            nlohmann::json event;
-            event["eventType"] = "BOSS_DEATH_COMMIT";
-            event["eventKey"] = ganon2Key;
-            event["bossActorKey"] = ganon2Key;
-            event["bossActorId"] = (int)actor->id;
-            event["phaseId"] = 3;
-            event["healthNormalized"] = 0.0f;
-            event["healthPercent"] = 0;
-            event["seq"] = (uint32_t)play->state.frames;
-            event["masterFrame"] = (uint32_t)play->state.frames;
-            event["lateJoinCanSkipIntro"] = true;
+            nlohmann::json event = makeEvent("BOSS_WEAKPOINT_HIT", phaseNow);
+            event["damage"] = oldHp - hp;
             return event;
         }
 
-        const int newPhase = ComputePhaseFromGanon2Health(healthNorm);
-        if (newPhase != track.lastPhaseId) {
-            track.lastPhaseId = newPhase;
-            track.lastHpNorm = healthNorm;
-
-            nlohmann::json event;
-            event["eventType"] = "BOSS_STAGE_ENTER";
-            event["eventKey"] = ganon2Key;
-            event["bossActorKey"] = ganon2Key;
-            event["bossActorId"] = (int)actor->id;
-            event["phaseId"] = newPhase;
-            event["healthNormalized"] = healthNorm;
-            event["healthPercent"] = (int)(healthNorm * 100.0f);
+        if (phaseNow != track.lastPhaseId) {
+            track.lastPhaseId = phaseNow;
+            track.lastHp = hp;
+            nlohmann::json event = makeEvent("BOSS_STAGE_ENTER", phaseNow);
             event["subState"] = "phase_transition";
-            event["seq"] = (uint32_t)play->state.frames;
-            event["masterFrame"] = (uint32_t)play->state.frames;
-            event["lateJoinCanSkipIntro"] = true;
             return event;
         }
 
-        if (healthNorm < track.lastHpNorm) {
-            const float oldHpNorm = track.lastHpNorm;
-            track.lastHpNorm = healthNorm;
-
-            nlohmann::json event;
-            event["eventType"] = "BOSS_WEAKPOINT_HIT";
-            event["eventKey"] = ganon2Key;
-            event["bossActorKey"] = ganon2Key;
-            event["bossActorId"] = (int)actor->id;
-            event["phaseId"] = phaseNow;
-            event["healthNormalized"] = healthNorm;
-            event["healthPercent"] = (int)(healthNorm * 100.0f);
-            event["damageNormalized"] = (oldHpNorm - healthNorm);
-            event["seq"] = (uint32_t)play->state.frames;
-            event["masterFrame"] = (uint32_t)play->state.frames;
-            event["lateJoinCanSkipIntro"] = true;
-            return event;
-        }
-
-        if (healthNorm != track.lastHpNorm) {
-            track.lastHpNorm = healthNorm;
+        if (hp != track.lastHp) {
+            track.lastHp = hp;
         }
 
         if (!track.pendingEvents.empty()) {
@@ -180,7 +142,7 @@ class Ganon2Adapter : public BossSyncAdapter {
 
         const std::string eventType = payload.value("eventType", std::string(""));
         const std::string bossActorKey = payload.value("bossActorKey", std::string(""));
-        const float healthNorm = payload.value("healthNormalized", 1.0f);
+        const int hp = payload.value("hp", -1);
 
         if (eventType == "BOSS_WEAKPOINT_HIT" || eventType == "BOSS_STAGE_ENTER") {
             Actor* ganon2 = nullptr;
@@ -196,12 +158,11 @@ class Ganon2Adapter : public BossSyncAdapter {
                 if (ganon2) break;
             }
             if (ganon2 && ganon2->update != nullptr) {
-                char* actorPtr = (char*)ganon2;
-                float* healthField = (float*)(actorPtr + 0x324);
-                const float current = *healthField;
-                // Only lower health, never raise — prevents stale events from healing.
-                if (healthNorm < current || healthNorm == 0.0f) {
-                    *healthField = (healthNorm > 1.0f) ? 1.0f : (healthNorm < 0.0f) ? 0.0f : healthNorm;
+                // Only lower health, never raise (stale events must not heal), and never to 0:
+                // death starts from Ganon's own collision callback.
+                const int current = (int)ReadClampedBossHealth(ganon2);
+                if (hp >= 1 && hp < current) {
+                    ganon2->colChkInfo.health = (u8)hp;
                 }
                 if (eventType == "BOSS_WEAKPOINT_HIT") {
                     Actor_SetColorFilter(ganon2, 0x4000, 0xFF, 0, 8);
@@ -216,10 +177,8 @@ class Ganon2Adapter : public BossSyncAdapter {
         }
 
         const std::string ganon2Key = BuildActorKeyLocal(actor, play->sceneNum);
-        const char* actorPtr = (const char*)actor;
-        const float* healthField = (const float*)(actorPtr + 0x324);
-        const float healthNorm = (*healthField > 1.0f) ? 1.0f : (*healthField < 0.0f) ? 0.0f : *healthField;
-        const int phaseNow = ComputePhaseFromGanon2Health(healthNorm);
+        const int hp = (int)ReadClampedBossHealth(actor);
+        const int phaseNow = ComputePhaseFromGanon2Health(hp);
 
         nlohmann::json snap;
         snap["bossActorKey"] = ganon2Key;
@@ -227,8 +186,7 @@ class Ganon2Adapter : public BossSyncAdapter {
         snap["sceneNum"] = play->sceneNum;
         snap["roomNum"] = (int)play->roomCtx.curRoom.num;
         snap["phaseId"] = phaseNow;
-        snap["healthNormalized"] = healthNorm;
-        snap["healthPercent"] = (int)(healthNorm * 100.0f);
+        snap["hp"] = hp;
         snap["lateJoinCanSkipIntro"] = true;
         return snap;
     }
@@ -237,7 +195,7 @@ class Ganon2Adapter : public BossSyncAdapter {
         if (!IsPlaySessionActive(play)) return;
 
         const std::string bossActorKey = snapshot.value("bossActorKey", std::string(""));
-        const float healthNorm = snapshot.value("healthNormalized", 1.0f);
+        const int hp = snapshot.value("hp", -1);
 
         Actor* ganon2 = nullptr;
         for (int cat : { ACTORCAT_BOSS, ACTORCAT_ENEMY }) {
@@ -253,9 +211,10 @@ class Ganon2Adapter : public BossSyncAdapter {
         }
         if (!ganon2 || !ganon2->update) return;
 
-        char* actorPtr = (char*)ganon2;
-        float* healthField = (float*)(actorPtr + 0x324);
-        *healthField = (healthNorm > 1.0f) ? 1.0f : (healthNorm < 0.0f) ? 0.0f : healthNorm;
+        const int current = (int)ReadClampedBossHealth(ganon2);
+        if (hp >= 1 && hp < current) {
+            ganon2->colChkInfo.health = (u8)hp;
+        }
     }
 };
 

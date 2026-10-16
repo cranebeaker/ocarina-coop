@@ -406,6 +406,7 @@ void Anchor::RegisterHooks() {
         switch (boss->id) {
             case ACTOR_BOSS_GOMA:
             case ACTOR_BOSS_GANONDROF:
+            case ACTOR_BOSS_GANON:
             case ACTOR_BOSS_SST:
             case ACTOR_BOSS_TW:
                 break;

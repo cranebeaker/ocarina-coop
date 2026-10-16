@@ -163,4 +163,6 @@ typedef struct BossGanon {
     /* 0x071B */ u8 windowShatterState;
 } BossGanon; // size = 0x71C
 
+s32 BossGanon_NetworkForceDefeat(BossGanon* boss, PlayState* play);
+
 #endif

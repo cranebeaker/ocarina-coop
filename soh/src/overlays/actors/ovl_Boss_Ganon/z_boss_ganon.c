@@ -5102,3 +5102,28 @@ void BossGanon_Reset(void) {
     sBossGanonCape = NULL;
     memset(sBossGanonEffectBuf, 0, sizeof(sBossGanonEffectBuf));
 }
+
+// Co-op (Anchor): starts the Ganondorf death cutscene on a client whose hit callback never ran
+// (killing blow dealt by a remote player). Returns 1 if the sequence is running afterwards.
+s32 BossGanon_NetworkForceDefeat(BossGanon* this, PlayState* play) {
+    if (this == NULL || this->actor.update == NULL || this->actor.params != 0) {
+        return 0;
+    }
+    if (this->actionFunc == BossGanon_DeathAndTowerCutscene) {
+        return 0;
+    }
+    if (this->actionFunc == BossGanon_IntroCutscene || this->actionFunc == BossGanon_SetupTowerCutscene) {
+        return 0;
+    }
+    this->actor.colChkInfo.health = 0;
+    BossGanon_SetupDeathCutscene(this, play);
+    if (this->actionFunc != BossGanon_DeathAndTowerCutscene) {
+        return 0; // animation bank not loaded yet
+    }
+    Audio_PlayActorSound2(&this->actor, NA_SE_EN_GANON_DEAD);
+    Audio_PlayActorSound2(&this->actor, NA_SE_EN_GANON_DD_THUNDER);
+    Sfx_PlaySfxAtPos(&sZeroVec, NA_SE_EN_LAST_DAMAGE);
+    Audio_QueueSeqCmd(0x100100FF);
+    this->screenFlashTimer = 4;
+    return 1;
+}
