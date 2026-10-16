@@ -47,6 +47,13 @@ f32 func_808C50A8(BossDodongo* this, PlayState* play);
 void BossDodongo_DrawEffects(PlayState* play);
 void BossDodongo_UpdateEffects(PlayState* play);
 
+// Anchor co-op: the room master decides King Dodongo's attacks/patrol. Followers veto their own
+// local (player-dependent) decisions and receive them from the host instead. Returns true when
+// no hook is registered (single-player / not connected).
+static s32 BossDodongo_MayDecide(BossDodongo* this) {
+    return GameInteractor_Should(VB_BOSS_DODONGO_LOCAL_DECISION, true, this);
+}
+
 const ActorInit Boss_Dodongo_InitVars = {
     ACTOR_BOSS_DODONGO,
     ACTORCAT_BOSS,
@@ -818,7 +825,8 @@ void BossDodongo_Inhale(BossDodongo* this, PlayState* PlayState) {
     } else {
         this->unk_1AC++;
 
-        if ((this->unk_1AC > 20) && (this->unk_1AC < 82) && BossDodongo_AteExplosive(this, PlayState)) {
+        if ((this->unk_1AC > 20) && (this->unk_1AC < 82) && BossDodongo_MayDecide(this) &&
+            BossDodongo_AteExplosive(this, PlayState)) {
             Audio_PlayActorSound2(&this->actor, NA_SE_EN_DODO_K_DRINK);
             BossDodongo_SetupExplode(this);
         }
@@ -878,7 +886,7 @@ void BossDodongo_Walk(BossDodongo* this, PlayState* play) {
                        (this->unk_1EC * this->unk_1E8), 5);
     Math_SmoothStepToS(&this->unk_1C4, 0, 2, 2000, 0);
 
-    if ((fabsf(sp48) <= 5.0f) && (fabsf(sp44) <= 5.0f)) {
+    if ((fabsf(sp48) <= 5.0f) && (fabsf(sp44) <= 5.0f) && BossDodongo_MayDecide(this)) {
         this->unk_1E8 = 0.0f;
         this->unk_1E4 = 0.0f;
         if (this->unk_1A2 == 0) {
@@ -894,7 +902,7 @@ void BossDodongo_Walk(BossDodongo* this, PlayState* play) {
         }
     }
 
-    if ((this->unk_1DA == 0) && (this->unk_1BC == 0)) {
+    if ((this->unk_1DA == 0) && (this->unk_1BC == 0) && BossDodongo_MayDecide(this)) {
         if ((this->actor.xzDistToPlayer < 500.0f) && (this->unk_1A4 != 0) && !this->playerPosInRange) {
             BossDodongo_SetupInhale(this);
             BossDodongo_SpawnFire(this, play, -1);
@@ -953,7 +961,7 @@ void BossDodongo_Roll(BossDodongo* this, PlayState* play) {
     Math_SmoothStepToS(&this->actor.world.rot.y, Math_FAtan2F(sp4C, sp48) * (0x8000 / M_PI), 5,
                        this->unk_1EC * this->unk_1E8, 0);
 
-    if (fabsf(sp4C) <= 15.0f && fabsf(sp48) <= 15.0f) {
+    if (fabsf(sp4C) <= 15.0f && fabsf(sp48) <= 15.0f && BossDodongo_MayDecide(this)) {
         this->numWallCollisions++;
 
         if (this->numWallCollisions >= 2) {
@@ -1487,7 +1495,7 @@ void BossDodongo_UpdateDamage(BossDodongo* this, PlayState* play) {
     }
 
     if (this->unk_1C0 == 0) {
-        if (this->actionFunc == BossDodongo_Inhale) {
+        if (this->actionFunc == BossDodongo_Inhale && BossDodongo_MayDecide(this)) {
             for (i = 0; i < 19; i++) {
                 if (this->collider.elements[i].info.bumperFlags & 2) {
                     item1 = this->collider.elements[i].info.acHitInfo;

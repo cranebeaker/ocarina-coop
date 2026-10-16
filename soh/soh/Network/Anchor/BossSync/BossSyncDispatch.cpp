@@ -16,6 +16,16 @@ nlohmann::json CaptureBossTransition(PlayState* play, Actor* actor) {
     return adapter->CaptureTransition(play, actor);
 }
 
+void TickBossFollower(PlayState* play, Actor* actor) {
+    if (play == nullptr || actor == nullptr) {
+        return;
+    }
+    auto adapter = FindBossSyncAdapter(play->sceneNum, actor->id);
+    if (adapter) {
+        adapter->FollowerTick(play, actor);
+    }
+}
+
 bool ApplyBossEvent(PlayState* play, s16 sceneNum, s16 actorId, const nlohmann::json& payload) {
     if (play == nullptr) {
         return false;

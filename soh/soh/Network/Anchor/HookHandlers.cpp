@@ -37,6 +37,7 @@ extern "C" {
 #include "src/overlays/actors/ovl_En_Ru1/z_en_ru1.h"
 #include "src/overlays/actors/ovl_En_Okarina_Tag/z_en_okarina_tag.h"
 #include "src/overlays/actors/ovl_Item_B_Heart/z_item_b_heart.h"
+#include "src/overlays/actors/ovl_Boss_Dodongo/z_boss_dodongo.h"
 #include "src/overlays/actors/ovl_Obj_Bombiwa/z_obj_bombiwa.h"
 #include "src/overlays/actors/ovl_Obj_Hamishi/z_obj_hamishi.h"
 #include "src/overlays/actors/ovl_Bg_Hidan_Dalm/z_bg_hidan_dalm.h"
@@ -738,6 +739,27 @@ void Anchor::RegisterHooks() {
         if (bgActorKeyframeTarget.count(key)) {
             *should = false;
         }
+    });
+
+    // King Dodongo: followers do not make their own (local-player-dependent) attack/patrol
+    // decisions; the room master's BOSS_ACTION_STATE events drive them (KingDodongoAdapter).
+    COND_VB_SHOULD(VB_BOSS_DODONGO_LOCAL_DECISION, isConnected, {
+        BossDodongo* boss = va_arg(args, BossDodongo*);
+        Anchor* anchor = Anchor::Instance;
+        if (anchor->IsSaveLoaded() && anchor->roomState.syncEnemies && gPlayState &&
+            anchor->ShouldActorBeNetworkDriven(&boss->actor)) {
+            *should = false;
+        }
+    });
+
+    // King Dodongo follower reconcile: if a host action event was missed, converge on it.
+    COND_HOOK(OnActorUpdate, isConnected, [&](void* actorRef) {
+        if (!IsSaveLoaded() || IsEnemyAuthority()) return;
+        if (!roomState.syncEnemies || !gPlayState) return;
+        Actor* actor = static_cast<Actor*>(actorRef);
+        if (actor->category != ACTORCAT_BOSS || actor->id != ACTOR_BOSS_DODONGO) return;
+        if (!ShouldActorBeNetworkDriven(actor)) return;
+        AnchorBossSync::TickBossFollower(gPlayState, actor);
     });
 
     COND_VB_SHOULD(VB_HAMMER_TOTEM_BREAK, isConnected, {

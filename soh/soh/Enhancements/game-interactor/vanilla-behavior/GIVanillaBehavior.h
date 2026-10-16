@@ -2965,7 +2965,17 @@ typedef enum {
     // ```
     // #### `args`
     // - `*int32_t (camId)`
-    VB_SHOULD_LOAD_BG_IMAGE
+    VB_SHOULD_LOAD_BG_IMAGE,
+
+    // #### `result`
+    // ```c
+    // true
+    // ```
+    // #### `args`
+    // - `*BossDodongo`
+    // King Dodongo's player-dependent decisions (attack choice, patrol corner advance).
+    // Anchor vetoes this on followers; the room master decides.
+    VB_BOSS_DODONGO_LOCAL_DECISION
 } GIVanillaBehavior;
 
 #endif

@@ -70,6 +70,9 @@ class BossSyncAdapter {
     virtual nlohmann::json BuildSnapshot(PlayState* play, Actor* actor) = 0;
 
     virtual void ApplySnapshot(PlayState* play, const nlohmann::json& snapshot) = 0;
+
+    // Per-frame follower hook (optional): lets an adapter re-converge on the last host state.
+    virtual void FollowerTick(PlayState* play, Actor* actor) {}
 };
 
 } // namespace AnchorBossSync

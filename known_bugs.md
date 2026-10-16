@@ -257,3 +257,9 @@ unverändert bei.
 - Bg_Ydan_Hasi (Wasser + 3 Bloecke), Bg_Spot06_Objects (Wasserebene) und Bg_Mizu_Water (Typ 0) laufen jetzt lokal auf allen Clients (flag-getrieben) statt per BG-Keyframe eingefroren; aus Keyframe-Senden/Blend ausgenommen (IsFlagDrivenWaterBgActor).
 - Water Temple: OCARINA_TAG_COMPLETED fuer Flags 0x1C-0x1E ignoriert syncRadius.
 - Offen: Late-Join-Replay des Wasserstands (RoomSnapshot), Timer-Drift bis ~35 s bei Late-Join. Nicht live getestet.
+
+## Workflow: King Dodongo Animation/Attacken (nur aus Code abgeleitet, nicht live getestet)
+- Ursache: Follower liefen die volle BossDodongo-AI (Angriffswahl abhaengig vom LOKALEN Spieler, Eckenindex per gepinnter Position); nur world.pos war synchron.
+- Fix: Host sendet BOSS_ACTION_STATE (actionFunc-Id, Ecke unk_1A0, Richtung unk_1A2; Queue, 1 Event/Frame). Follower rufen die originalen BossDodongo_SetupX auf. Neuer VB_BOSS_DODONGO_LOCAL_DECISION (nur Anchor-Follower = false) sperrt Walk-Exits, Walk-/Roll-Eckenwechsel, Inhale-Bomben-Check und Inhale-Unterbrechung. Reconcile (FollowerTick) nach >10 Frames Abweichung. BOSS_DEATH_COMMIT setzt health=0. Snapshot enthaelt Aktion/Ecke.
+- HP-Zugriff jetzt ueber BossDodongo-Struct statt festem Offset 0x194 (64-bit-Layout weicht ab).
+- Offen: Follower-Schwerttreffer erreichen den Host nicht (colChkInfo.health bei KD immer 0). Volvagia/Morpha/EnFhg nutzen weiter feste Offsets -> auditieren.
