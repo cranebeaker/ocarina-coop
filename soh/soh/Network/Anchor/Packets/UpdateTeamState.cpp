@@ -148,18 +148,22 @@ void Anchor::HandlePacket_UpdateTeamState(nlohmann::json payload) {
         gSaveContext.ship.quest = loadedData.ship.quest;
 
         for (int i = 0; i < 124; i++) {
+            // For the current scene gSaveContext.sceneFlags is only the scene-entry snapshot; the live
+            // switch flags are in actorCtx.flags (see Play_SaveSceneFlags). Preserve the live bits.
+            const bool isCurScene = IsSaveLoaded() && gPlayState && gPlayState->sceneNum == i;
+            const u32 localSwch = isCurScene ? gPlayState->actorCtx.flags.swch : gSaveContext.sceneFlags[i].swch;
             if (i == SCENE_WATER_TEMPLE) {
                 // Keep water temple water level flags
                 u32 mask = (1 << 0x1C) | (1 << 0x1D) | (1 << 0x1E);
                 loadedData.sceneFlags[i].swch =
-                    (loadedData.sceneFlags[i].swch & ~mask) | (gSaveContext.sceneFlags[i].swch & mask);
+                    (loadedData.sceneFlags[i].swch & ~mask) | (localSwch & mask);
             }
 
             if (i == SCENE_FOREST_TEMPLE) {
                 // Keep forest temple elevator flag
                 u32 mask = (1 << 0x1B);
                 loadedData.sceneFlags[i].swch =
-                    (loadedData.sceneFlags[i].swch & ~mask) | (gSaveContext.sceneFlags[i].swch & mask);
+                    (loadedData.sceneFlags[i].swch & ~mask) | (localSwch & mask);
             }
 
             gSaveContext.sceneFlags[i] = loadedData.sceneFlags[i];

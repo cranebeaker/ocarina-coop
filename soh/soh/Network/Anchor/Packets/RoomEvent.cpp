@@ -376,6 +376,7 @@ void Anchor::HandlePacket_RoomEvent(nlohmann::json payload) {
             }
             webActor = webActor->next;
         }
+    } else if (eventType == "JABU_ACTOR_SPAWN") {
         // Room-master authoritative spawn relay for Jabu-specific scripted actors
         // that may not spawn reliably on non-masters due to local cutscene/script
         // divergence (Big Octo + electrified tentacles).
@@ -487,6 +488,15 @@ void Anchor::HandlePacket_RoomEvent(nlohmann::json payload) {
             if (Math3D_Vec3fDistSq(&player->actor.world.pos, &pos) > rSq) return;
         }
 
+        if (isWaterTempleLevel) {
+            // The three level flags are mutually exclusive; BgMizuWater prefers 0x1C, then 0x1D, then 0x1E,
+            // so stale flags would give the wrong level when the water actor was not loaded.
+            for (s16 f = 0x1C; f <= 0x1E; f++) {
+                if (f != switchFlag && Flags_GetSwitch(gPlayState, f)) {
+                    Flags_UnsetSwitch(gPlayState, f);
+                }
+            }
+        }
         if (switchFlag >= 0 && !Flags_GetSwitch(gPlayState, switchFlag)) {
             Flags_SetSwitch(gPlayState, switchFlag);
         }

@@ -287,3 +287,11 @@ unverändert bei.
 - IsOwnerInSameRoom: Master muss online + save-geladen sein, sonst wird Schaden lokal angewendet (kein unsterblicher Gegner).
 - Bereits vorhanden (kein Eingriff): applyingRemoteKill-Guard gegen Kill-Echo, Owner-Raum-Pruefung im Schaden-Intercept.
 - Offen: Listen-Index-basierte Keys, Self-Heal fuer verlorene Kills, Retry-Cap fuer pendingRoomKills. Nicht live getestet.
+
+## Workflow ocarina-wf: Sweep Forest/Fire/Water/Jabu
+
+- UpdateTeamState: Water-Temple-Pegel (0x1C-0x1E) und Forest 0x1B werden jetzt aus den LIVE-Flags (actorCtx.flags.swch) der aktuellen Szene erhalten, nicht aus dem Szenen-Eintritts-Snapshot; Teammate-Save/Join setzt den Wasserstand nicht mehr zurueck.
+- OCARINA_TAG_COMPLETED (Water Temple): die drei Pegel-Flags werden gegenseitig exklusiv gesetzt (BgMizuWater bevorzugt sonst 0x1C > 0x1D > 0x1E).
+- RoomEvent: JABU_ACTOR_SPAWN war toter Code im WEB_BURNED-Zweig; jetzt eigener Zweig (Big Octo / EN_BX Relay).
+- ApplyNativeEnemyDeathSideEffects: Stalfos-Zaehler (BgMoriBigst home.rot.z--) und Meg (Flag 0x1B unset) bei Remote-Kill.
+- Offen: Octo-Plattform BattleInProgress-Handoff (Jabu), Wasserstand-Query beim spaeten Beitritt, Bg-Mover-Jitter, BgHidanRock Keyframes. Nicht live getestet.

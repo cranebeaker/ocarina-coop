@@ -29,9 +29,24 @@ extern s16 D_80B4A1B4;
 void func_800F5B58(void);
 }
 #include "overlays/actors/ovl_En_Zf/z_en_zf.h"
+#include "overlays/actors/ovl_En_Po_Sisters/z_en_po_sisters.h"
 
 void Anchor::ApplyNativeEnemyDeathSideEffects(Actor* actor) {
     if (actor == nullptr || !gPlayState) return;
+    // Forest Temple Stalfos room: BgMoriBigst counts its EnTest children in home.rot.z and only
+    // EnTest decrements it (z_en_test.c: parent->home.rot.z--). Mirror that for remote kills.
+    if (actor->id == ACTOR_EN_TEST && actor->parent != nullptr && actor->parent->id == ACTOR_BG_MORI_BIGST &&
+        actor->parent->home.rot.z > 0) {
+        actor->parent->home.rot.z--;
+    }
+    // Forest Temple Meg (real sister, unk_194 == 0 && unk_195 == 0): native death unsets switch 0x1B
+    // (z_en_po_sisters.c). 0x1B is excluded from flag sync, so apply it locally.
+    if (actor->id == ACTOR_EN_PO_SISTERS && gPlayState->sceneNum == SCENE_FOREST_TEMPLE) {
+        EnPoSisters* po = (EnPoSisters*)actor;
+        if (po->unk_194 == 0 && po->unk_195 == 0) {
+            Flags_UnsetSwitch(gPlayState, 0x1B);
+        }
+    }
     // Only live (not already dying/killed) miniboss Lizalfos. EnZf_Die moves the actor to
     // ACTORCAT_PROP, and Actor_Kill nulls update, so both guard against double application.
     if (actor->id != ACTOR_EN_ZF || actor->params < ENZF_TYPE_LIZALFOS_MINIBOSS_A) return;
