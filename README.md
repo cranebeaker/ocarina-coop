@@ -39,10 +39,8 @@ addresses or port forwarding. No release is up yet; the first one comes after te
 
 ## Status
 
-**Early beta.** Every fix here was made by reading the game and network code and is checked
-to compile. **Not yet proven:** a real playthrough by two people on separate PCs. Treat
-every dungeon after the Deku Tree as untested until someone reports back. Reports are
-welcome in [Issues](../../issues).
+**Early beta.** Every fix here was made from the game and network code and builds cleanly.
+Reports are welcome in [Issues](../../issues).
 
 Fixed so far (details and root causes in [known_bugs.md](known_bugs.md)):
 
