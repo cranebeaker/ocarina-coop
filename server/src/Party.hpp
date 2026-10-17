@@ -118,6 +118,13 @@ namespace ZeldaOnline
 		// non-admin keeps the current values. Returns false when the update had to be altered or ignored.
 		bool SetSettingsFromMember(const std::string& settings, bool isAdmin);
 
+		// True once after SetSettings changed what the sender asked for (generated or kept team code), so the sender is told
+		bool TakeSettingsAdjusted() {
+			bool adjusted = m_settingsAdjusted;
+			m_settingsAdjusted = false;
+			return adjusted;
+		}
+
 		const std::string& Settings() const {
 			return m_settings;
 		}
@@ -211,6 +218,7 @@ namespace ZeldaOnline
 		StoryProgress m_story;
 		bool m_storySeeded = false;
 		std::string m_storyCode;
+		bool m_settingsAdjusted = false;
 		std::string m_saveKey;
 		bool m_storyDirty = false;
 		std::chrono::steady_clock::time_point m_storyDirtySince;

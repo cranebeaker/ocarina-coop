@@ -542,6 +542,9 @@ void ZeldaOnlineClient::SetPartySettings(const PartySettings& settings) {
             ReloadSceneInPlace(gPlayState);
     }
     m_partySettings = settings;
+    // the server hands out a code when none was sent, keep it so the next party of this admin resumes the same save
+    if (settings.storyCoop && !settings.storyCode.empty())
+        CVarSetString("gZeldaOnline.Party.StoryCode", settings.storyCode.c_str());
     StoryRefreshState();
 }
 

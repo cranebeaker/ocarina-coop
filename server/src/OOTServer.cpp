@@ -1618,6 +1618,7 @@ namespace ZeldaOnline
 			if (party)
 			{
 				party->SetSettings(settingsJSON);
+				party->TakeSettingsAdjusted(); // the join packet below carries the final settings
 				auto admin = party->GetAdmin();
 
 				player->SendPacket(newPacket(SERVER_PACKET_PARTY_JOIN)
@@ -1909,7 +1910,7 @@ namespace ZeldaOnline
 			party->SendToAll(newPacket(SERVER_PACKET_UPDATE_PARTY_SETTINGS) << party->Settings(), player);
 
 			// a non-admin tried to change the Story Co-op keys: tell the sender what the party really uses
-			if (!accepted)
+			if (!accepted || party->TakeSettingsAdjusted())
 				player->SendPacket(newPacket(SERVER_PACKET_UPDATE_PARTY_SETTINGS) << party->Settings());
 		}
 		break;

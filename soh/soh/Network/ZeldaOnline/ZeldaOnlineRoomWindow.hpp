@@ -228,8 +228,8 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
         bool accept = false;
         bool open = true;
 
-        ImGui::SetNextWindowSize(ImVec2(320.0f, m_partyAdmin ? 480.0f : 550.0f), ImGuiCond_Appearing);
-        ImGui::SetNextWindowSizeConstraints(ImVec2(260.0f, m_partyAdmin ? 460.0f : 530.0f), ImVec2(FLT_MAX, FLT_MAX));
+        ImGui::SetNextWindowSize(ImVec2(320.0f, m_partyAdmin ? 540.0f : 610.0f), ImGuiCond_Appearing);
+        ImGui::SetNextWindowSizeConstraints(ImVec2(260.0f, m_partyAdmin ? 520.0f : 590.0f), ImVec2(FLT_MAX, FLT_MAX));
 
         if (ImGui::Begin("Party Settings###zo_party_settings_window", &open,
                          ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
@@ -274,6 +274,25 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
                 ImGui::SetTooltip("Requires Story Co-op. Ammo, rupees and health are shared between party members.");
 
             ImGui::Unindent();
+
+            if (m_partySettings.storyCoop) {
+                // The code names the server side team save together with the admin nickname, so it is always set.
+                if (m_partySettings.storyCode.empty())
+                    m_partySettings.storyCode = GenerateStoryCode();
+
+                char codeBuf[33];
+                std::snprintf(codeBuf, sizeof(codeBuf), "%s", m_partySettings.storyCode.c_str());
+                ImGui::Indent();
+                ImGui::TextUnformatted("Team code");
+                ImGui::SetNextItemWidth(-FLT_MIN);
+                if (ImGui::InputText("##zo_story_code", codeBuf, sizeof(codeBuf), ImGuiInputTextFlags_CharsNoBlank))
+                    m_partySettings.storyCode = codeBuf;
+                if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                    ImGui::SetTooltip("Names the saved team progress on the server. Share it with the people who "
+                                      "should resume this playthrough later: a party created with the same code and "
+                                      "admin nickname gets this progress back.");
+                ImGui::Unindent();
+            }
 
             if (!m_partySettings.storyCoop)
                 ImGui::EndDisabled();

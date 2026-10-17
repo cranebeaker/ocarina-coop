@@ -3,6 +3,7 @@
 #include "Scene.hpp"
 #include "nlohmann/json.hpp"
 #include <cstdio>
+#include <random>
 #include <cstring>
 #include <stdexcept>
 #include <filesystem>
@@ -65,6 +66,18 @@ namespace ZeldaOnline
 			}
 		}
 
+		// Random team code for a party that switches Story Co-op on without one: two parties must never end up with the
+		// same save key just because their admins picked the same nickname.
+		std::string GenerateStoryCode()
+		{
+			static const char alphabet[] = "abcdefghjkmnpqrstuvwxyz23456789";
+			static std::mt19937_64 rng{ std::random_device{}() ^ (uint64_t)std::chrono::steady_clock::now().time_since_epoch().count() };
+			std::string code;
+			for (int i = 0; i < 8; i++)
+				code += alphabet[rng() % (sizeof(alphabet) - 1)];
+			return code;
+		}
+
 		std::string DumpSettings(const nlohmann::json& object)
 		{
 			return object.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
@@ -95,7 +108,20 @@ namespace ZeldaOnline
 		m_privateDungeons = ReadBoolKey(parsed, "privateDungeons", false);
 		m_storyCoop = ReadBoolKey(parsed, "storyCoop", false);
 		m_shareConsumables = m_storyCoop && ReadBoolKey(parsed, "shareAmmoRupeesHp", false);
-		m_storyCode = ReadCodeKey(parsed, "storyCode");
+		const std::string sentCode = ReadCodeKey(parsed, "storyCode");
+		if (wasStoryCoop && m_storyCoop && !m_storyCode.empty())
+		{
+			// the save was chosen when Story Co-op was switched on, changing the code now would not move it
+		}
+		else
+			m_storyCode = sentCode;
+		if (m_storyCoop && m_storyCode.empty())
+			m_storyCode = GenerateStoryCode();
+		if (m_storyCoop && m_storyCode != sentCode)
+		{
+			parsed["storyCode"] = m_storyCode;
+			m_settingsAdjusted = true;
+		}
 		try
 		{
 			m_settings = DumpSettings(parsed);
@@ -608,6 +634,20 @@ namespace ZeldaOnline
 			return true;
 		}
 
+		// Magic, version, sizes and checksum of a team save file are intact (the payload itself is not parsed).
+		bool IsIntactSaveFile(const fs::path& file)
+		{
+			std::string blob;
+			if (!ReadWholeFile(file, blob) || blob.size() < sizeof(STORY_SAVE_MAGIC) + 2 + 19 + 4 + 4)
+				return false;
+			const size_t sumPos = blob.size() - 4;
+			uint32_t sum;
+			std::memcpy(&sum, blob.data() + sumPos, 4);
+			return sum == Fnv1a(blob.data(), sumPos) &&
+				std::memcmp(blob.data(), STORY_SAVE_MAGIC, sizeof(STORY_SAVE_MAGIC)) == 0 &&
+				(uint8_t)blob[sizeof(STORY_SAVE_MAGIC)] == STORY_SAVE_FILE_VERSION;
+		}
+
 		fs::path BackupPath(const fs::path& path, int index)
 		{
 			fs::path result = path;
@@ -785,8 +825,12 @@ namespace ZeldaOnline
 
 			// rotate the backups at most every few minutes
 			const auto now = std::chrono::steady_clock::now();
-			if (fs::exists(path, ec) && (m_lastBackup == std::chrono::steady_clock::time_point{} ||
-				now - m_lastBackup >= std::chrono::minutes(STORY_BACKUP_INTERVAL_MINUTES)))
+			// A damaged main file is never copied over the backups, they are what is left of the team save.
+			const bool backupDue = m_lastBackup == std::chrono::steady_clock::time_point{} ||
+				now - m_lastBackup >= std::chrono::minutes(STORY_BACKUP_INTERVAL_MINUTES);
+			if (backupDue && fs::exists(path, ec) && !IsIntactSaveFile(path))
+				std::printf("Story Co-op: team save %s is damaged, keeping the backups as they are\n", path.filename().string().c_str());
+			else if (backupDue && fs::exists(path, ec))
 			{
 				fs::remove(BackupPath(path, STORY_BACKUP_COUNT), ec);
 				for (int i = STORY_BACKUP_COUNT - 1; i >= 1; i--)
