@@ -28,6 +28,10 @@ namespace ZeldaOnline
 	// (PULLED_MASTER_SWORD_FROM_PEDESTAL, ENTERED_MASTER_SWORD_CHAMBER, SHEIK_SPAWNED_AT_MASTER_SWORD_PEDESTAL, TIME_TRAVELED_TO_ADULT)
 	static const int STORY_EVENTCHKINF_EXCLUDE[] = { 0x45, 0x4F, 0xC5, 0xC9 };
 
+	// eventInf bits that are safe to share between party members. eventInf holds per player run state (Lon Lon Ranch race,
+	// horse state, minigame state), so the mask starts empty and a bit is added only after its writers have been reviewed.
+	static const uint16_t STORY_EVENTINF_SHARE_MASK[4] = { 0, 0, 0, 0 };
+
 	// upgrades are packed into a u32 as 3 bit fields, except the wallet which uses 2 bits
 	static const uint8_t STORY_UPGRADE_SHIFTS[8] = { 0, 3, 6, 9, 12, 14, 17, 20 };
 	static const uint32_t STORY_UPGRADE_MASKS[8] = {
@@ -239,8 +243,15 @@ namespace ZeldaOnline
 			changed |= MaxInto(bottleCount, other.bottleCount);
 			changed |= OrInto(hasRutoLetter, other.hasRutoLetter);
 
-			for (int i = 0; i < 14; i++)
-				changed |= OrInto(eventChkInf[i], other.eventChkInf[i]);
+			{
+				uint16_t incomingEvents[14];
+				std::memcpy(incomingEvents, other.eventChkInf, sizeof(incomingEvents));
+				for (int bit : STORY_EVENTCHKINF_EXCLUDE)
+					incomingEvents[bit >> 4] &= (uint16_t)~(1u << (bit & 15));
+
+				for (int i = 0; i < 14; i++)
+					changed |= OrInto(eventChkInf[i], incomingEvents[i]);
+			}
 			for (int i = 0; i < 4; i++)
 				changed |= OrInto(itemGetInf[i], other.itemGetInf[i]);
 			for (int i = 0; i < 30; i++)

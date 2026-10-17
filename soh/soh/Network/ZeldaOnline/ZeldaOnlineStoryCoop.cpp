@@ -224,7 +224,9 @@ StoryProgress ZeldaOnlineClient::StoryCapture() {
         p.itemGetInf[i] = gSaveContext.itemGetInf[i];
     for (int i = 0; i < 30; i++)
         p.infTable[i] = (i == STORY_INFTABLE_EXCLUDE_INDEX) ? 0 : gSaveContext.infTable[i];
-    // eventInf holds per player state (Lon Lon Ranch race, horse state): not shared, see the design notes
+    // eventInf holds per player state (Lon Lon Ranch race, horse state): only the reviewed bits in the share mask travel
+    for (int i = 0; i < 4; i++)
+        p.eventInf[i] = gSaveContext.eventInf[i] & STORY_EVENTINF_SHARE_MASK[i];
     for (int i = 0; i < 6; i++)
         p.gsFlags[i] = gSaveContext.gsFlags[i];
 
@@ -303,6 +305,8 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
         if (i != STORY_INFTABLE_EXCLUDE_INDEX)
             gSaveContext.infTable[i] |= team.infTable[i];
     }
+    for (int i = 0; i < 4; i++)
+        gSaveContext.eventInf[i] |= (team.eventInf[i] & STORY_EVENTINF_SHARE_MASK[i]);
     for (int i = 0; i < 6; i++)
         gSaveContext.gsFlags[i] |= team.gsFlags[i];
 

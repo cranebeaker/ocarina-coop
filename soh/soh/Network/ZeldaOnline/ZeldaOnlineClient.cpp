@@ -2576,6 +2576,11 @@ void ZeldaOnlineClient::OnSceneInited(int sceneNum) {
     m_blockSceneSetupActors = sceneNum;
     SavedSceneFlags* saved = &gSaveContext.sceneFlags[sceneNum];
 
+    // Story Co-op: chests the party opened are part of the save already (StoryApply), keep them closed when the
+    // dungeon instance resets
+    if (StoryCoopActive())
+        m_savedChests[sceneNum] |= saved->chest;
+
     m_savedSwch = saved->swch;
 
     saved->swch = 0;
