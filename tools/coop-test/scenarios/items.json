@@ -1,0 +1,889 @@
+{
+  "name": "items",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "roles": {
+    "A": {
+      "name": "TestA",
+      "steps": [
+        {
+          "op": "wait_play",
+          "timeout_frames": 1800
+        },
+        {
+          "op": "reset_inventory"
+        },
+        {
+          "op": "connect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "connected",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "net_id",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "warp",
+          "entrance": 238,
+          "scene": 85,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_until",
+          "cond": "other_players",
+          "n": 1,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "create_party",
+          "story_code": "items-test",
+          "story_coop": true
+        },
+        {
+          "op": "wait_until",
+          "cond": "has_party",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_active",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "party_size",
+          "n": 2,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "peers_in_scene",
+          "n": 1,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "observe",
+          "name": "a_start"
+        },
+        {
+          "op": "give_item",
+          "item": 3
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 10
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 20
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 114
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 96
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 118,
+          "map_index": 0
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 432,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "set_ammo",
+          "slot": 3,
+          "n": 7
+        },
+        {
+          "op": "set_rupees",
+          "n": 20
+        },
+        {
+          "op": "set_health",
+          "health": 16
+        },
+        {
+          "op": "set_slot",
+          "slot": 18,
+          "item": 25
+        },
+        {
+          "op": "wait_frames",
+          "n": 300
+        },
+        {
+          "op": "observe",
+          "name": "a_after1"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 433
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 434,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "set_party_settings",
+          "story_coop": true,
+          "share_ammo": true,
+          "story_code": "items-test"
+        },
+        {
+          "op": "wait_until",
+          "cond": "share_ammo_setting",
+          "value": true,
+          "timeout_frames": 600
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 435,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "observe",
+          "name": "a_base2"
+        },
+        {
+          "op": "give_item",
+          "item": 147
+        },
+        {
+          "op": "wait_frames",
+          "n": 20
+        },
+        {
+          "op": "give_item",
+          "item": 135
+        },
+        {
+          "op": "wait_frames",
+          "n": 20
+        },
+        {
+          "op": "give_item",
+          "item": 131
+        },
+        {
+          "op": "wait_frames",
+          "n": 300
+        },
+        {
+          "op": "observe",
+          "name": "a_after2"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 436
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 437,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "set_party_settings",
+          "story_coop": false,
+          "story_code": "items-test"
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_coop_setting",
+          "value": false,
+          "timeout_frames": 600
+        },
+        {
+          "op": "wait_frames",
+          "n": 100
+        },
+        {
+          "op": "give_item",
+          "item": 14
+        },
+        {
+          "op": "wait_frames",
+          "n": 400
+        },
+        {
+          "op": "observe",
+          "name": "a_after3"
+        },
+        {
+          "op": "wait_frames",
+          "n": 100
+        },
+        {
+          "op": "quit",
+          "pass": true
+        }
+      ]
+    },
+    "B": {
+      "name": "TestB",
+      "steps": [
+        {
+          "op": "wait_play",
+          "timeout_frames": 1800
+        },
+        {
+          "op": "reset_inventory"
+        },
+        {
+          "op": "connect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "connected",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "net_id",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "warp",
+          "entrance": 238,
+          "scene": 85,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_until",
+          "cond": "invite_pending",
+          "timeout_frames": 7200
+        },
+        {
+          "op": "accept_invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "has_party",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_active",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "party_size",
+          "n": 2,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "peers_in_scene",
+          "n": 1,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "observe",
+          "name": "b_start"
+        },
+        {
+          "op": "wait_until",
+          "cond": "item",
+          "slot": 9,
+          "value": 10,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "item",
+          "slot": 18,
+          "value": 20,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "item",
+          "slot": 3,
+          "value": 3,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "quest_bit",
+          "bit": 12,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "health_capacity",
+          "n": 64,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 100
+        },
+        {
+          "op": "observe",
+          "name": "b_received"
+        },
+        {
+          "op": "set_rupees",
+          "n": 10
+        },
+        {
+          "op": "set_health",
+          "health": 32
+        },
+        {
+          "op": "wait_frames",
+          "n": 20
+        },
+        {
+          "op": "observe",
+          "name": "b_base1"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 432
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 433,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 100
+        },
+        {
+          "op": "observe",
+          "name": "b_after1"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 434
+        },
+        {
+          "op": "wait_until",
+          "cond": "share_ammo_setting",
+          "value": true,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "set_ammo",
+          "slot": 3,
+          "n": 5
+        },
+        {
+          "op": "set_rupees",
+          "n": 10
+        },
+        {
+          "op": "set_health",
+          "health": 32
+        },
+        {
+          "op": "wait_frames",
+          "n": 20
+        },
+        {
+          "op": "observe",
+          "name": "b_base2"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 435
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 436,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 100
+        },
+        {
+          "op": "observe",
+          "name": "b_after2"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 437
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_coop_setting",
+          "value": false,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 500
+        },
+        {
+          "op": "observe",
+          "name": "b_after3"
+        },
+        {
+          "op": "quit",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "items.9",
+      "op": "eq",
+      "value": 255,
+      "label": "B has no Hookshot before the party shares",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_received",
+      "path": "items.9",
+      "op": "eq",
+      "value": 10,
+      "label": "B received A's Hookshot",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_received",
+      "path": "items.3",
+      "op": "eq",
+      "value": 3,
+      "label": "B received the Fairy Bow",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_received",
+      "path": "items.18",
+      "op": "eq",
+      "value": 20,
+      "label": "B received a bottle",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_received",
+      "path": "quest_items",
+      "op": "truthy",
+      "label": "B received quest items (songs)",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_received",
+      "path": "health_capacity",
+      "op": "ge",
+      "value": 64,
+      "label": "B received the heart container",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_received",
+      "path": "dungeon_items.0",
+      "op": "truthy",
+      "label": "B received the Deku Tree map",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after1",
+      "path": "ammo.3",
+      "op": "eq",
+      "value": 7,
+      "label": "A bow ammo is 7",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after1",
+      "path": "rupees",
+      "op": "eq",
+      "value": 20,
+      "label": "A rupees are 20",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after1",
+      "path": "health",
+      "op": "eq",
+      "value": 16,
+      "label": "A health is 16",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after1",
+      "path": "items.18",
+      "op": "eq",
+      "value": 25,
+      "label": "A bottle holds the fish",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "rel",
+      "label": "B arrows unchanged by A changing arrows",
+      "delta": 0,
+      "a": {
+        "role": "B",
+        "obs": "b_base1",
+        "path": "ammo.3"
+      },
+      "b": {
+        "role": "B",
+        "obs": "b_after1",
+        "path": "ammo.3"
+      }
+    },
+    {
+      "type": "each",
+      "obs": "b_after1",
+      "path": "ammo.3",
+      "op": "ne",
+      "value": 7,
+      "label": "B arrows are not A's 7",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "rel",
+      "label": "B rupees unchanged by A changing rupees",
+      "delta": 0,
+      "a": {
+        "role": "B",
+        "obs": "b_base1",
+        "path": "rupees"
+      },
+      "b": {
+        "role": "B",
+        "obs": "b_after1",
+        "path": "rupees"
+      }
+    },
+    {
+      "type": "each",
+      "obs": "b_after1",
+      "path": "rupees",
+      "op": "eq",
+      "value": 10,
+      "label": "B rupees still 10",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "rel",
+      "label": "B health unchanged by A changing HP",
+      "delta": 0,
+      "a": {
+        "role": "B",
+        "obs": "b_base1",
+        "path": "health"
+      },
+      "b": {
+        "role": "B",
+        "obs": "b_after1",
+        "path": "health"
+      }
+    },
+    {
+      "type": "each",
+      "obs": "b_after1",
+      "path": "items.18",
+      "op": "eq",
+      "value": 20,
+      "label": "B bottle stayed empty (A's fish not shared)",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after1",
+      "path": "items.9",
+      "op": "eq",
+      "value": 10,
+      "label": "B still has the shared Hookshot",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_base2",
+      "path": "share_ammo",
+      "op": "eq",
+      "value": true,
+      "label": "share setting on for A",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_base2",
+      "path": "share_ammo",
+      "op": "eq",
+      "value": true,
+      "label": "share setting on for B",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "rel",
+      "label": "B arrows +10 from A's arrow pickup",
+      "delta": 10,
+      "a": {
+        "role": "B",
+        "obs": "b_base2",
+        "path": "ammo.3"
+      },
+      "b": {
+        "role": "B",
+        "obs": "b_after2",
+        "path": "ammo.3"
+      }
+    },
+    {
+      "type": "rel",
+      "label": "A arrows +10 from own pickup",
+      "delta": 10,
+      "a": {
+        "role": "A",
+        "obs": "a_base2",
+        "path": "ammo.3"
+      },
+      "b": {
+        "role": "A",
+        "obs": "a_after2",
+        "path": "ammo.3"
+      }
+    },
+    {
+      "type": "rel",
+      "label": "B rupees +50 from A's purple rupee",
+      "delta": 50,
+      "a": {
+        "role": "B",
+        "obs": "b_base2",
+        "path": "rupees"
+      },
+      "b": {
+        "role": "B",
+        "obs": "b_after2",
+        "path": "rupees"
+      }
+    },
+    {
+      "type": "rel",
+      "label": "A rupees +50 from own pickup",
+      "delta": 50,
+      "a": {
+        "role": "A",
+        "obs": "a_base2",
+        "path": "rupees"
+      },
+      "b": {
+        "role": "A",
+        "obs": "a_after2",
+        "path": "rupees"
+      }
+    },
+    {
+      "type": "rel",
+      "label": "B health +16 from A's recovery heart",
+      "delta": 16,
+      "a": {
+        "role": "B",
+        "obs": "b_base2",
+        "path": "health"
+      },
+      "b": {
+        "role": "B",
+        "obs": "b_after2",
+        "path": "health"
+      }
+    },
+    {
+      "type": "rel",
+      "label": "A health +16 from own heart",
+      "delta": 16,
+      "a": {
+        "role": "A",
+        "obs": "a_base2",
+        "path": "health"
+      },
+      "b": {
+        "role": "A",
+        "obs": "a_after2",
+        "path": "health"
+      }
+    },
+    {
+      "type": "each",
+      "obs": "a_after2",
+      "path": "items.18",
+      "op": "eq",
+      "value": 25,
+      "label": "A bottle still holds the fish with sharing on",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after2",
+      "path": "items.18",
+      "op": "eq",
+      "value": 20,
+      "label": "B bottle still empty with sharing on",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after3",
+      "path": "story_coop",
+      "op": "eq",
+      "value": false,
+      "label": "Story Co-op setting off for A",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after3",
+      "path": "story_active",
+      "op": "eq",
+      "value": false,
+      "label": "Story Co-op inactive for B",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after3",
+      "path": "items.12",
+      "op": "eq",
+      "value": 255,
+      "label": "B did not get the Boomerang while Story Co-op is off",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after3",
+      "path": "items.12",
+      "op": "eq",
+      "value": 14,
+      "label": "A has its own Boomerang",
+      "roles": [
+        "A"
+      ]
+    }
+  ]
+}

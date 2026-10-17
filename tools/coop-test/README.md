@@ -51,7 +51,7 @@ frames):
 | `connect` | connect to the server (the nickname and endpoint come from the scenario) |
 | `warp` | `entrance`, `scene` (waits until that scene is up) |
 | `wait_scene` | `scene` |
-| `wait_until` | `cond`: `connected`, `net_id`, `other_players` (`n`), `has_party`, `invite_pending`, `party_size` (`n`), `story_active` (`value`), `party_admin` (`value`), `peers_in_scene` (`n`), `peer_puppets` (`n`), `flag` (`type`, `flag`, `value`) |
+| `wait_until` | `cond`: `connected`, `net_id`, `other_players` (`n`), `has_party`, `invite_pending`, `party_size` (`n`), `story_active` (`value`), `party_admin` (`value`), `peers_in_scene` (`n`), `peer_puppets` (`n`), `flag` (`type`, `flag`, `value`), `item` (`slot`, `value`), `ammo` (`slot`, `n`), `rupees` / `health` / `health_capacity` (`n`), `quest_bit` (`bit`, `value`), `share_ammo_setting` / `story_coop_setting` (`value`) |
 | `create_party` | optional `story_coop`, `share_ammo`, `private_dungeons`, `story_code`; creates the party with those settings |
 | `invite` | optional `name`; invites every listed player not in the party |
 | `accept_invite` | accepts the first pending invite |
@@ -60,14 +60,17 @@ frames):
 | `wait_frames` | `n` |
 | `observe` | `name`, optional `flags` (`type`, `flag`) to record |
 | `set_flag`, `unset_flag` | `type` (`switch`, `clear`, `collect`, `treasure`, `event_chk_inf`, `inf_table`), `flag` |
+| `reset_inventory` | empties items, ammo, quest items, dungeon items, upgrades; 3 hearts, 0 rupees (the debug save starts full) |
+| `give_item` | `item` (item id), optional `map_index`; calls `Item_Give`, so the OnItemReceive hooks fire like a pickup |
+| `set_ammo`, `set_slot` | `slot`, `n` / `item`; direct inventory writes |
 | `set_health`, `set_rupees`, `set_time` | `health` / `n` / `day_time`, `night_flag` |
 | `log`, `quit` | `msg` / `pass`, `error` |
 
-Every step takes `timeout_frames`; a timeout fails the scenario. Optional top-level `cvars` and per-role `cvars` set
+Every step takes `timeout_frames`; a timeout fails the scenario. Scenarios: `smoke`, `items` (shared non-consumables, per-player ammo/rupees/HP/bottle contents, Share Ammo on, Story Co-op switched off mid session), `items_off` (Story Co-op never on). Cross-client sync inside a scenario uses a shared infTable flag as a signal.  Optional top-level `cvars` and per-role `cvars` set
 arbitrary CVars before the client starts.
 
-Assertion types: `each` (every client, `obs`/`path`/`op`/`value`, ops `eq ne ge gt le lt truthy`), `count` (number of
-clients where `path == value` equals `equals`), `same` (all clients agree on `path`), `cross_equal`. Paths are dotted
+Assertion types: `each` (every client, or only `roles`, `obs`/`path`/`op`/`value`, ops `eq ne ge gt le lt truthy`), `count` (number of
+clients where `path == value` equals `equals`), `same` (all clients agree on `path`), `cross_equal`, `rel` (compare `a` and `b`, each `role`/`obs`/`path`, with `delta` meaning b - a, or an `op`). Paths are dotted
 and can index lists (`peers.0.age`).
 
 An observation records connection, network id, nickname, party id, admin flags, party size, the party settings as the

@@ -313,6 +313,24 @@ json Observe(const json& step) {
         o["health"] = gSaveContext.health;
         o["health_capacity"] = gSaveContext.healthCapacity;
         o["rupees"] = gSaveContext.rupees;
+        {
+            const Inventory& inv = gSaveContext.inventory;
+            json items = json::array();
+            json ammo = json::array();
+            for (int i = 0; i < 24; i++) {
+                items.push_back(inv.items[i]);
+            }
+            for (int i = 0; i < 16; i++) {
+                ammo.push_back(inv.ammo[i]);
+            }
+            o["items"] = items;
+            o["ammo"] = ammo;
+            o["upgrades"] = inv.upgrades;
+            o["equipment"] = inv.equipment;
+            o["quest_items"] = inv.questItems;
+            o["dungeon_items"] = { inv.dungeonItems[0], inv.dungeonItems[1], inv.dungeonItems[2] };
+            o["bgs_flag"] = gSaveContext.bgsFlag;
+        }
         if (p != nullptr) {
             o["link_pos"] = { p->actor.world.pos.x, p->actor.world.pos.y, p->actor.world.pos.z };
         }
@@ -327,6 +345,39 @@ json Observe(const json& step) {
         }
     }
     return o;
+}
+
+// Clears everything the debug save hands out so a scenario can hand out items itself.
+void ResetInventory() {
+    Inventory& inv = gSaveContext.inventory;
+    for (int i = 0; i < 24; i++) {
+        inv.items[i] = ITEM_NONE;
+    }
+    for (int i = 0; i < 16; i++) {
+        inv.ammo[i] = 0;
+    }
+    inv.equipment = 0;
+    inv.upgrades = 0;
+    inv.questItems = 0;
+    for (int i = 0; i < 20; i++) {
+        inv.dungeonItems[i] = 0;
+    }
+    for (int i = 0; i < 19; i++) {
+        inv.dungeonKeys[i] = -1;
+    }
+    inv.defenseHearts = 0;
+    inv.gsTokens = 0;
+    for (int i = 1; i < 4; i++) {
+        gSaveContext.equips.buttonItems[i] = ITEM_NONE;
+    }
+    gSaveContext.equips.equipment = 0;
+    gSaveContext.healthCapacity = 0x30;
+    gSaveContext.health = 0x30;
+    gSaveContext.rupees = 0;
+    gSaveContext.isMagicAcquired = 0;
+    gSaveContext.isDoubleMagicAcquired = 0;
+    gSaveContext.isDoubleDefenseAcquired = 0;
+    gSaveContext.bgsFlag = 0;
 }
 
 // Returns true when the step is complete.
@@ -401,6 +452,10 @@ bool RunStep(const json& step) {
             ok = AutoTestAccess::PartySize() >= n;
         } else if (cond == "story_active") {
             ok = AutoTestAccess::StoryActive() == step.value("value", true);
+        } else if (cond == "share_ammo_setting") {
+            ok = AutoTestAccess::Settings().shareAmmoRupeesHp == step.value("value", true);
+        } else if (cond == "story_coop_setting") {
+            ok = AutoTestAccess::Settings().storyCoop == step.value("value", true);
         } else if (cond == "party_admin") {
             ok = AutoTestAccess::IsAdmin() == step.value("value", true);
         } else if (PlayReady()) {
@@ -408,6 +463,18 @@ bool RunStep(const json& step) {
                 ok = AutoTestAccess::PeersInScene(gPlayState->sceneNum) >= n;
             } else if (cond == "peer_puppets") {
                 ok = AutoTestAccess::PlayerPuppets() >= n;
+            } else if (cond == "item") {
+                ok = gSaveContext.inventory.items[step.value("slot", 0)] == step.value("value", 0);
+            } else if (cond == "ammo") {
+                ok = gSaveContext.inventory.ammo[step.value("slot", 0)] == step.value("n", 0);
+            } else if (cond == "rupees") {
+                ok = gSaveContext.rupees == step.value("n", 0);
+            } else if (cond == "health") {
+                ok = gSaveContext.health == step.value("n", 0);
+            } else if (cond == "health_capacity") {
+                ok = gSaveContext.healthCapacity >= step.value("n", 0);
+            } else if (cond == "quest_bit") {
+                ok = ((gSaveContext.inventory.questItems >> step.value("bit", 0)) & 1) == (step.value("value", true) ? 1u : 0u);
             } else if (cond == "flag") {
                 ok = ReadFlag(step.value("type", "switch"), step.value("flag", 0)) == step.value("value", true);
             } else {
@@ -461,6 +528,26 @@ bool RunStep(const json& step) {
         if (op == "set_flag" && !WriteFlag(step.value("type", "switch"), step.value("flag", 0))) {
             Finish(false, "unknown flag type");
         }
+        return true;
+    }
+    if (op == "reset_inventory") {
+        if (!PlayReady()) return timedOut("reset_inventory not ready");
+        ResetInventory();
+        return true;
+    }
+    if (op == "give_item") {
+        // The same call a pickup or a chest ends in, so the OnItemReceive hooks fire like in play.
+        if (!PlayReady()) return timedOut("give_item not ready");
+        if (step.contains("map_index")) gSaveContext.mapIndex = step["map_index"].get<int>();
+        Item_Give(gPlayState, (u8)step.value("item", 0));
+        return true;
+    }
+    if (op == "set_ammo") {
+        gSaveContext.inventory.ammo[step.value("slot", 0)] = (s8)step.value("n", 0);
+        return true;
+    }
+    if (op == "set_slot") {
+        gSaveContext.inventory.items[step.value("slot", 0)] = (u8)step.value("item", 0);
         return true;
     }
     if (op == "set_health") {

@@ -1,0 +1,389 @@
+{
+  "name": "items_off",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "roles": {
+    "A": {
+      "name": "TestA",
+      "steps": [
+        {
+          "op": "wait_play",
+          "timeout_frames": 1800
+        },
+        {
+          "op": "reset_inventory"
+        },
+        {
+          "op": "connect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "connected",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "net_id",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "warp",
+          "entrance": 238,
+          "scene": 85,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_until",
+          "cond": "other_players",
+          "n": 1,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "create_party",
+          "story_code": "items-test"
+        },
+        {
+          "op": "wait_until",
+          "cond": "has_party",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "party_size",
+          "n": 2,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "peers_in_scene",
+          "n": 1,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "observe",
+          "name": "a_start"
+        },
+        {
+          "op": "wait_frames",
+          "n": 200
+        },
+        {
+          "op": "give_item",
+          "item": 3
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 10
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 114
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 96
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 20
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "give_item",
+          "item": 135
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "set_ammo",
+          "slot": 3,
+          "n": 7
+        },
+        {
+          "op": "set_health",
+          "health": 16
+        },
+        {
+          "op": "wait_frames",
+          "n": 500
+        },
+        {
+          "op": "observe",
+          "name": "a_after"
+        },
+        {
+          "op": "quit",
+          "pass": true
+        }
+      ]
+    },
+    "B": {
+      "name": "TestB",
+      "steps": [
+        {
+          "op": "wait_play",
+          "timeout_frames": 1800
+        },
+        {
+          "op": "reset_inventory"
+        },
+        {
+          "op": "connect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "connected",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "net_id",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "warp",
+          "entrance": 238,
+          "scene": 85,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_until",
+          "cond": "invite_pending",
+          "timeout_frames": 7200
+        },
+        {
+          "op": "accept_invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "has_party",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "party_size",
+          "n": 2,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "peers_in_scene",
+          "n": 1,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "set_rupees",
+          "n": 10
+        },
+        {
+          "op": "set_health",
+          "health": 32
+        },
+        {
+          "op": "wait_frames",
+          "n": 20
+        },
+        {
+          "op": "observe",
+          "name": "b_base"
+        },
+        {
+          "op": "wait_frames",
+          "n": 900
+        },
+        {
+          "op": "observe",
+          "name": "b_after"
+        },
+        {
+          "op": "quit",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "type": "each",
+      "obs": "b_base",
+      "path": "party_size",
+      "op": "eq",
+      "value": 2,
+      "label": "party formed (2 members)",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after",
+      "path": "story_coop",
+      "op": "eq",
+      "value": false,
+      "label": "Story Co-op setting off",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after",
+      "path": "story_active",
+      "op": "eq",
+      "value": false,
+      "label": "Story Co-op inactive",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after",
+      "path": "items.9",
+      "op": "eq",
+      "value": 10,
+      "label": "A really owns the Hookshot",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after",
+      "path": "items.9",
+      "op": "eq",
+      "value": 255,
+      "label": "B has no Hookshot",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after",
+      "path": "items.3",
+      "op": "eq",
+      "value": 255,
+      "label": "B has no Fairy Bow",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after",
+      "path": "items.18",
+      "op": "eq",
+      "value": 255,
+      "label": "B has no bottle",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after",
+      "path": "quest_items",
+      "op": "eq",
+      "value": 0,
+      "label": "B has no songs",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after",
+      "path": "dungeon_items.0",
+      "op": "eq",
+      "value": 0,
+      "label": "B has no dungeon items",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "rel",
+      "label": "B heart capacity unchanged",
+      "delta": 0,
+      "a": {
+        "role": "B",
+        "obs": "b_base",
+        "path": "health_capacity"
+      },
+      "b": {
+        "role": "B",
+        "obs": "b_after",
+        "path": "health_capacity"
+      }
+    },
+    {
+      "type": "rel",
+      "label": "B rupees unchanged",
+      "delta": 0,
+      "a": {
+        "role": "B",
+        "obs": "b_base",
+        "path": "rupees"
+      },
+      "b": {
+        "role": "B",
+        "obs": "b_after",
+        "path": "rupees"
+      }
+    },
+    {
+      "type": "rel",
+      "label": "B health unchanged",
+      "delta": 0,
+      "a": {
+        "role": "B",
+        "obs": "b_base",
+        "path": "health"
+      },
+      "b": {
+        "role": "B",
+        "obs": "b_after",
+        "path": "health"
+      }
+    }
+  ]
+}

@@ -175,6 +175,8 @@ def check(scenario, logs):
         label = a.get("label") or "%s %s %s" % (kind, a.get("obs"), a.get("path", ""))
         if kind == "each":
             for role, log in logs.items():
+                if "roles" in a and role not in a["roles"]:
+                    continue
                 o = find_obs(log, a["obs"]) if log else None
                 got = dig(o, a["path"]) if o else None
                 ok = o is not None and compare(a.get("op", "eq"), got, a.get("value"))
@@ -194,6 +196,22 @@ def check(scenario, logs):
                 vals.append(dig(o, a["path"]) if o else None)
             ok = len(vals) > 0 and all(v is not None and v == vals[0] for v in vals)
             results.append((ok, "%s: values %r" % (label, vals)))
+        elif kind == "rel":
+            # compare two observations, possibly of different roles: b - a == delta, or `op` between b and a
+            sides = []
+            for side in (a["a"], a["b"]):
+                lg = logs.get(side["role"])
+                ob = find_obs(lg, side["obs"]) if lg else None
+                sides.append(dig(ob, side["path"]) if ob else None)
+            va, vb = sides
+            if va is None or vb is None:
+                ok = False
+            elif "delta" in a:
+                ok = (vb - va) == a["delta"]
+            else:
+                ok = compare(a.get("op", "eq"), vb, va)
+            want = ("b - a == %r" % a["delta"]) if "delta" in a else ("b %s a" % a.get("op", "eq"))
+            results.append((ok, "%s: a=%r b=%r, want %s" % (label, va, vb, want)))
         elif kind == "cross_equal":
             # path_a in role A's observation must equal path_b in role B's observation
             oa = find_obs(logs.get("A"), a["obs"]) if logs.get("A") else None
