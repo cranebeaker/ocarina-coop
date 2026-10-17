@@ -161,6 +161,7 @@ namespace ZeldaOnline
 		while (m_running)
 		{
 			tickWorldTime();
+			Party::TickAll(std::chrono::steady_clock::now());
 			acceptPendingConnections();
 			pollConnections();
 			reapConnections();
@@ -1146,10 +1147,17 @@ namespace ZeldaOnline
 			ByteStream blob = data.Read(data.BytesLeft());
 
 			auto oldNickName = player->NickName();
+			auto oldAge = player->Age();
 			player->SetAppearance(blob);
 
-			if (player->InitedPlayerList() && oldNickName != player->NickName())
+			if (player->InitedPlayerList() && (oldNickName != player->NickName() || oldAge != player->Age()))
 				BroadcastPlayerListEntryUpdate(player);
+
+			if (oldAge != player->Age())
+			{
+				if (auto party = player->GetParty())
+					party->OnMemberAgeChanged(player);
+			}
 			
 			Scene* scene = player->CurrentScene();
 			if (!scene)
@@ -1684,6 +1692,8 @@ namespace ZeldaOnline
 			// Story Co-op: catch the joiner up on the team save (their own upload is merged in afterwards)
 			if (party->StoryCoop() && party->StorySeeded())
 				player->SendPacket(MakeStoryStatePacket(party->Story(), STORY_FLAG_CATCH_UP));
+
+			party->OnMemberAdded(player);
 		}
 		break;
 
@@ -1931,6 +1941,17 @@ namespace ZeldaOnline
 		}
 		break;
 
+		case CLIENT_PACKET_STORY_TIME_VOTE:
+		{
+			auto party = player->GetParty();
+			if (!party || !party->StoryCoop() || data.BytesLeft() < 1)
+				break;
+
+			auto action = data.Read<PackedUInt1>().value();
+			party->HandleVote(player, action != 0);
+		}
+		break;
+
 		case CLIENT_PACKET_STORY_SHARE_ITEM:
 		{
 			auto party = player->GetParty();
@@ -1961,7 +1982,10 @@ namespace ZeldaOnline
 		auto old = player->GetParty();
 
 		if (old != nullptr)
+		{
 			old->RemoveMember(player);
+			old->OnMemberRemoved(player);
+		}
 
 		player->SetParty(party);
 
@@ -1991,6 +2015,7 @@ namespace ZeldaOnline
 			std::vector<Player*> formerMembers = party->Members();
 
 			party->RemoveMember(player);
+			party->OnMemberRemoved(player);
 			player->SetParty(nullptr);
 
 			auto admin = party->GetAdmin();

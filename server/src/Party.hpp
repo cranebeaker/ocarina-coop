@@ -1,6 +1,7 @@
 #ifndef ZELDAONLINE_PARTY_HPP
 #define ZELDAONLINE_PARTY_HPP
 
+#include <chrono>
 #include <cstdint>
 #include <memory>
 #include <unordered_map>
@@ -155,6 +156,17 @@ namespace ZeldaOnline
 			return 0;
 		}
 
+		// Story Co-op time travel. Members vote at the Master Sword pedestal; when every current member has
+		// voted the server tells all of them to run the native travel sequence together.
+		static const uint8_t ERA_UNKNOWN = 0xFF;
+
+		void HandleVote(Player* player, bool vote);
+		void OnMemberAdded(Player* player);
+		void OnMemberRemoved(Player* player);
+		void OnMemberAgeChanged(Player* player);
+		void BroadcastVoteStatus();
+		static void TickAll(std::chrono::steady_clock::time_point now);
+
 		Player* GetAdmin() {
 			if (m_members.size())
 				return m_members[0];
@@ -166,6 +178,15 @@ namespace ZeldaOnline
 		{
 		}
 
+		void StorySettingsChanged(bool wasStoryCoop);
+		void EvaluateVotes(bool forceBroadcast);
+		void StartTravel();
+		void CheckTravelDone(bool timedOut);
+		void ResetVotes();
+		uint8_t EffectiveEra() const;
+		void SendVoteStatusTo(Player* player, bool active);
+		bool HasVoted(uint16_t netID) const;
+
 		uint32_t m_id;
 		std::vector<Player*> m_members;
 		std::unordered_set<uint64_t> m_invitedPlayers;
@@ -176,6 +197,12 @@ namespace ZeldaOnline
 		uint8_t m_dungeonKeys[19]{};
 		StoryProgress m_story;
 		bool m_storySeeded = false;
+		std::vector<uint16_t> m_votes;
+		uint8_t m_voteEra = ERA_UNKNOWN;
+		uint8_t m_era = ERA_UNKNOWN;
+		bool m_travelling = false;
+		uint8_t m_travelTarget = 0;
+		std::chrono::steady_clock::time_point m_travelDeadline;
 
 		inline static uint32_t s_nextID = 1;
 		inline static std::unordered_map<uint32_t, std::weak_ptr<Party>> s_parties;
