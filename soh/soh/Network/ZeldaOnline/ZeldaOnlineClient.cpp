@@ -452,6 +452,8 @@ void ZeldaOnlineClient::Enable() {
                 CVarSetInteger("gZeldaOnline.Party.HealthMultiplier", m_partySettings.healthMultiplier ? 1 : 0);
                 CVarSetFloat("gZeldaOnline.Party.EnemyHealthWeight", m_partySettings.enemyHealthWeight);
                 CVarSetFloat("gZeldaOnline.Party.BossHealthWeight", m_partySettings.bossHealthWeight);
+                CVarSetInteger("gZeldaOnline.Party.StoryCoop", m_partySettings.storyCoop ? 1 : 0);
+                CVarSetInteger("gZeldaOnline.Party.ShareAmmoRupeesHp", m_partySettings.shareAmmoRupeesHp ? 1 : 0);
 
                 Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
             } break;
@@ -490,6 +492,8 @@ std::string ZeldaOnlineClient::BuildPartySettingsJSON(const PartySettings& party
     settings["healthMultiplier"] = partySettings.healthMultiplier;
     settings["enemyHealthWeight"] = partySettings.enemyHealthWeight;
     settings["bossHealthWeight"] = partySettings.bossHealthWeight;
+    settings["storyCoop"] = partySettings.storyCoop;
+    settings["shareAmmoRupeesHp"] = partySettings.shareAmmoRupeesHp;
 
     return settings.dump();
 }
@@ -506,6 +510,8 @@ bool ZeldaOnlineClient::ParsePartySettingsJSON(const std::string& partySettings,
     out.healthMultiplier = settings.value("healthMultiplier", false);
     out.enemyHealthWeight = settings.value("enemyHealthWeight", 1.0f);
     out.bossHealthWeight = settings.value("bossHealthWeight", 1.0f);
+    out.storyCoop = settings.value("storyCoop", false);
+    out.shareAmmoRupeesHp = settings.value("shareAmmoRupeesHp", false);
 
     if (out.extraEnemyWeight < 0.0f)
         out.extraEnemyWeight = 0.0f;
@@ -542,6 +548,8 @@ void ZeldaOnlineClient::LoadPartySettings() {
     m_partySettings.healthMultiplier = CVarGetInteger("gZeldaOnline.Party.HealthMultiplier", 0) != 0;
     m_partySettings.enemyHealthWeight = CVarGetFloat("gZeldaOnline.Party.EnemyHealthWeight", 1.0f);
     m_partySettings.bossHealthWeight = CVarGetFloat("gZeldaOnline.Party.BossHealthWeight", 1.0f);
+    m_partySettings.storyCoop = CVarGetInteger("gZeldaOnline.Party.StoryCoop", 0) != 0;
+    m_partySettings.shareAmmoRupeesHp = CVarGetInteger("gZeldaOnline.Party.ShareAmmoRupeesHp", 0) != 0;
 
     if (ZeldaOnlineRoomWindow::Instance != nullptr)
         ZeldaOnlineRoomWindow::Instance->GetPartySettings() = m_partySettings;

@@ -119,6 +119,14 @@ namespace ZeldaOnline
 			return m_privateDungeons;
 		}
 
+		bool StoryCoop() const {
+			return m_storyCoop;
+		}
+
+		bool ShareConsumables() const {
+			return m_shareConsumables;
+		}
+
 		void SetDungeonKeys(int mapIndex, uint8_t count) {
 			if (mapIndex >= 0 && mapIndex < 19)
 				m_dungeonKeys[mapIndex] = count;
@@ -146,6 +154,8 @@ namespace ZeldaOnline
 		std::unordered_set<uint64_t> m_invitedPlayers;
 		std::string m_settings;
 		bool m_privateDungeons = false;
+		bool m_storyCoop = false;
+		bool m_shareConsumables = false;
 		uint8_t m_dungeonKeys[19]{};
 
 		inline static uint32_t s_nextID = 1;

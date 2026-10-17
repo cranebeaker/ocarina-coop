@@ -10,6 +10,8 @@ namespace ZeldaOnline
 		{
 			m_settings.clear();
 			m_privateDungeons = false;
+			m_storyCoop = false;
+			m_shareConsumables = false;
 			return;
 		}
 
@@ -24,6 +26,8 @@ namespace ZeldaOnline
 			}
 
 			m_privateDungeons = parsed.value("privateDungeons", false);
+			m_storyCoop = parsed.value("storyCoop", false);
+			m_shareConsumables = m_storyCoop && parsed.value("shareAmmoRupeesHp", false);
 			m_settings = parsed.dump();
 		}
 		catch (const std::exception& e)

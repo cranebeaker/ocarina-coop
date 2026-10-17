@@ -224,8 +224,8 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
         bool accept = false;
         bool open = true;
 
-        ImGui::SetNextWindowSize(ImVec2(320.0f, m_partyAdmin ? 400.0f : 470.0f), ImGuiCond_Appearing);
-        ImGui::SetNextWindowSizeConstraints(ImVec2(260.0f, m_partyAdmin ? 380.0f : 450.0f), ImVec2(FLT_MAX, FLT_MAX));
+        ImGui::SetNextWindowSize(ImVec2(320.0f, m_partyAdmin ? 480.0f : 550.0f), ImGuiCond_Appearing);
+        ImGui::SetNextWindowSizeConstraints(ImVec2(260.0f, m_partyAdmin ? 460.0f : 530.0f), ImVec2(FLT_MAX, FLT_MAX));
 
         if (ImGui::Begin("Party Settings###zo_party_settings_window", &open,
                          ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoSavedSettings)) {
@@ -249,6 +249,30 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
             if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
                 ImGui::SetTooltip("Create a separate dungeon instance for your party.\n"
                                   "Only members of your party can enter the instance.");
+
+            ImGui::Spacing();
+
+            if (ImGui::Checkbox("Story Co-op", &m_partySettings.storyCoop)) {
+                if (!m_partySettings.storyCoop)
+                    m_partySettings.shareAmmoRupeesHp = false;
+            }
+
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("Party members share progression, story flags and the Master Sword time travel.");
+
+            if (!m_partySettings.storyCoop)
+                ImGui::BeginDisabled();
+
+            ImGui::Indent();
+            ImGui::Checkbox("Share Ammo, Rupees & HP", &m_partySettings.shareAmmoRupeesHp);
+
+            if (ImGui::IsItemHovered(ImGuiHoveredFlags_AllowWhenDisabled))
+                ImGui::SetTooltip("Requires Story Co-op. Ammo, rupees and health are shared between party members.");
+
+            ImGui::Unindent();
+
+            if (!m_partySettings.storyCoop)
+                ImGui::EndDisabled();
 
             ImGui::Spacing();
 
@@ -447,6 +471,9 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
 
         if (entry.sceneNum >= 0) {
             std::string location = LocationLabel(entry);
+
+            if (location.empty() && entry.isInParty && m_partySettings.storyCoop)
+                location = (entry.age == 0) ? "(Adult)" : "(Child)";
 
             if (!location.empty()) {
                 const float padding = ImGui::GetStyle().FramePadding.x;
