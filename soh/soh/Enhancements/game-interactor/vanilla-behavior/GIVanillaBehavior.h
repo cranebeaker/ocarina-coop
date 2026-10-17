@@ -3246,7 +3246,28 @@ typedef enum {
 
 
     //Zelda Online
-    VB_ADVANCE_DAYTIME
+    VB_ADVANCE_DAYTIME,
+
+    // #### `result`
+    // ```c
+    // Actor_HasParent(&this->actor, play)
+    // ```
+    // #### `args`
+    // - `*Actor` (the Master Sword pedestal, `BgTokiSwd`)
+    //
+    // Whether the Master Sword pedestal is used right now (child pulls the sword, adult places it back).
+    // Returning `false` leaves the pedestal untouched so the use can be deferred.
+    VB_MASTER_SWORD_PEDESTAL_USE,
+
+    // #### `result`
+    // ```c
+    // true
+    // ```
+    // #### `args`
+    // - None
+    //
+    // Whether `SwitchAge()` may change Link's age (cheat button, Ocarina Time Travel enhancement).
+    VB_SWITCH_AGE
 } GIVanillaBehavior;
 
 #endif

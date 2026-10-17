@@ -125,7 +125,7 @@ void func_808BAF40(BgTokiSwd* this, PlayState* play) {
     }
 
     if (!LINK_IS_ADULT || (Flags_GetEventChkInf(EVENTCHKINF_LEARNED_PRELUDE_OF_LIGHT) && !IS_RANDO) || IS_RANDO) {
-        if (Actor_HasParent(&this->actor, play)) {
+        if (GameInteractor_Should(VB_MASTER_SWORD_PEDESTAL_USE, Actor_HasParent(&this->actor, play), &this->actor)) {
             if (!LINK_IS_ADULT) {
                 if (GameInteractor_Should(VB_GIVE_ITEM_MASTER_SWORD, true)) {
                     Item_Give(play, ITEM_SWORD_MASTER);

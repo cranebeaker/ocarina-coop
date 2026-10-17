@@ -1673,13 +1673,7 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
             } catch (const std::exception& e) { printf("ZeldaOnline: bad party settings (%s)\n", e.what()); }
         } break;
 
-        case CLIENT_PACKET_UPDATE_DUNGEON_KEYS: {
-            auto mapIndex = packet.Read<PackedUInt1>().value();
-            auto count = packet.Read<PackedUInt1>().value();
-            if (mapIndex < 19)
-                gSaveContext.inventory.dungeonKeys[mapIndex] = count;
-            
-        } break;
+        // (a client packet id used to be handled here by mistake, its value 37 is now SERVER_PACKET_STORY_VOTE_STATUS)
 
         case SERVER_PACKET_UPDATE_DUNGEON_KEYS: {
             auto mapIndex = packet.Read<PackedUInt1>().value();
@@ -1694,6 +1688,18 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
 
         case SERVER_PACKET_STORY_SHARE_ITEM:
             OnStoryShareItem(packet);
+            break;
+
+        case SERVER_PACKET_STORY_VOTE_STATUS:
+            OnStoryVoteStatus(packet);
+            break;
+
+        case SERVER_PACKET_STORY_TRAVEL:
+            OnStoryTravel(packet);
+            break;
+
+        case SERVER_PACKET_STORY_SET_ERA:
+            OnStorySetEra(packet);
             break;
 
         default:
@@ -1855,6 +1861,9 @@ void ZeldaOnlineClient::DrawOverlay(GraphicsContext* gfxCtx) {
         DrawScreenText(gfxCtx, "Connected", 5, 5, { 0, 255, 0, 255 }, 0.5f);
     if (m_showConnectionStatusTimer > 0)
         --m_showConnectionStatusTimer;
+
+    if (m_storyHold)
+        DrawScreenText(gfxCtx, StoryHoldText().c_str(), 12, 170, { 255, 255, 255, 255 }, 0.45f);
 }
 
 void ZeldaOnlineClient::UpdateAppearance() {
@@ -2111,6 +2120,29 @@ void ZeldaOnlineClient::RegisterHooks(bool enabled) {
         if (enabled) {
             GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnVanillaBehavior>(
                 VB_ADVANCE_DAYTIME, [this](GIVanillaBehavior, bool* should, va_list) { *should = false; });
+        }
+    }
+
+    // Story Co-op time travel: both handlers do nothing unless the party has Story Co-op on
+    {
+        static HOOK_ID pedestalHookId = 0;
+        static HOOK_ID switchAgeHookId = 0;
+        GameInteractor::Instance->UnregisterGameHookForID<GameInteractor::OnVanillaBehavior>(pedestalHookId);
+        GameInteractor::Instance->UnregisterGameHookForID<GameInteractor::OnVanillaBehavior>(switchAgeHookId);
+        pedestalHookId = 0;
+        switchAgeHookId = 0;
+
+        if (enabled) {
+            pedestalHookId = GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnVanillaBehavior>(
+                VB_MASTER_SWORD_PEDESTAL_USE, [this](GIVanillaBehavior, bool* should, va_list originalArgs) {
+                    va_list args;
+                    va_copy(args, originalArgs);
+                    Actor* pedestal = va_arg(args, Actor*);
+                    va_end(args);
+                    StoryOnPedestalUse(pedestal, should);
+                });
+            switchAgeHookId = GameInteractor::Instance->RegisterGameHookForID<GameInteractor::OnVanillaBehavior>(
+                VB_SWITCH_AGE, [this](GIVanillaBehavior, bool* should, va_list) { StoryOnSwitchAge(should); });
         }
     }
 
@@ -2556,6 +2588,7 @@ void ZeldaOnlineClient::InitPuppetPlayer(Actor* actor) {
 }
 
 void ZeldaOnlineClient::OnSceneInited(int sceneNum) {
+    StoryOnSceneInit();
     m_sceneLoadedAtNight = gSaveContext.nightFlag != 0;
     m_sceneLockedDoorFlags = 0U;
     m_savedSwch = 0U;

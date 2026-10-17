@@ -1,5 +1,6 @@
 #include "soh/Enhancements/SwitchAge.h"
 #include "soh/Enhancements/game-interactor/GameInteractor.h"
+#include "soh/Enhancements/game-interactor/GameInteractor_Hooks.h"
 
 extern "C" {
 #include <z64.h>
@@ -14,6 +15,11 @@ extern PlayState* gPlayState;
 /// Switches Link's age and respawns him at the last entrance he entered.
 void SwitchAge() {
     if (gPlayState == NULL)
+        return;
+
+    // Zelda Online Story Co-op: age changes go through the Master Sword pedestal vote. There is no remote Song of Time
+    // path, so only the local player can reach this.
+    if (!GameInteractor_Should(VB_SWITCH_AGE, true))
         return;
 
     Player* player = GET_PLAYER(gPlayState);

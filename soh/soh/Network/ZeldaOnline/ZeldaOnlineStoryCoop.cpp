@@ -13,6 +13,7 @@
 #include "soh/Enhancements/item-tables/ItemTableManager.h"
 #include "soh/Enhancements/randomizer/randomizer.h"
 #include "soh/Notification/Notification.h"
+#include "soh/Enhancements/SwitchAge.h"
 #include "Packet.hpp"
 #include "PacketTypes.hpp"
 #include "StoryProgress.hpp"
@@ -25,11 +26,28 @@ extern "C" {
 #include "functions.h"
 extern PlayState* gPlayState;
 extern SaveContext gSaveContext;
+// z_player.c: puts Link back into his normal standing action
+void func_80839F90(Player* player, PlayState* play);
 }
 
 namespace {
 
 using namespace ZeldaOnline;
+
+// The pedestal grab leaves Link frozen in a cutscene-like action until the sequence starts. When the vote is
+// cancelled or fails he has to be handed back to the normal standing action.
+void StoryRestorePlayer() {
+    PlayState* play = gPlayState;
+    if (play == nullptr)
+        return;
+
+    Player* player = GET_PLAYER(play);
+    if (player == nullptr || play->csCtx.state != CS_STATE_IDLE || !(player->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE))
+        return;
+
+    player->stateFlags1 &= ~PLAYER_STATE1_IN_CUTSCENE;
+    func_80839F90(player, play);
+}
 
 const int STORY_SLOT_BEAN = SLOT_BEAN;
 
@@ -148,6 +166,13 @@ bool ZeldaOnlineClient::StoryShareConsumables() const {
 // Called whenever the party id or the party settings may have changed.
 void ZeldaOnlineClient::StoryRefreshState() {
     bool active = StoryCoopActive();
+
+    // leaving the party or switching Story Co-op off never leaves anybody on hold
+    if (!active || m_storyPartyID != m_partyID) {
+        StoryReleaseHold(true);
+        m_storyApprovedFrames = 0;
+        m_storyMoveEra = -1;
+    }
 
     if (active && (!m_storyWasActive || m_storyPartyID != m_partyID)) {
         // newly joined, created or switched on: upload what we have so the team save is (re)seeded.
@@ -538,6 +563,15 @@ void ZeldaOnlineClient::StoryUpdate() {
     if (m_storyNotifyCooldown > 0)
         m_storyNotifyCooldown--;
 
+    // time travel vote: B withdraws, an approval that nobody consumed expires
+    if (m_storyHold && (gPlayState->state.input[0].press.button & BTN_B)) {
+        StorySendVote(false);
+        StoryReleaseHold(true);
+    }
+    if (m_storyApprovedFrames > 0 && --m_storyApprovedFrames == 0)
+        StoryRestorePlayer();
+    StoryMoveToEra();
+
     // upload first, so a joining member contributes its own progress before the team save is merged into it
     bool poll = m_storyDirty || (m_storyFrame % 20) == 0;
     if ((m_storySeedPending || poll) && m_storySendCooldown == 0) {
@@ -682,4 +716,199 @@ void ZeldaOnlineClient::OnStoryShareItem(ByteStream& packet) {
     else
         Randomizer_Item_Give(gPlayState, entry);
     m_skipItemGive = previousSkip;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Time travel together: the Master Sword pedestal vote
+// ---------------------------------------------------------------------------------------------------------------
+
+void ZeldaOnlineClient::StorySendVote(bool vote) {
+    WritePacket(newPacket(CLIENT_PACKET_STORY_TIME_VOTE) << PackedUInt1(vote ? 1u : 0u) << PackedUInt1(LINK_IS_ADULT ? 0u : 1u));
+}
+
+void ZeldaOnlineClient::StoryReleaseHold(bool restorePlayer) {
+    if (!m_storyHold)
+        return;
+
+    m_storyHold = false;
+    m_storyMissing.clear();
+
+    if (restorePlayer)
+        StoryRestorePlayer();
+}
+
+// VB_MASTER_SWORD_PEDESTAL_USE: *should is "Link has taken the sword" (child pull or adult place back).
+void ZeldaOnlineClient::StoryOnPedestalUse(Actor* pedestal, bool* should) {
+    if (!StoryCoopActive())
+        return;
+
+    // everybody voted: let the native sequence run (first pull: Chamber of Sages, later: Temple of Time swap)
+    if (m_storyApprovedFrames > 0) {
+        m_storyApprovedFrames = 0;
+        *should = true;
+        return;
+    }
+
+    if (!*should)
+        return;
+
+    // Link took the sword: put it back (vanilla releases the parent in this branch too) and wait for the others
+    if (pedestal != nullptr)
+        pedestal->parent = nullptr;
+
+    if (!m_storyHold) {
+        m_storyHold = true;
+        m_storyVoted = 1;
+        m_storyTotal = m_partySize;
+        m_storyMissing.clear();
+        StorySendVote(true);
+    }
+
+    *should = false;
+}
+
+// VB_SWITCH_AGE: the SwitchAge cheat and the Ocarina Time Travel enhancement. There is no remote Song of Time path in
+// ZeldaOnline (remote ocarinas are audio only), so only the local player can get here.
+void ZeldaOnlineClient::StoryOnSwitchAge(bool* should) {
+    if (!StoryCoopActive() || m_storyAllowAgeChange)
+        return;
+
+    *should = false;
+
+    if (m_storyNotifyCooldown == 0) {
+        Notification::Emit({ .message = "Story Co-op: use the Master Sword pedestal to time travel" });
+        m_storyNotifyCooldown = 5 * 20;
+    }
+}
+
+void ZeldaOnlineClient::StoryOnSceneInit() {
+    // a scene change ends any wait: withdraw the vote so the others do not wait for somebody who left
+    if (m_storyHold) {
+        StorySendVote(false);
+        m_storyHold = false;
+        m_storyMissing.clear();
+    }
+    m_storyApprovedFrames = 0;
+}
+
+std::string ZeldaOnlineClient::StoryHoldText() const {
+    std::string text = "Waiting for the others (" + std::to_string(m_storyVoted) + "/" + std::to_string(m_storyTotal) + ")";
+
+    if (!m_storyMissing.empty()) {
+        text += ": ";
+        for (size_t i = 0; i < m_storyMissing.size(); i++) {
+            if (i != 0)
+                text += ", ";
+            text += m_storyMissing[i];
+        }
+    }
+    text += ". Press B to cancel.";
+
+    // wrap on spaces to fit the screen
+    const size_t maxLine = 44;
+    std::string wrapped;
+    size_t lineLen = 0;
+    size_t pos = 0;
+    while (pos < text.size()) {
+        size_t end = text.find(' ', pos);
+        if (end == std::string::npos)
+            end = text.size();
+        std::string word = text.substr(pos, end - pos);
+        if (lineLen != 0 && lineLen + 1 + word.size() > maxLine) {
+            wrapped += '\n';
+            lineLen = 0;
+        } else if (lineLen != 0) {
+            wrapped += ' ';
+            lineLen++;
+        }
+        wrapped += word;
+        lineLen += word.size();
+        pos = end + 1;
+    }
+    return wrapped;
+}
+
+void ZeldaOnlineClient::OnStoryVoteStatus(ByteStream& packet) {
+    if (packet.BytesLeft() < 5)
+        return;
+
+    u8 active = (u8)packet.Read<PackedUInt1>().value();
+    u8 voted = (u8)packet.Read<PackedUInt1>().value();
+    u8 total = (u8)packet.Read<PackedUInt1>().value();
+    u8 travelling = (u8)packet.Read<PackedUInt1>().value();
+    u8 missingCount = (u8)packet.Read<PackedUInt1>().value();
+
+    std::vector<std::string> missing;
+    for (u8 i = 0; i < missingCount; i++) {
+        if (packet.BytesLeft() < 1)
+            return;
+        unsigned int len = packet.Read<PackedUInt1>().value();
+        if (packet.BytesLeft() < len)
+            return;
+        missing.push_back(packet.ReadString(len));
+    }
+
+    if (!StoryCoopActive())
+        return;
+
+    if (active) {
+        m_storyVoted = voted;
+        m_storyTotal = total;
+        m_storyMissing = missing;
+    } else if (travelling && m_storyHold) {
+        // the vote was too late, the party is already travelling: this player is moved by SET_ERA afterwards
+        StoryReleaseHold(true);
+    }
+}
+
+void ZeldaOnlineClient::OnStoryTravel(ByteStream& packet) {
+    if (packet.BytesLeft() < 1)
+        return;
+
+    packet.Read<PackedUInt1>();
+
+    if (!StoryCoopActive() || !m_storyHold)
+        return;
+
+    // every member voted: the pedestal runs the native sequence on the next actor update, on every client at once
+    m_storyHold = false;
+    m_storyMissing.clear();
+    m_storyApprovedFrames = 5 * 20;
+}
+
+void ZeldaOnlineClient::OnStorySetEra(ByteStream& packet) {
+    if (packet.BytesLeft() < 1)
+        return;
+
+    u8 era = (u8)packet.Read<PackedUInt1>().value();
+
+    if (!StoryCoopActive() || era > 1)
+        return;
+
+    m_storyMoveEra = era;
+}
+
+// Moves this player to the era the server asked for (late joiner, a missed travel). Waits for a quiet moment.
+void ZeldaOnlineClient::StoryMoveToEra() {
+    if (m_storyMoveEra < 0 || m_storyHold || m_storyApprovedFrames > 0 || !StoryCanApply())
+        return;
+
+    bool wantAdult = m_storyMoveEra == 0;
+    m_storyMoveEra = -1;
+
+    if (LINK_IS_ADULT == wantAdult)
+        return;
+
+    if (wantAdult) {
+        // an adult needs the Master Sword and the "pulled it" story state, or the Temple of Time would not make sense
+        Flags_SetEventChkInf(EVENTCHKINF_PULLED_MASTER_SWORD_FROM_PEDESTAL);
+        Flags_SetEventChkInf(EVENTCHKINF_ENTERED_MASTER_SWORD_CHAMBER);
+        gSaveContext.inventory.equipment |= OWNED_EQUIP_FLAG(EQUIP_TYPE_SWORD, EQUIP_INV_SWORD_MASTER);
+    }
+
+    Notification::Emit({ .message = "Moving to the party's era" });
+
+    m_storyAllowAgeChange = true;
+    SwitchAge();
+    m_storyAllowAgeChange = false;
 }

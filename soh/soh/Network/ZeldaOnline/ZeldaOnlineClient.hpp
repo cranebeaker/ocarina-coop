@@ -120,6 +120,15 @@ class ZeldaOnlineClient : public ZNetworking {
     StoryProgress m_storyLastSent;
     StoryProgress m_storyPending;
 
+    // Story Co-op time travel: the pedestal vote
+    bool m_storyHold = false;                // waiting at the Master Sword pedestal for the other members
+    int m_storyApprovedFrames = 0;           // the server said everybody voted, the pedestal may run its native sequence
+    bool m_storyAllowAgeChange = false;      // lets MoveToEra through the SwitchAge lock
+    int m_storyMoveEra = -1;                 // era the server wants this player in (0 adult, 1 child), -1 none
+    int m_storyVoted = 0;
+    int m_storyTotal = 0;
+    std::vector<std::string> m_storyMissing;
+
     void ReportBandwidth();
     bool NextPacket(ByteStream& out);
     void SendPacket_PlayerUpdate();
@@ -146,6 +155,17 @@ class ZeldaOnlineClient : public ZNetworking {
     void StoryOnItemReceive(const GetItemEntry& entry);
     void OnStoryState(ByteStream& packet);
     void OnStoryShareItem(ByteStream& packet);
+
+    void StorySendVote(bool vote);
+    void StoryOnPedestalUse(Actor* pedestal, bool* should);
+    void StoryOnSwitchAge(bool* should);
+    void StoryOnSceneInit();
+    void StoryReleaseHold(bool restorePlayer);
+    void StoryMoveToEra();
+    std::string StoryHoldText() const;
+    void OnStoryVoteStatus(ByteStream& packet);
+    void OnStoryTravel(ByteStream& packet);
+    void OnStorySetEra(ByteStream& packet);
 
   public:
     static ZeldaOnlineClient* Instance;
