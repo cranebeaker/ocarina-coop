@@ -1,0 +1,2325 @@
+{
+ "name": "catchup_persist",
+ "server": {
+  "host": "127.0.0.1",
+  "port": 21650
+ },
+ "boot": {
+  "entrance": 187,
+  "age": "child"
+ },
+ "stages": [
+  {
+   "name": "catchup_reconnect_title",
+   "server": "fresh",
+   "roles": {
+    "A": {
+     "name": "TestA",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "create_party",
+       "story_coop": true,
+       "story_code": "cp-qa-code"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "give_item",
+       "item": 3
+      },
+      {
+       "op": "wait_frames",
+       "n": 10
+      },
+      {
+       "op": "give_item",
+       "item": 10
+      },
+      {
+       "op": "wait_frames",
+       "n": 10
+      },
+      {
+       "op": "set_ammo",
+       "slot": 3,
+       "n": 17
+      },
+      {
+       "op": "set_rupees",
+       "n": 77
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 440
+      },
+      {
+       "op": "wait_frames",
+       "n": 100
+      },
+      {
+       "op": "observe",
+       "name": "a_p1",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        }
+       ]
+      },
+      {
+       "op": "invite"
+      },
+      {
+       "op": "wait_until",
+       "cond": "party_size",
+       "n": 2,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 441,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 442,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_frames",
+       "n": 200
+      },
+      {
+       "op": "give_item",
+       "item": 14
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 443
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "invite",
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 444,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 445,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_frames",
+       "n": 300
+      },
+      {
+       "op": "give_item",
+       "item": 15
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 446
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 447,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_frames",
+       "n": 30
+      },
+      {
+       "op": "observe",
+       "name": "a_final",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        },
+        {
+         "type": "inf_table",
+         "flag": 443
+        },
+        {
+         "type": "inf_table",
+         "flag": 446
+        }
+       ]
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    },
+    "B": {
+     "name": "TestB",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "set_rupees",
+       "n": 5
+      },
+      {
+       "op": "wait_until",
+       "cond": "invite_pending",
+       "timeout_frames": 7200
+      },
+      {
+       "op": "accept_invite"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "party_size",
+       "n": 2,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 440,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 9,
+       "value": 10,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 3,
+       "value": 3,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "observe",
+       "name": "b_joined",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        }
+       ]
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 441
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 442
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "disconnect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "disconnected",
+       "timeout_frames": 600
+      },
+      {
+       "op": "wait_frames",
+       "n": 20
+      },
+      {
+       "op": "observe",
+       "name": "b_offline"
+      },
+      {
+       "op": "wait_frames",
+       "n": 250
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "invite_pending",
+       "timeout_frames": 7200
+      },
+      {
+       "op": "accept_invite"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "party_size",
+       "n": 2,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 443,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 12,
+       "value": 14,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "observe",
+       "name": "b_reconnected",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        },
+        {
+         "type": "inf_table",
+         "flag": 443
+        }
+       ]
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 444
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 445
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "to_title"
+      },
+      {
+       "op": "wait_title",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_frames",
+       "n": 20
+      },
+      {
+       "op": "observe",
+       "name": "b_title"
+      },
+      {
+       "op": "wait_frames",
+       "n": 500
+      },
+      {
+       "op": "boot",
+       "entrance": 187,
+       "age": "child",
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 446,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 13,
+       "value": 15,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 12,
+       "value": 14,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 9,
+       "value": 10,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "observe",
+       "name": "b_reloaded",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        },
+        {
+         "type": "inf_table",
+         "flag": 443
+        },
+        {
+         "type": "inf_table",
+         "flag": 446
+        }
+       ]
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 447
+      },
+      {
+       "op": "wait_frames",
+       "n": 100
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    }
+   },
+   "assertions": [
+    {
+     "type": "each",
+     "obs": "a_p1",
+     "path": "rupees",
+     "op": "eq",
+     "value": 77,
+     "label": "A has its own 77 rupees",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_joined",
+     "path": "story_active",
+     "op": "eq",
+     "value": true,
+     "label": "B caught up: Story Co-op active",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_joined",
+     "path": "items.9",
+     "op": "eq",
+     "value": 10,
+     "label": "B joined a party with progress: Hookshot caught up",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_joined",
+     "path": "items.3",
+     "op": "eq",
+     "value": 3,
+     "label": "B caught up: Fairy Bow",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_joined",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": true,
+     "label": "B caught up: story flag from before the join",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_joined",
+     "path": "rupees",
+     "op": "eq",
+     "value": 5,
+     "label": "B kept its own rupees (not A's 77)",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_joined",
+     "path": "ammo.3",
+     "op": "ne",
+     "value": 17,
+     "label": "B did not take A's bow ammo",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_offline",
+     "path": "connected",
+     "op": "eq",
+     "value": false,
+     "label": "B is disconnected for the reconnect test",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reconnected",
+     "path": "connected",
+     "op": "eq",
+     "value": true,
+     "label": "B reconnected",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reconnected",
+     "path": "has_party",
+     "op": "eq",
+     "value": true,
+     "label": "B is back in the party after reconnect",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reconnected",
+     "path": "items.12",
+     "op": "eq",
+     "value": 14,
+     "label": "B reconnect: Boomerang obtained while offline",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reconnected",
+     "path": "flags.1.value",
+     "op": "eq",
+     "value": true,
+     "label": "B reconnect: flag set while offline",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reconnected",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": true,
+     "label": "B reconnect: earlier flag still set",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reconnected",
+     "path": "items.9",
+     "op": "eq",
+     "value": 10,
+     "label": "B reconnect: Hookshot still there",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reconnected",
+     "path": "rupees",
+     "op": "eq",
+     "value": 5,
+     "label": "B reconnect: own rupees kept",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_title",
+     "path": "connected",
+     "op": "eq",
+     "value": true,
+     "label": "B still connected on the title screen",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_title",
+     "path": "story_active",
+     "op": "eq",
+     "value": true,
+     "label": "B still in the Story Co-op party on the title screen",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_title",
+     "path": "save_loaded",
+     "op": "eq",
+     "value": false,
+     "label": "B has no save loaded on the title screen",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_title",
+     "path": "file_num",
+     "op": "eq",
+     "value": 255,
+     "label": "B is on no save file on the title screen",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reloaded",
+     "path": "flags.2.value",
+     "op": "eq",
+     "value": true,
+     "label": "B reload: flag set while B was on the title screen arrived",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reloaded",
+     "path": "items.13",
+     "op": "eq",
+     "value": 15,
+     "label": "B reload: Lens of Truth given while B was on the title screen arrived",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reloaded",
+     "path": "items.12",
+     "op": "eq",
+     "value": 14,
+     "label": "B reload: Boomerang caught up again for the new save",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reloaded",
+     "path": "items.9",
+     "op": "eq",
+     "value": 10,
+     "label": "B reload: Hookshot caught up again for the new save",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reloaded",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": true,
+     "label": "B reload: first flag caught up",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reloaded",
+     "path": "flags.1.value",
+     "op": "eq",
+     "value": true,
+     "label": "B reload: second flag caught up",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_reloaded",
+     "path": "rupees",
+     "op": "ne",
+     "value": 77,
+     "label": "B reload: A's rupees were not copied",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_final",
+     "path": "items.13",
+     "op": "eq",
+     "value": 15,
+     "label": "A final state intact",
+     "roles": [
+      "A"
+     ]
+    }
+   ],
+   "stop_server": true,
+   "server_checks": [
+    {
+     "type": "clean_exit",
+     "label": "Ctrl+Break flushes the saves"
+    },
+    {
+     "type": "files",
+     "glob": "data/story/*.bin",
+     "min": 1,
+     "label": "team save written to disk"
+    }
+   ]
+  },
+  {
+   "name": "restart_restore",
+   "server": "restart",
+   "roles": {
+    "A": {
+     "name": "TestA",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "create_party",
+       "story_coop": true,
+       "story_code": "cp-qa-code"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 440,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 9,
+       "value": 10,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 12,
+       "value": 14,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 13,
+       "value": 15,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_frames",
+       "n": 40
+      },
+      {
+       "op": "observe",
+       "name": "a_restored",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        },
+        {
+         "type": "inf_table",
+         "flag": 443
+        },
+        {
+         "type": "inf_table",
+         "flag": 446
+        }
+       ]
+      },
+      {
+       "op": "invite"
+      },
+      {
+       "op": "wait_until",
+       "cond": "party_size",
+       "n": 2,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 448
+      },
+      {
+       "op": "wait_frames",
+       "n": 100
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 449,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    },
+    "B": {
+     "name": "TestB",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "invite_pending",
+       "timeout_frames": 7200
+      },
+      {
+       "op": "accept_invite"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "party_size",
+       "n": 2,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 440,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 9,
+       "value": 10,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 13,
+       "value": 15,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_frames",
+       "n": 40
+      },
+      {
+       "op": "observe",
+       "name": "b_restored",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        },
+        {
+         "type": "inf_table",
+         "flag": 443
+        },
+        {
+         "type": "inf_table",
+         "flag": 446
+        }
+       ]
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 449
+      },
+      {
+       "op": "wait_frames",
+       "n": 160
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    }
+   },
+   "assertions": [
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": true,
+     "label": "A restored flag 1 from the server save",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "flags.1.value",
+     "op": "eq",
+     "value": true,
+     "label": "A restored flag 2",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "flags.2.value",
+     "op": "eq",
+     "value": true,
+     "label": "A restored flag 3",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "items.9",
+     "op": "eq",
+     "value": 10,
+     "label": "A restored Hookshot",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "items.13",
+     "op": "eq",
+     "value": 15,
+     "label": "A restored Lens of Truth",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": true,
+     "label": "B restored flag 1 from the server save",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "flags.1.value",
+     "op": "eq",
+     "value": true,
+     "label": "B restored flag 2",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "flags.2.value",
+     "op": "eq",
+     "value": true,
+     "label": "B restored flag 3",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "items.9",
+     "op": "eq",
+     "value": 10,
+     "label": "B restored Hookshot",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "items.13",
+     "op": "eq",
+     "value": 15,
+     "label": "B restored Lens of Truth",
+     "roles": [
+      "B"
+     ]
+    }
+   ],
+   "stop_server": true,
+   "server_checks": [
+    {
+     "type": "log_contains",
+     "text": "Story Co-op: loaded team save",
+     "label": "loaded from disk"
+    },
+    {
+     "type": "log_absent",
+     "text": "(backup)",
+     "label": "main file was good"
+    },
+    {
+     "type": "clean_exit",
+     "label": "stop after restore"
+    },
+    {
+     "type": "files",
+     "glob": "data/story/*.bak1",
+     "min": 1,
+     "label": "backup rotated"
+    }
+   ]
+  },
+  {
+   "name": "corrupt_bin_backup_fallback",
+   "server": "restart",
+   "pre": [
+    "corrupt_bin"
+   ],
+   "roles": {
+    "A": {
+     "name": "TestA",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "create_party",
+       "story_coop": true,
+       "story_code": "cp-qa-code"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 440,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 9,
+       "value": 10,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 12,
+       "value": 14,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 13,
+       "value": 15,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_frames",
+       "n": 40
+      },
+      {
+       "op": "observe",
+       "name": "a_restored",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        },
+        {
+         "type": "inf_table",
+         "flag": 443
+        },
+        {
+         "type": "inf_table",
+         "flag": 446
+        }
+       ]
+      },
+      {
+       "op": "invite"
+      },
+      {
+       "op": "wait_until",
+       "cond": "party_size",
+       "n": 2,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 448
+      },
+      {
+       "op": "wait_frames",
+       "n": 100
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 449,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    },
+    "B": {
+     "name": "TestB",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "invite_pending",
+       "timeout_frames": 7200
+      },
+      {
+       "op": "accept_invite"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "party_size",
+       "n": 2,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 440,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 9,
+       "value": 10,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "item",
+       "slot": 13,
+       "value": 15,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_frames",
+       "n": 40
+      },
+      {
+       "op": "observe",
+       "name": "b_restored",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        },
+        {
+         "type": "inf_table",
+         "flag": 443
+        },
+        {
+         "type": "inf_table",
+         "flag": 446
+        }
+       ]
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 449
+      },
+      {
+       "op": "wait_frames",
+       "n": 160
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    }
+   },
+   "assertions": [
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": true,
+     "label": "A restored flag 1 from the server save",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "flags.1.value",
+     "op": "eq",
+     "value": true,
+     "label": "A restored flag 2",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "flags.2.value",
+     "op": "eq",
+     "value": true,
+     "label": "A restored flag 3",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "items.9",
+     "op": "eq",
+     "value": 10,
+     "label": "A restored Hookshot",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_restored",
+     "path": "items.13",
+     "op": "eq",
+     "value": 15,
+     "label": "A restored Lens of Truth",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": true,
+     "label": "B restored flag 1 from the server save",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "flags.1.value",
+     "op": "eq",
+     "value": true,
+     "label": "B restored flag 2",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "flags.2.value",
+     "op": "eq",
+     "value": true,
+     "label": "B restored flag 3",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "items.9",
+     "op": "eq",
+     "value": 10,
+     "label": "B restored Hookshot",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_restored",
+     "path": "items.13",
+     "op": "eq",
+     "value": 15,
+     "label": "B restored Lens of Truth",
+     "roles": [
+      "B"
+     ]
+    }
+   ],
+   "server_checks": [
+    {
+     "type": "log_contains",
+     "text": "is unusable (checksum mismatch)",
+     "label": "corruption logged"
+    },
+    {
+     "type": "log_contains",
+     "text": "loaded team save",
+     "label": "a team save was still loaded"
+    },
+    {
+     "type": "log_contains",
+     "text": "(backup)",
+     "label": "fell back to a backup"
+    },
+    {
+     "type": "log_contains",
+     "text": "is damaged, keeping the backups",
+     "label": "damaged main file not rotated over the backups"
+    },
+    {
+     "type": "alive",
+     "label": "server survived the corrupt file"
+    }
+   ]
+  },
+  {
+   "name": "all_files_corrupt_empty_start",
+   "server": "restart",
+   "pre": [
+    "corrupt_all"
+   ],
+   "roles": {
+    "A": {
+     "name": "TestA",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "create_party",
+       "story_coop": true,
+       "story_code": "cp-qa-code"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_frames",
+       "n": 200
+      },
+      {
+       "op": "observe",
+       "name": "a_empty",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        },
+        {
+         "type": "inf_table",
+         "flag": 443
+        },
+        {
+         "type": "inf_table",
+         "flag": 446
+        }
+       ]
+      },
+      {
+       "op": "invite"
+      },
+      {
+       "op": "wait_until",
+       "cond": "party_size",
+       "n": 2,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 450
+      },
+      {
+       "op": "wait_frames",
+       "n": 100
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 451,
+       "timeout_frames": 7200
+      },
+      {
+       "op": "wait_frames",
+       "n": 40
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    },
+    "B": {
+     "name": "TestB",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_until",
+       "cond": "invite_pending",
+       "timeout_frames": 7200
+      },
+      {
+       "op": "accept_invite"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "party_size",
+       "n": 2,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_frames",
+       "n": 100
+      },
+      {
+       "op": "observe",
+       "name": "b_empty",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        },
+        {
+         "type": "inf_table",
+         "flag": 443
+        },
+        {
+         "type": "inf_table",
+         "flag": 446
+        }
+       ]
+      },
+      {
+       "op": "wait_until",
+       "cond": "flag",
+       "type": "inf_table",
+       "flag": 450,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "wait_frames",
+       "n": 40
+      },
+      {
+       "op": "observe",
+       "name": "b_live"
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 451
+      },
+      {
+       "op": "wait_frames",
+       "n": 160
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    }
+   },
+   "assertions": [
+    {
+     "type": "each",
+     "obs": "a_empty",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": false,
+     "label": "nothing restored from corrupt files (A flag)",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "a_empty",
+     "path": "items.9",
+     "op": "eq",
+     "value": 255,
+     "label": "nothing restored from corrupt files (A hookshot)",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_empty",
+     "path": "flags.2.value",
+     "op": "eq",
+     "value": false,
+     "label": "nothing restored from corrupt files (B flag)",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_empty",
+     "path": "items.13",
+     "op": "eq",
+     "value": 255,
+     "label": "nothing restored from corrupt files (B lens)",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_live",
+     "path": "has_party",
+     "op": "eq",
+     "value": true,
+     "label": "party still works after bad files",
+     "roles": [
+      "B"
+     ]
+    }
+   ],
+   "stop_server": true,
+   "server_checks": [
+    {
+     "type": "log_contains",
+     "text": "is unusable",
+     "label": "corruption logged"
+    },
+    {
+     "type": "log_absent",
+     "text": "loaded team save",
+     "label": "nothing loaded"
+    },
+    {
+     "type": "clean_exit",
+     "label": "server shut down cleanly after bad files"
+    }
+   ]
+  },
+  {
+   "name": "same_nickname_no_collision",
+   "server": "fresh",
+   "roles": {
+    "A": {
+     "name": "Twin",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "create_party",
+       "story_coop": true
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_code_set",
+       "timeout_frames": 600
+      },
+      {
+       "op": "wait_frames",
+       "n": 20
+      },
+      {
+       "op": "observe",
+       "name": "a_code"
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "give_item",
+       "item": 10
+      },
+      {
+       "op": "set_flag",
+       "type": "inf_table",
+       "flag": 440
+      },
+      {
+       "op": "wait_frames",
+       "n": 300
+      },
+      {
+       "op": "observe",
+       "name": "a_after",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        }
+       ]
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    },
+    "B": {
+     "name": "Twin",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "warp",
+       "entrance": 238,
+       "scene": 85,
+       "timeout_frames": 1800
+      },
+      {
+       "op": "wait_until",
+       "cond": "other_players",
+       "n": 1,
+       "timeout_frames": 3600
+      },
+      {
+       "op": "create_party",
+       "story_coop": true,
+       "story_code": "auto"
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_code_set",
+       "timeout_frames": 600
+      },
+      {
+       "op": "wait_frames",
+       "n": 20
+      },
+      {
+       "op": "observe",
+       "name": "b_code"
+      },
+      {
+       "op": "wait_frames",
+       "n": 60
+      },
+      {
+       "op": "wait_frames",
+       "n": 300
+      },
+      {
+       "op": "observe",
+       "name": "b_after",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        }
+       ]
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    }
+   },
+   "assertions": [
+    {
+     "type": "each",
+     "obs": "a_code",
+     "path": "story_code",
+     "op": "truthy",
+     "value": true,
+     "label": "party without a code gets one (server generated)",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_code",
+     "path": "story_code",
+     "op": "truthy",
+     "value": true,
+     "label": "party with auto code has one",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "rel",
+     "a": {
+      "role": "A",
+      "obs": "a_code",
+      "path": "story_code"
+     },
+     "b": {
+      "role": "B",
+      "obs": "b_code",
+      "path": "story_code"
+     },
+     "op": "ne",
+     "label": "two same-nickname parties have different team codes"
+    },
+    {
+     "type": "each",
+     "obs": "a_after",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": true,
+     "label": "A's own progress is in A's party",
+     "roles": [
+      "A"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_after",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": false,
+     "label": "B (same nickname, other party) did not get A's flag",
+     "roles": [
+      "B"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "b_after",
+     "path": "items.9",
+     "op": "eq",
+     "value": 255,
+     "label": "B (same nickname, other party) did not get A's Hookshot",
+     "roles": [
+      "B"
+     ]
+    }
+   ],
+   "stop_server": false,
+   "server_checks": [
+    {
+     "type": "files",
+     "glob": "data/story/*.bin",
+     "min": 2,
+     "label": "each party has its own save file"
+    },
+    {
+     "type": "log_absent",
+     "text": "not persisted",
+     "label": "no key clash between the two parties"
+    }
+   ]
+  },
+  {
+   "name": "same_nickname_later_party",
+   "server": "keep",
+   "roles": {
+    "C": {
+     "name": "Twin",
+     "steps": [
+      {
+       "op": "wait_play",
+       "timeout_frames": 1800
+      },
+      {
+       "op": "reset_inventory"
+      },
+      {
+       "op": "connect"
+      },
+      {
+       "op": "wait_until",
+       "cond": "connected",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "net_id",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "create_party",
+       "story_coop": true
+      },
+      {
+       "op": "wait_until",
+       "cond": "has_party",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_active",
+       "timeout_frames": 1200
+      },
+      {
+       "op": "wait_until",
+       "cond": "story_code_set",
+       "timeout_frames": 600
+      },
+      {
+       "op": "wait_frames",
+       "n": 300
+      },
+      {
+       "op": "observe",
+       "name": "c_after",
+       "flags": [
+        {
+         "type": "inf_table",
+         "flag": 440
+        }
+       ]
+      },
+      {
+       "op": "quit",
+       "pass": true
+      }
+     ]
+    }
+   },
+   "assertions": [
+    {
+     "type": "each",
+     "obs": "c_after",
+     "path": "flags.0.value",
+     "op": "eq",
+     "value": false,
+     "label": "a later same-nickname party without a code starts empty",
+     "roles": [
+      "C"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "c_after",
+     "path": "items.9",
+     "op": "eq",
+     "value": 255,
+     "label": "a later same-nickname party did not load the old team save",
+     "roles": [
+      "C"
+     ]
+    },
+    {
+     "type": "each",
+     "obs": "c_after",
+     "path": "story_code",
+     "op": "truthy",
+     "value": true,
+     "label": "the later party got its own code",
+     "roles": [
+      "C"
+     ]
+    }
+   ],
+   "server_checks": [
+    {
+     "type": "log_absent",
+     "text": "loaded team save",
+     "label": "nothing was loaded from disk"
+    },
+    {
+     "type": "alive",
+     "label": "server alive"
+    }
+   ]
+  }
+ ]
+}

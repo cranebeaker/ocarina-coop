@@ -51,8 +51,8 @@ frames):
 | `connect` | connect to the server (the nickname and endpoint come from the scenario) |
 | `warp` | `entrance`, `scene` (waits until that scene is up) |
 | `wait_scene` | `scene` |
-| `wait_until` | `cond`: `connected`, `net_id`, `other_players` (`n`), `has_party`, `invite_pending`, `party_size` (`n`), `story_active` (`value`), `party_admin` (`value`), `peers_in_scene` (`n`), `peer_puppets` (`n`), `flag` (`type`, `flag`, `value`), `item` (`slot`, `value`), `ammo` (`slot`, `n`), `rupees` / `health` / `health_capacity` (`n`), `quest_bit` (`bit`, `value`), `share_ammo_setting` / `story_coop_setting` (`value`) |
-| `create_party` | optional `story_coop`, `share_ammo`, `private_dungeons`, `story_code`; creates the party with those settings |
+| `wait_until` | `cond`: `connected`, `net_id`, `other_players` (`n`), `has_party`, `invite_pending`, `party_size` (`n`), `story_active` (`value`), `party_admin` (`value`), `peers_in_scene` (`n`), `peer_puppets` (`n`), `flag` (`type`, `flag`, `value`), `item` (`slot`, `value`), `ammo` (`slot`, `n`), `rupees` / `health` / `health_capacity` (`n`), `quest_bit` (`bit`, `value`), `share_ammo_setting` / `story_coop_setting` (`value`), `story_code_set`, `disconnected` |
+| `create_party` | optional `story_coop`, `share_ammo`, `private_dungeons`, `story_code` (`"auto"` generates one like the party window; omit it to let the server generate one); creates the party with those settings |
 | `invite` | optional `name`; invites every listed player not in the party |
 | `accept_invite` | accepts the first pending invite |
 | `set_party_settings` | same fields as `create_party`; sends a settings update (admin) |
@@ -64,6 +64,10 @@ frames):
 | `give_item` | `item` (item id), optional `map_index`; calls `Item_Give`, so the OnItemReceive hooks fire like a pickup |
 | `set_ammo`, `set_slot` | `slot`, `n` / `item`; direct inventory writes |
 | `set_health`, `set_rupees`, `set_time` | `health` / `n` / `day_time`, `night_flag` |
+| `disconnect` | drops the connection (pair with `wait_until` cond `disconnected`, then `connect` again) |
+| `to_title` | leaves the save and goes back to the title screen, like the `reset` console command |
+| `wait_title` | waits until the world is gone |
+| `boot` | loads a fresh emptied debug save again from the title screen (optional `entrance`, `age`, `reset`) |
 | `log`, `quit` | `msg` / `pass`, `error` |
 
 Every step takes `timeout_frames`; a timeout fails the scenario. Scenarios: `smoke`, `items` (shared non-consumables, per-player ammo/rupees/HP/bottle contents, Share Ammo on, Story Co-op switched off mid session), `items_off` (Story Co-op never on), `flags` (shared story flags, per-player gift flags, Weird Egg, Zelda's Letter gated on Lullaby). Cross-client sync inside a scenario uses a shared infTable flag as a signal.  Optional top-level `cvars` and per-role `cvars` set
@@ -88,3 +92,17 @@ player list (`peers`: id, name, in_party, scene, room, age), the number of remot
 
 The runner is implemented in `soh/soh/Enhancements/AutoTest/` (included from `ZeldaOnlineClient.cpp`, so adding it
 needed no CMake reconfigure).
+
+## Stages (server restarts, corrupt saves)
+
+A scenario may have `stages`, each with its own `roles`, `assertions` and server handling, run one after another with
+fresh client saves. `server` is `fresh` (new empty data dir), `keep` (same running server) or `restart` (the server
+is stopped cleanly with Ctrl+Break, `pre` actions run on the saved files, then it starts again on the same data dir).
+`pre` actions: `corrupt_bin`, `corrupt_all` (also the backups), `truncate_bin`. `stop_server` stops the server
+cleanly after the stage. `server_checks` are `log_contains` / `log_absent` (`text`, `min`) on that stage's server
+log, `files` (`glob` under the server folder, `min`), `alive` and `clean_exit`.
+
+`catchup_persist` covers: joining a party that already has progress (own consumables kept), reconnect, going to the
+title screen while the team progresses, restoring the team save after a server restart, falling back to backups
+when the save file is corrupt, starting empty and staying alive when every file is corrupt, and no save sharing
+between unrelated parties whose admins have the same nickname.

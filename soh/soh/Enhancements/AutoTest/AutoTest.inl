@@ -14,6 +14,7 @@ extern "C" {
 void Sram_InitDebugSave(void);
 }
 extern "C" void GameInteractor_ExecuteOnLoadGame(int32_t fileNum);
+extern "C" void GameInteractor_ExecuteOnExitGame(int32_t fileNum);
 
 namespace ZeldaOnline {
 
@@ -99,7 +100,11 @@ struct AutoTestAccess {
         if (step.contains("story_coop")) s.storyCoop = step["story_coop"].get<bool>();
         if (step.contains("share_ammo")) s.shareAmmoRupeesHp = step["share_ammo"].get<bool>();
         if (step.contains("private_dungeons")) s.privateDungeons = step["private_dungeons"].get<bool>();
-        if (step.contains("story_code")) s.storyCode = step["story_code"].get<std::string>();
+        if (step.contains("story_code")) {
+            // "auto" is what the party window does when the admin leaves the code empty
+            s.storyCode = step["story_code"].get<std::string>();
+            if (s.storyCode == "auto") s.storyCode = GenerateStoryCode();
+        }
         if (!s.storyCoop) s.shareAmmoRupeesHp = false;
         W()->m_partySettings = s;
         C()->SetPartySettings(s);
@@ -143,6 +148,9 @@ struct AutoTestAccess {
         }
         return false;
     }
+    static void Disconnect() {
+        C()->Disconnect();
+    }
     static bool LeaveParty() {
         return C()->WritePacket(newPacket(CLIENT_PACKET_PARTY_LEAVE));
     }
@@ -182,6 +190,8 @@ struct State {
     bool booted = false;
     int bootWaitFrames = 0;
     int warpTargetScene = -1;
+    bool bootReset = false;
+    json bootOverride = json::object();
 };
 
 State sState;
@@ -293,6 +303,8 @@ json Observe(const json& step) {
     o["vote_total"] = AutoTestAccess::VoteTotal();
     o["move_era"] = AutoTestAccess::MoveEra();
     o["peer_puppets"] = AutoTestAccess::PlayerPuppets();
+    o["save_loaded"] = GameInteractor::IsSaveLoaded(true);
+    o["file_num"] = gSaveContext.fileNum;
     json peers = json::array();
     for (auto& p : AutoTestAccess::Players()) {
         json pj;
@@ -383,6 +395,8 @@ void ResetInventory() {
     gSaveContext.bgsFlag = 0;
 }
 
+void BootNow();
+
 // Returns true when the step is complete.
 bool RunStep(const json& step) {
     const std::string op = step.value("op", "");
@@ -459,6 +473,10 @@ bool RunStep(const json& step) {
             ok = AutoTestAccess::Settings().shareAmmoRupeesHp == step.value("value", true);
         } else if (cond == "story_coop_setting") {
             ok = AutoTestAccess::Settings().storyCoop == step.value("value", true);
+        } else if (cond == "story_code_set") {
+            ok = !AutoTestAccess::Settings().storyCode.empty();
+        } else if (cond == "disconnected") {
+            ok = !AutoTestAccess::Connected();
         } else if (cond == "party_admin") {
             ok = AutoTestAccess::IsAdmin() == step.value("value", true);
         } else if (PlayReady()) {
@@ -520,6 +538,36 @@ bool RunStep(const json& step) {
     if (op == "leave_party") {
         AutoTestAccess::LeaveParty();
         return true;
+    }
+    if (op == "disconnect") {
+        AutoTestAccess::Disconnect();
+        Event("disconnecting");
+        return true;
+    }
+    if (op == "to_title") {
+        // The same thing the "reset" console command does: leave the save and go back to the title screen.
+        if (gGameState == nullptr) return timedOut("to_title: no game state");
+        SET_NEXT_GAMESTATE(gGameState, TitleSetup_Init, GameState);
+        gGameState->running = false;
+        GameInteractor_ExecuteOnExitGame(gSaveContext.fileNum);
+        Event("back to title");
+        return true;
+    }
+    if (op == "wait_title") {
+        // The title screen runs its own cutscene world, so only "no save is loaded" tells that we are out of the game.
+        if (!GameInteractor::IsSaveLoaded(true) && sState.stepFrames > 20) return true;
+        return timedOut("title screen not reached");
+    }
+    if (op == "boot") {
+        // Load a fresh (emptied) debug save again, like picking another save from the title screen.
+        if (first) {
+            sState.bootReset = step.value("reset", true);
+            sState.bootOverride = step;
+            BootNow();
+            return false;
+        }
+        if (sState.booted && PlayReady()) return true;
+        return timedOut("boot after title");
     }
     if (op == "observe") {
         sState.observations.push_back(Observe(step));
@@ -606,16 +654,13 @@ void OnFrame() {
     }
 }
 
-// Title -> straight into the world, bypassing logo/file select (same path as the boot-to-warp debug option).
-void OnTitleUpdate(void* gameState) {
-    if (!sState.enabled || sState.booted || sState.scenario.empty()) {
-        return;
-    }
-    if (++sState.bootWaitFrames < 30) {
-        return;
-    }
+// Straight into the world, bypassing logo/file select (same path as the boot-to-warp debug option).
+void BootNow() {
     sState.booted = true;
-    const json boot = sState.scenario.value("boot", json::object());
+    json boot = sState.scenario.value("boot", json::object());
+    for (auto it = sState.bootOverride.begin(); it != sState.bootOverride.end(); ++it) {
+        boot[it.key()] = it.value();
+    }
     const int entrance = boot.value("entrance", 0x00BB);
     const std::string age = boot.value("age", "child");
 
@@ -629,6 +674,7 @@ void OnTitleUpdate(void* gameState) {
     gSaveContext.fileNum = 0xFF;
     gSaveContext.sceneSetupIndex = 0;
     gSaveContext.cutsceneIndex = 0;
+    if (sState.bootReset) ResetInventory();
     gSaveContext.linkAge = (age == "adult") ? 0 : 1;
     gSaveContext.nightFlag = 0;
     gSaveContext.skyboxTime = gSaveContext.dayTime = 0x8000;
@@ -649,6 +695,16 @@ void OnTitleUpdate(void* gameState) {
     SET_NEXT_GAMESTATE(gGameState, Play_Init, PlayState);
     GameInteractor_ExecuteOnLoadGame(gSaveContext.fileNum);
     Event("booted into entrance " + std::to_string(entrance));
+}
+
+void OnTitleUpdate(void* gameState) {
+    if (!sState.enabled || sState.booted || sState.scenario.empty()) {
+        return;
+    }
+    if (++sState.bootWaitFrames < 30) {
+        return;
+    }
+    BootNow();
 }
 
 } // namespace
