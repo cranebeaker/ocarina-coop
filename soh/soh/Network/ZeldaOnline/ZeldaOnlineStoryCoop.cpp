@@ -950,8 +950,9 @@ void ZeldaOnlineClient::OnStoryVoteStatus(ByteStream& packet) {
         m_storyVoted = voted;
         m_storyTotal = total;
         m_storyMissing = missing;
-    } else if (travelling && m_storyHold) {
-        // the vote was too late, the party is already travelling: this player is moved by SET_ERA afterwards
+    } else if (m_storyHold) {
+        // no vote is running for this player any more: the vote was rejected (wrong era, the SET_ERA that came
+        // with it is applied once the hold is gone), the votes were reset, or the party is already travelling
         StoryReleaseHold(true);
     }
 }
