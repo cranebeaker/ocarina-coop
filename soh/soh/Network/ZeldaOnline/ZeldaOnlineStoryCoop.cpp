@@ -315,6 +315,56 @@ void ZeldaOnlineClient::StoryApplyDungeonFlags(PlayState* play) {
     play->actorCtx.flags.clear |= m_storyDungeonClear[play->sceneNum];
 }
 
+// A permanent switch or clear flag of a dungeon or boss scene changed while the player is in it. The remembered copy
+// follows it, so a switch that is turned back off (crystal switch, toggle) is not kept on by the OR of earlier visits.
+void ZeldaOnlineClient::StoryOnDungeonFlag(int sceneNum, int flagType, int flag, bool set) {
+    if (!StoryCoopActive() || sceneNum < 0 || sceneNum >= STORY_SCENE_COUNT || flag < 0 || flag >= 32 ||
+        !StoryIsPartyScene(sceneNum))
+        return;
+
+    uint32_t bit = 1u << flag;
+    if (flagType == FLAG_SCENE_SWITCH) {
+        bit &= ~StorySceneSwchExclude(sceneNum);
+        if (set)
+            m_storyDungeonSwch[sceneNum] |= bit;
+        else
+            m_storyDungeonSwch[sceneNum] &= ~bit;
+    } else if (flagType == FLAG_SCENE_CLEAR) {
+        if (set)
+            m_storyDungeonClear[sceneNum] |= bit;
+        else
+            m_storyDungeonClear[sceneNum] &= ~bit;
+    }
+}
+
+// The server dropped permanent dungeon flags from the team save because a member switched them off again.
+void ZeldaOnlineClient::OnStoryDungeonClear(ByteStream& packet) {
+    if (packet.BytesLeft() < 3)
+        return;
+
+    unsigned int sceneNum = packet.Read<PackedUInt1>().value();
+    uint32_t swch = packet.Read<PackedUInt4>().value();
+    uint32_t clear = packet.Read<PackedUInt4>().value();
+
+    if (!StoryCoopActive() || sceneNum >= (unsigned int)STORY_SCENE_COUNT || !StoryIsPartyScene((int)sceneNum))
+        return;
+
+    m_storyDungeonSwch[sceneNum] &= ~swch;
+    m_storyDungeonClear[sceneNum] &= ~clear;
+
+    // the copy the vanilla save keeps from the last visit, and a snapshot that has not been applied yet
+    if (gPlayState == nullptr || gPlayState->sceneNum != (int)sceneNum) {
+        gSaveContext.sceneFlags[sceneNum].swch &= ~swch;
+        gSaveContext.sceneFlags[sceneNum].clear &= ~clear;
+    }
+    for (StorySceneFlags& scene : m_storyPending.scenes) {
+        if (scene.sceneNum == sceneNum) {
+            scene.swch &= ~swch;
+            scene.clear &= ~clear;
+        }
+    }
+}
+
 StoryProgress ZeldaOnlineClient::StoryCapture() {
     StoryProgress p;
 

@@ -164,6 +164,8 @@ class ZeldaOnlineClient : public ZNetworking {
     void StoryMarkDirty();
     void StoryRememberDungeonFlags(int sceneNum, uint32_t swch, uint32_t clear);
     void StoryApplyDungeonFlags(PlayState* play);
+    void StoryOnDungeonFlag(int sceneNum, int flagType, int flag, bool set);
+    void OnStoryDungeonClear(ByteStream& packet);
     StoryProgress StoryCapture();
     bool StoryApply(const StoryProgress& team);
     bool StoryCanApply();

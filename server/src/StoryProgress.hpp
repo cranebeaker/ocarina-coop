@@ -353,6 +353,24 @@ namespace ZeldaOnline
 			return !(*this == other);
 		}
 
+		// Switches bits off again in the permanent switch and clear flags of one scene (a toggle that was turned back
+		// off). The union merge cannot do this, so the server calls it when a member unsets a flag in a dungeon.
+		bool ClearSceneBits(int sceneNum, uint32_t swchMask, uint32_t clearMask)
+		{
+			for (StorySceneFlags& scene : scenes)
+			{
+				if (scene.sceneNum != sceneNum)
+					continue;
+				uint32_t swch = scene.swch & ~swchMask;
+				uint32_t clear = scene.clear & ~clearMask;
+				bool changed = swch != scene.swch || clear != scene.clear;
+				scene.swch = swch;
+				scene.clear = clear;
+				return changed;
+			}
+			return false;
+		}
+
 		// OR one scene entry into the sorted table. Returns true when anything changed.
 		bool MergeScene(const StorySceneFlags& incoming)
 		{

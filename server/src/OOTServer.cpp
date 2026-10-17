@@ -1359,6 +1359,21 @@ namespace ZeldaOnline
 			}
 			else break;
 
+			// Story Co-op: a switch that is turned back off (crystal switch, toggle) must not stay in the team save
+			if (!setFlag && flag < 32 && (flagType == kFlagTypeSceneSwitch || flagType == kFlagTypeSceneClear) &&
+				IsPartyScene(scene->SceneNum()))
+			{
+				auto party = player->GetParty();
+				uint32_t bit = 1u << flag;
+				if (party && party->StoryClearSceneBits(scene->SceneNum(), flagType == kFlagTypeSceneSwitch ? bit : 0u,
+					flagType == kFlagTypeSceneClear ? bit : 0u))
+				{
+					std::printf("Story Co-op: dungeon flag %u:%u switched off again, dropped from the team save\n", (unsigned int)scene->SceneNum(), flag);
+					party->SendToAll(newPacket(SERVER_PACKET_STORY_DUNGEON_CLEAR) << PackedUInt1((unsigned int)scene->SceneNum())
+						<< PackedUInt4(flagType == kFlagTypeSceneSwitch ? bit : 0u) << PackedUInt4(flagType == kFlagTypeSceneClear ? bit : 0u), player);
+				}
+			}
+
 			std::printf("FORWARDING FLAG: %i:%i\n", flagType, flag);
 			ByteStream packet = newPacket(SERVER_PACKET_SCENE_FLAG);
 			packet << PackedUInt1(flagType);

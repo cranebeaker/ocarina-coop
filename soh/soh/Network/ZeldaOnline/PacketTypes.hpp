@@ -100,7 +100,9 @@ enum ServerPackets {
         SERVER_PACKET_STORY_VOTE_STATUS = 37,
         SERVER_PACKET_STORY_TRAVEL = 38,
         SERVER_PACKET_STORY_SET_ERA = 39,
-        SERVER_PACKET_STORY_SHARE_ITEM = 40
+        SERVER_PACKET_STORY_SHARE_ITEM = 40,
+        // a permanent dungeon switch or clear flag was switched off again (u1 sceneNum, u4 switch mask, u4 clear mask)
+        SERVER_PACKET_STORY_DUNGEON_CLEAR = 41
 };
 
 static const int PLAYER_PUPPET_ROOM = -1;

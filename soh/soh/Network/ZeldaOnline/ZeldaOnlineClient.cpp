@@ -1700,6 +1700,10 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
             OnStoryShareItem(packet);
             break;
 
+        case SERVER_PACKET_STORY_DUNGEON_CLEAR:
+            OnStoryDungeonClear(packet);
+            break;
+
         case SERVER_PACKET_STORY_VOTE_STATUS:
             OnStoryVoteStatus(packet);
             break;
@@ -2047,7 +2051,14 @@ void ZeldaOnlineClient::RegisterHooks(bool enabled) {
     COND_HOOK(OnLoadGame, enabled, [&](int32_t) { StoryOnSaveChanged(true); });
     COND_HOOK(OnExitGame, enabled, [&](int32_t) { StoryOnSaveChanged(false); });
     COND_HOOK(OnFlagSet, enabled, [&](s16, s16) { StoryMarkDirty(); });
-    COND_HOOK(OnSceneFlagSet, enabled, [&](s16, s16, s16) { StoryMarkDirty(); });
+    COND_HOOK(OnSceneFlagSet, enabled, [&](s16 sceneNum, s16 flagType, s16 flag) {
+        StoryOnDungeonFlag(sceneNum, flagType, flag, true);
+        StoryMarkDirty();
+    });
+    COND_HOOK(OnSceneFlagUnset, enabled, [&](s16 sceneNum, s16 flagType, s16 flag) {
+        StoryOnDungeonFlag(sceneNum, flagType, flag, false);
+        StoryMarkDirty();
+    });
 
     COND_HOOK(OnFlagSet, enabled, [&](s16 flagType, s16 flag) {
         if (gPlayState == NULL)
@@ -2118,7 +2129,11 @@ void ZeldaOnlineClient::RegisterHooks(bool enabled) {
         if (flagType != FLAG_SCENE_SWITCH && flagType != FLAG_SCENE_CLEAR)
             return;
 
+        // same layout as the set packet, the server drops anything shorter as malformed
+        auto sceneKey = MakeSceneKey(gPlayState->sceneNum, LINK_IS_ADULT ? 1 : 0, GetSceneVariant(gPlayState->sceneNum));
         ByteStream packet = newPacket(CLIENT_PACKET_SCENE_FLAG);
+        packet << PackedUInt4(sceneKey);
+        packet << PackedInt1((gPlayState->roomCtx.curRoom.num));
         packet << PackedUInt1((u8)(flagType));
         packet << PackedUInt2(flag);
         packet << PackedUInt1(0u);

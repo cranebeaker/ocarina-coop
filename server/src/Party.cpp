@@ -189,6 +189,15 @@ namespace ZeldaOnline
 		return changed;
 	}
 
+	bool Party::StoryClearSceneBits(int sceneNum, uint32_t swchMask, uint32_t clearMask)
+	{
+		if (!m_storyCoop || !m_story.ClearSceneBits(sceneNum, swchMask, clearMask))
+			return false;
+
+		MarkStoryDirty();
+		return true;
+	}
+
 	void Party::SendToAll(const ByteStream& payload, Player* except)
 	{
 		for (auto& other : m_members)

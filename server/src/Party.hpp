@@ -155,6 +155,9 @@ namespace ZeldaOnline
 		// Unions a member's snapshot into the team save. Returns true when the team save changed.
 		bool MergeStory(const StoryProgress& incoming);
 
+		// A member switched a permanent dungeon switch or clear flag off again: the team save forgets it too.
+		bool StoryClearSceneBits(int sceneNum, uint32_t swchMask, uint32_t clearMask);
+
 		void SetDungeonKeys(int mapIndex, uint8_t count) {
 			if (mapIndex >= 0 && mapIndex < 19)
 			{
