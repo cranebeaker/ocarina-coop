@@ -9,6 +9,7 @@
 #include "PacketTypes.hpp"
 #include "ActorID.hpp"
 #include "PacketStrings.hpp"
+#include "StoryProgress.hpp"
 
 
 namespace ZeldaOnline
@@ -18,7 +19,7 @@ namespace ZeldaOnline
 	static const int HANDSHAKE_TIMEOUT_SECONDS = 10;
 
 	//Must be 10 characters
-	static const std::string ALLOWED_VERSION = "BETA000002";
+	static const std::string ALLOWED_VERSION = "BETA000003";
 
 #ifndef OOT_MAX_POLL_SOCKETS
 #define OOT_MAX_POLL_SOCKETS FD_SETSIZE
@@ -27,6 +28,14 @@ namespace ZeldaOnline
 	static const int MIN_BATCH_TIMEOUT_MICROS = 1000;
 
 
+
+	static ByteStream MakeStoryStatePacket(const StoryProgress& story, uint8_t flags)
+	{
+		ByteStream packet = newPacket(SERVER_PACKET_STORY_STATE);
+		packet << PackedUInt1(flags);
+		story.Serialize(packet);
+		return packet;
+	}
 
 	static std::string ReadFile(const char* path) {
 		FILE* f = fopen(path, "rb");
@@ -1671,6 +1680,10 @@ namespace ZeldaOnline
 						<< PackedUInt2((unsigned int)(member->NetworkID())));
 				}
 			}
+
+			// Story Co-op: catch the joiner up on the team save (their own upload is merged in afterwards)
+			if (party->StoryCoop() && party->StorySeeded())
+				player->SendPacket(MakeStoryStatePacket(party->Story(), STORY_FLAG_CATCH_UP));
 		}
 		break;
 
@@ -1871,8 +1884,12 @@ namespace ZeldaOnline
 			if (!party)
 				break;
 
-			party->SetSettings(data.BytesLeft() ? data.ReadString(data.BytesLeft()) : std::string());
+			bool accepted = party->SetSettingsFromMember(data.BytesLeft() ? data.ReadString(data.BytesLeft()) : std::string(), party->GetAdmin() == player);
 			party->SendToAll(newPacket(SERVER_PACKET_UPDATE_PARTY_SETTINGS) << party->Settings(), player);
+
+			// a non-admin tried to change the Story Co-op keys: tell the sender what the party really uses
+			if (!accepted)
+				player->SendPacket(newPacket(SERVER_PACKET_UPDATE_PARTY_SETTINGS) << party->Settings());
 		}
 		break;
 
@@ -1886,6 +1903,46 @@ namespace ZeldaOnline
 				party->SetDungeonKeys(mapIndex, count);
 				party->SendToAll(newPacket(SERVER_PACKET_UPDATE_DUNGEON_KEYS) << PackedUInt1(mapIndex) << PackedUInt1(party->DungeonKeys(mapIndex)), player);
 			}
+		}
+		break;
+
+		case CLIENT_PACKET_STORY_PROGRESS:
+		{
+			auto party = player->GetParty();
+			if (!party || !party->StoryCoop() || data.BytesLeft() < 1)
+				break;
+
+			auto flags = (uint8_t)data.Read<PackedUInt1>().value();
+
+			StoryProgress incoming;
+			if (!incoming.Deserialize(data))
+				break;
+
+			if (party->MergeStory(incoming))
+				party->SendToAll(MakeStoryStatePacket(party->Story(), 0), player);
+
+			// an uploading member may lack things the team already has: catch them up
+			if (flags & STORY_FLAG_SEED)
+			{
+				StoryProgress theirs = incoming;
+				if (theirs.MergeFrom(party->Story()))
+					player->SendPacket(MakeStoryStatePacket(party->Story(), STORY_FLAG_CATCH_UP));
+			}
+		}
+		break;
+
+		case CLIENT_PACKET_STORY_SHARE_ITEM:
+		{
+			auto party = player->GetParty();
+			if (!party || !party->StoryCoop() || !party->ShareConsumables() || data.BytesLeft() < 4)
+				break;
+
+			auto modIndex = data.Read<PackedUInt2>().value();
+			auto getItemId = data.Read<PackedUInt2>().value();
+
+			// relayed only, never stored: consumables stay per player
+			party->SendToAll(newPacket(SERVER_PACKET_STORY_SHARE_ITEM)
+				<< PackedUInt2((unsigned int)(player->NetworkID())) << PackedUInt2(modIndex) << PackedUInt2(getItemId), player);
 		}
 		break;
 

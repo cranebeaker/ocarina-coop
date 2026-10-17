@@ -7,6 +7,7 @@
 #include <unordered_set>
 #include <vector>
 #include "ByteStream.hpp"
+#include "StoryProgress.hpp"
 
 namespace ZeldaOnline
 {
@@ -109,6 +110,10 @@ namespace ZeldaOnline
 
 		void SetSettings(const std::string& settings);
 
+		// Settings change coming from a member. The Story Co-op keys can only be changed by the admin; a
+		// non-admin keeps the current values. Returns false when the update had to be altered or ignored.
+		bool SetSettingsFromMember(const std::string& settings, bool isAdmin);
+
 		const std::string& Settings() const {
 			return m_settings;
 		}
@@ -126,6 +131,18 @@ namespace ZeldaOnline
 		bool ShareConsumables() const {
 			return m_shareConsumables;
 		}
+
+		// Story Co-op team save. Lives and dies with the Party; clients re-seed it by union (see STORY_PROGRESS).
+		const StoryProgress& Story() const {
+			return m_story;
+		}
+
+		bool StorySeeded() const {
+			return m_storySeeded;
+		}
+
+		// Unions a member's snapshot into the team save. Returns true when the team save changed.
+		bool MergeStory(const StoryProgress& incoming);
 
 		void SetDungeonKeys(int mapIndex, uint8_t count) {
 			if (mapIndex >= 0 && mapIndex < 19)
@@ -157,6 +174,8 @@ namespace ZeldaOnline
 		bool m_storyCoop = false;
 		bool m_shareConsumables = false;
 		uint8_t m_dungeonKeys[19]{};
+		StoryProgress m_story;
+		bool m_storySeeded = false;
 
 		inline static uint32_t s_nextID = 1;
 		inline static std::unordered_map<uint32_t, std::weak_ptr<Party>> s_parties;

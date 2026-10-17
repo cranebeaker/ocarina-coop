@@ -236,7 +236,7 @@ static void ReloadSceneInPlace(PlayState* play) {
 
 
 // Must be 10 characters
-static const std::string CURRENT_VERSION = "BETA000002";
+static const std::string CURRENT_VERSION = "BETA000003";
 ZeldaOnlineClient::ZeldaOnlineClient() {
     m_blockedParentSpawners.insert(ACTOR_BG_SPOT01_OBJECTS2);
 }
