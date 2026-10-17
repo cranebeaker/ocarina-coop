@@ -454,6 +454,7 @@ void ZeldaOnlineClient::Enable() {
                 CVarSetFloat("gZeldaOnline.Party.BossHealthWeight", m_partySettings.bossHealthWeight);
                 CVarSetInteger("gZeldaOnline.Party.StoryCoop", m_partySettings.storyCoop ? 1 : 0);
                 CVarSetInteger("gZeldaOnline.Party.ShareAmmoRupeesHp", m_partySettings.shareAmmoRupeesHp ? 1 : 0);
+                CVarSetString("gZeldaOnline.Party.StoryCode", m_partySettings.storyCode.c_str());
 
                 Ship::Context::GetRawInstance()->GetWindow()->GetGui()->SaveConsoleVariablesNextFrame();
             } break;
@@ -494,6 +495,7 @@ std::string ZeldaOnlineClient::BuildPartySettingsJSON(const PartySettings& party
     settings["bossHealthWeight"] = partySettings.bossHealthWeight;
     settings["storyCoop"] = partySettings.storyCoop;
     settings["shareAmmoRupeesHp"] = partySettings.shareAmmoRupeesHp;
+    settings["storyCode"] = partySettings.storyCode;
 
     return settings.dump();
 }
@@ -512,6 +514,9 @@ bool ZeldaOnlineClient::ParsePartySettingsJSON(const std::string& partySettings,
     out.bossHealthWeight = settings.value("bossHealthWeight", 1.0f);
     out.storyCoop = settings.value("storyCoop", false);
     out.shareAmmoRupeesHp = settings.value("shareAmmoRupeesHp", false);
+    out.storyCode = settings.value("storyCode", std::string());
+    if (out.storyCode.size() > 32)
+        out.storyCode.resize(32);
 
     if (out.extraEnemyWeight < 0.0f)
         out.extraEnemyWeight = 0.0f;
@@ -549,6 +554,7 @@ void ZeldaOnlineClient::LoadPartySettings() {
     m_partySettings.bossHealthWeight = CVarGetFloat("gZeldaOnline.Party.BossHealthWeight", 1.0f);
     m_partySettings.storyCoop = CVarGetInteger("gZeldaOnline.Party.StoryCoop", 0) != 0;
     m_partySettings.shareAmmoRupeesHp = CVarGetInteger("gZeldaOnline.Party.ShareAmmoRupeesHp", 0) != 0;
+    m_partySettings.storyCode = CVarGetString("gZeldaOnline.Party.StoryCode", "");
 
     if (ZeldaOnlineRoomWindow::Instance != nullptr)
         ZeldaOnlineRoomWindow::Instance->GetPartySettings() = m_partySettings;
