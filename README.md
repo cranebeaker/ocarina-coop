@@ -3,6 +3,10 @@ This is a multiplayer/online mod for SOH. Time, enemies, bosses, various actors,
 It's built MMO-style. Meaning the client is unaware of anyone outside of their own scene and theres no player cap.
 LATEST RELEASE IS HERE: https://github.com/lukegrahamSydney/ShipwrightOnline/releases/latest
 
+## Story Co-op
+
+An opt-in party setting that shares progression, story flags and time travel across a party while keeping consumables per player. Off by default. See [STORY_COOP.md](STORY_COOP.md). Credits: ShipwrightOnline by lukegrahamSydney, and the Anchor / ocarina-coop ideas it ports.
+
 https://youtu.be/BCDZvdghA6A?si=D5fk3nhATs81vnCC
 
 <img width="1073" height="803" alt="image" src="https://github.com/user-attachments/assets/9d737741-d8ca-4d7c-bf03-0547e75d3ab9" />
