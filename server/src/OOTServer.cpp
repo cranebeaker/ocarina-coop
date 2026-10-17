@@ -396,7 +396,15 @@ namespace ZeldaOnline
 		while (connection->Connected() && !player->PendingRemoval()
 			&& connection->NextPacket(packet))
 		{
-			onIncomingData(player, packet);
+			try
+			{
+				onIncomingData(player, packet);
+			}
+			catch (const std::exception& e)
+			{
+				// a malformed packet must never kill the server thread
+				std::printf("OOTServer: dropped malformed packet from player %d (%s)\n", player->NetworkID(), e.what());
+			}
 		}
 	}
 

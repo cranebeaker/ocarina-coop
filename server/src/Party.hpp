@@ -184,6 +184,7 @@ namespace ZeldaOnline
 		void CheckTravelDone(bool timedOut);
 		void ResetVotes();
 		uint8_t EffectiveEra() const;
+		uint8_t ComputeEra() const;
 		void SendVoteStatusTo(Player* player, bool active);
 		bool HasVoted(uint16_t netID) const;
 
@@ -198,7 +199,6 @@ namespace ZeldaOnline
 		StoryProgress m_story;
 		bool m_storySeeded = false;
 		std::vector<uint16_t> m_votes;
-		uint8_t m_voteEra = ERA_UNKNOWN;
 		uint8_t m_era = ERA_UNKNOWN;
 		bool m_travelling = false;
 		uint8_t m_travelTarget = 0;
