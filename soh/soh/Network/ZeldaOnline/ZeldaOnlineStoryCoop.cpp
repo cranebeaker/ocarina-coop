@@ -28,25 +28,56 @@ extern PlayState* gPlayState;
 extern SaveContext gSaveContext;
 // z_player.c: puts Link back into his normal standing action
 void func_80839F90(Player* player, PlayState* play);
+// z_player.c: the action Link waits in after taking the sword off the pedestal, until the cutscene takes over
+void Player_Action_8084F608(Player* player, PlayState* play);
+// z_player.c: clears the carry state, resets camera and sub states, and lets go of any held actor
+void func_80832564(PlayState* play, Player* player);
+void Player_UseItem(PlayState* play, Player* player, s32 item);
 }
 
 namespace {
 
 using namespace ZeldaOnline;
 
-// The pedestal grab leaves Link frozen in a cutscene-like action until the sequence starts. When the vote is
-// cancelled or fails he has to be handed back to the normal standing action.
+// The pedestal grab leaves Link frozen in a cutscene-like action until the sequence starts (the action waits for the
+// cutscene, the carry flag is set and the cutscene sword may be in his hand). When the vote is cancelled or fails he
+// has to be handed back to normal control. Other state can have changed while he waited (a hit replaces the action and
+// clears the cutscene flag but not the carry flag), so every piece is checked on its own instead of relying on one flag.
 void StoryRestorePlayer() {
     PlayState* play = gPlayState;
     if (play == nullptr)
         return;
 
     Player* player = GET_PLAYER(play);
-    if (player == nullptr || play->csCtx.state != CS_STATE_IDLE || !(player->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE))
+    if (player == nullptr || play->csCtx.state != CS_STATE_IDLE)
         return;
 
-    player->stateFlags1 &= ~PLAYER_STATE1_IN_CUTSCENE;
-    func_80839F90(player, play);
+    // never interfere with a real item get or cutscene action
+    if (player->stateFlags1 & (PLAYER_STATE1_GETTING_ITEM | PLAYER_STATE1_IN_ITEM_CS))
+        return;
+
+    bool waitingAction = player->actionFunc == Player_Action_8084F608;
+    bool staleCarry = (player->stateFlags1 & PLAYER_STATE1_CARRYING_ACTOR) && player->heldActor == nullptr;
+    bool frozen = waitingAction || (player->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE);
+    if (!frozen && !staleCarry)
+        return;
+
+    // carry state, camera and sub states (also lets go of a held actor, if any)
+    func_80832564(play, player);
+    if (player->heldActor == nullptr) {
+        player->stateFlags1 &= ~PLAYER_STATE1_CARRYING_ACTOR;
+        player->interactRangeActor = nullptr;
+    }
+
+    // the adult placement path swaps the equipped sword for the cutscene sword: sheathe it again
+    if (player->heldItemAction == PLAYER_IA_SWORD_CS || player->itemAction == PLAYER_IA_SWORD_CS)
+        Player_UseItem(play, player, ITEM_NONE);
+
+    // control and animation: back to the standing action (this also clears the cutscene flag)
+    if (frozen) {
+        player->stateFlags1 &= ~PLAYER_STATE1_IN_CUTSCENE;
+        func_80839F90(player, play);
+    }
 }
 
 const int STORY_SLOT_BEAN = SLOT_BEAN;
@@ -98,6 +129,22 @@ void StoryEventChkInfMask(uint16_t out[14]) {
         if ((flag >> 4) < 14)
             out[flag >> 4] &= (uint16_t)~(1 << (flag & 0xF));
     }
+    StoryClearFlagBits(out, 14, STORY_EVENTCHKINF_ITEM_EXCLUDE,
+                       (int)(sizeof(STORY_EVENTCHKINF_ITEM_EXCLUDE) / sizeof(int)));
+}
+
+// itemGetInf and infTable masks of the "NPC already gave me item X" bits that stay per player
+void StoryItemGetInfMask(uint16_t out[4]) {
+    for (int i = 0; i < 4; i++)
+        out[i] = 0xFFFF;
+    StoryClearFlagBits(out, 4, STORY_ITEMGETINF_EXCLUDE, (int)(sizeof(STORY_ITEMGETINF_EXCLUDE) / sizeof(int)));
+}
+
+void StoryInfTableMask(uint16_t out[30]) {
+    for (int i = 0; i < 30; i++)
+        out[i] = (i == STORY_INFTABLE_EXCLUDE_INDEX) ? 0 : 0xFFFF;
+    StoryClearFlagBits(out, 30, STORY_INFTABLE_ITEM_EXCLUDE,
+                       (int)(sizeof(STORY_INFTABLE_ITEM_EXCLUDE) / sizeof(int)));
 }
 
 int StoryUpgradeValue(u32 upgrades, int type) {
@@ -193,6 +240,30 @@ void ZeldaOnlineClient::StoryRefreshState() {
     m_storyPartyID = active ? m_partyID : 0U;
 }
 
+// A save was loaded or exited (title screen, file select, quit). Whatever was pending or sent belongs to the previous
+// save, so it is dropped. After a load the new save is uploaded again, which also makes the server send back what
+// the team has that this save lacks.
+void ZeldaOnlineClient::StoryOnSaveChanged(bool loaded) {
+    m_storySaveSerial++;
+
+    m_storyHasPending = false;
+    m_storyPending = StoryProgress();
+    m_storyLastSent = StoryProgress();
+    m_storyDirty = false;
+    m_storySeedPending = false;
+
+    // a vote belongs to the scene of the save that is gone
+    if (m_storyHold) {
+        StorySendVote(false);
+        m_storyHold = false;
+        m_storyMissing.clear();
+    }
+    m_storyApprovedFrames = 0;
+
+    if (loaded && StoryCoopActive())
+        m_storySeedPending = true;
+}
+
 void ZeldaOnlineClient::StoryMarkDirty() {
     if (StoryCoopActive())
         m_storyDirty = true;
@@ -249,10 +320,14 @@ StoryProgress ZeldaOnlineClient::StoryCapture() {
     StoryEventChkInfMask(eventMask);
     for (int i = 0; i < 14; i++)
         p.eventChkInf[i] = gSaveContext.eventChkInf[i] & eventMask[i];
+    uint16_t itemGetMask[4];
+    StoryItemGetInfMask(itemGetMask);
     for (int i = 0; i < 4; i++)
-        p.itemGetInf[i] = gSaveContext.itemGetInf[i];
+        p.itemGetInf[i] = gSaveContext.itemGetInf[i] & itemGetMask[i];
+    uint16_t infTableMask[30];
+    StoryInfTableMask(infTableMask);
     for (int i = 0; i < 30; i++)
-        p.infTable[i] = (i == STORY_INFTABLE_EXCLUDE_INDEX) ? 0 : gSaveContext.infTable[i];
+        p.infTable[i] = gSaveContext.infTable[i] & infTableMask[i];
     // eventInf holds per player state (Lon Lon Ranch race, horse state): only the reviewed bits in the share mask travel
     for (int i = 0; i < 4; i++)
         p.eventInf[i] = gSaveContext.eventInf[i] & STORY_EVENTINF_SHARE_MASK[i];
@@ -328,12 +403,14 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
     StoryEventChkInfMask(eventMask);
     for (int i = 0; i < 14; i++)
         gSaveContext.eventChkInf[i] |= (team.eventChkInf[i] & eventMask[i]);
+    uint16_t itemGetMask[4];
+    StoryItemGetInfMask(itemGetMask);
     for (int i = 0; i < 4; i++)
-        gSaveContext.itemGetInf[i] |= team.itemGetInf[i];
-    for (int i = 0; i < 30; i++) {
-        if (i != STORY_INFTABLE_EXCLUDE_INDEX)
-            gSaveContext.infTable[i] |= team.infTable[i];
-    }
+        gSaveContext.itemGetInf[i] |= (team.itemGetInf[i] & itemGetMask[i]);
+    uint16_t infTableMask[30];
+    StoryInfTableMask(infTableMask);
+    for (int i = 0; i < 30; i++)
+        gSaveContext.infTable[i] |= (team.infTable[i] & infTableMask[i]);
     for (int i = 0; i < 4; i++)
         gSaveContext.eventInf[i] |= (team.eventInf[i] & STORY_EVENTINF_SHARE_MASK[i]);
     for (int i = 0; i < 6; i++)
@@ -589,6 +666,12 @@ void ZeldaOnlineClient::StoryUpdate() {
         m_storyDirty = false;
     }
 
+    // never apply a snapshot that was received for another party or another save
+    if (m_storyHasPending && (m_storyPendingParty != m_partyID || m_storyPendingSerial != m_storySaveSerial)) {
+        m_storyHasPending = false;
+        m_storyPending = StoryProgress();
+    }
+
     if (m_storyHasPending && StoryCanApply()) {
         StoryProgress team = m_storyPending;
         m_storyHasPending = false;
@@ -605,7 +688,7 @@ void ZeldaOnlineClient::OnStoryState(ByteStream& packet) {
     if (packet.BytesLeft() < 1)
         return;
 
-    packet.Read<PackedUInt1>();
+    auto flags = (uint8_t)packet.Read<PackedUInt1>().value();
 
     StoryProgress incoming;
     if (!incoming.Deserialize(packet))
@@ -614,9 +697,21 @@ void ZeldaOnlineClient::OnStoryState(ByteStream& packet) {
     if (!StoryCoopActive())
         return;
 
+    // No save is loaded (title screen, file select): the snapshot would land on whatever save is loaded next. The
+    // upload after the load asks the server for the catch-up again.
+    if (gPlayState == nullptr || gSaveContext.fileNum == 0xFF)
+        return;
+
+    // A catch-up that arrives before this save has been uploaded was answered for the previous save or for the join,
+    // the upload that follows gets its own catch-up.
+    if ((flags & STORY_FLAG_CATCH_UP) && m_storySeedPending)
+        return;
+
     if (!m_storyHasPending) {
         m_storyPending = StoryProgress();
         m_storyHasPending = true;
+        m_storyPendingParty = m_partyID;
+        m_storyPendingSerial = m_storySaveSerial;
     }
     m_storyPending.MergeFrom(incoming);
 }

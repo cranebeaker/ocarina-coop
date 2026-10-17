@@ -119,6 +119,10 @@ class ZeldaOnlineClient : public ZNetworking {
     int m_storyNotifyCooldown = 0;
     StoryProgress m_storyLastSent;
     StoryProgress m_storyPending;
+    // A team snapshot only belongs to the party and the loaded save it was received for
+    uint32_t m_storySaveSerial = 0U;         // bumped every time a save is loaded or exited
+    uint32_t m_storyPendingParty = 0U;
+    uint32_t m_storyPendingSerial = 0U;
 
     // Story Co-op time travel: the pedestal vote
     bool m_storyHold = false;                // waiting at the Master Sword pedestal for the other members
@@ -146,6 +150,7 @@ class ZeldaOnlineClient : public ZNetworking {
     bool StoryCoopActive() const;
     bool StoryShareConsumables() const;
     void StoryRefreshState();
+    void StoryOnSaveChanged(bool loaded);
     void StoryMarkDirty();
     StoryProgress StoryCapture();
     bool StoryApply(const StoryProgress& team);

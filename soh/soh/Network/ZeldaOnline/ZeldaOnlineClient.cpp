@@ -2034,6 +2034,8 @@ void ZeldaOnlineClient::RegisterHooks(bool enabled) {
 
     // Story Co-op: these only mark the progress snapshot dirty, StoryUpdate does the work
     COND_HOOK(OnItemReceive, enabled, [&](GetItemEntry itemEntry) { StoryOnItemReceive(itemEntry); });
+    COND_HOOK(OnLoadGame, enabled, [&](int32_t) { StoryOnSaveChanged(true); });
+    COND_HOOK(OnExitGame, enabled, [&](int32_t) { StoryOnSaveChanged(false); });
     COND_HOOK(OnFlagSet, enabled, [&](s16, s16) { StoryMarkDirty(); });
     COND_HOOK(OnSceneFlagSet, enabled, [&](s16, s16, s16) { StoryMarkDirty(); });
 

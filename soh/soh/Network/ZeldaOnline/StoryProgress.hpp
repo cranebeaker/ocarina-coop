@@ -28,6 +28,38 @@ namespace ZeldaOnline
 	// (PULLED_MASTER_SWORD_FROM_PEDESTAL, ENTERED_MASTER_SWORD_CHAMBER, SHEIK_SPAWNED_AT_MASTER_SWORD_PEDESTAL, TIME_TRAVELED_TO_ADULT)
 	static const int STORY_EVENTCHKINF_EXCLUDE[] = { 0x45, 0x4F, 0xC5, 0xC9 };
 
+	// eventChkInf bits meaning "an NPC already gave this player an item that stays per player" (trade chain and mask loans).
+	// Sharing them would stop the other members from ever receiving that item.
+	//   0x12 weird egg from Malon, 0x40 Zelda's Letter (courtyard cutscene),
+	//   0x8C-0x8F mask fees paid back to the Happy Mask Shop (mask loan chain)
+	static const int STORY_EVENTCHKINF_ITEM_EXCLUDE[] = { 0x12, 0x40, 0x8C, 0x8D, 0x8E, 0x8F };
+
+	// itemGetInf bits meaning "already got / bought item X" for things that stay per player.
+	//   0x02 Talon's Lon Lon Milk (bottle contents)
+	//   0x03-0x0A Bombchu shop purchases (ammo)
+	//   0x13 first seed pickup (ammo)
+	//   0x23-0x26 Happy Mask Shop loans (Keaton, Skull, Spooky, Bunny Hood), 0x2A / 0x3F Mask of Truth loan
+	//   0x2C / 0x2E Anju's Pocket Cucco and Cojiro (adult trade chain)
+	//   0x30 Odd Potion, 0x31 Poacher's Saw (adult trade chain)
+	//   0x38-0x3B masks sold back to their owners (child trade chain)
+	static const int STORY_ITEMGETINF_EXCLUDE[] = { 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x13, 0x23, 0x24,
+	                                                0x25, 0x26, 0x2A, 0x2C, 0x2E, 0x30, 0x31, 0x38, 0x39, 0x3A, 0x3B, 0x3F };
+
+	// infTable bits tied to per player item hand-offs (the swordless row is excluded separately by index).
+	//   0x77 gate guard wearing the Keaton Mask, 0x17C Bunny Hood sale dialogue, 0x139 Eyeball Frog hand-off,
+	//   0xB4 Broken Goron's Sword hand-off, 0x198 first magic jar pickup
+	static const int STORY_INFTABLE_ITEM_EXCLUDE[] = { 0x77, 0xB4, 0x139, 0x17C, 0x198 };
+
+	// Clear every listed flag bit (flag = row * 16 + bit) from a row array
+	static inline void StoryClearFlagBits(uint16_t* rows, int rowCount, const int* flags, int flagCount)
+	{
+		for (int i = 0; i < flagCount; i++)
+		{
+			if ((flags[i] >> 4) < rowCount)
+				rows[flags[i] >> 4] &= (uint16_t)~(1u << (flags[i] & 15));
+		}
+	}
+
 	// eventInf bits that are safe to share between party members. eventInf holds per player run state (Lon Lon Ranch race,
 	// horse state, minigame state), so the mask starts empty and a bit is added only after its writers have been reviewed.
 	static const uint16_t STORY_EVENTINF_SHARE_MASK[4] = { 0, 0, 0, 0 };
@@ -248,16 +280,29 @@ namespace ZeldaOnline
 				std::memcpy(incomingEvents, other.eventChkInf, sizeof(incomingEvents));
 				for (int bit : STORY_EVENTCHKINF_EXCLUDE)
 					incomingEvents[bit >> 4] &= (uint16_t)~(1u << (bit & 15));
+				StoryClearFlagBits(incomingEvents, 14, STORY_EVENTCHKINF_ITEM_EXCLUDE,
+				                   (int)(sizeof(STORY_EVENTCHKINF_ITEM_EXCLUDE) / sizeof(int)));
 
 				for (int i = 0; i < 14; i++)
 					changed |= OrInto(eventChkInf[i], incomingEvents[i]);
 			}
-			for (int i = 0; i < 4; i++)
-				changed |= OrInto(itemGetInf[i], other.itemGetInf[i]);
-			for (int i = 0; i < 30; i++)
 			{
-				if (i != STORY_INFTABLE_EXCLUDE_INDEX)
-					changed |= OrInto(infTable[i], other.infTable[i]);
+				uint16_t incomingItemGet[4];
+				std::memcpy(incomingItemGet, other.itemGetInf, sizeof(incomingItemGet));
+				StoryClearFlagBits(incomingItemGet, 4, STORY_ITEMGETINF_EXCLUDE,
+				                   (int)(sizeof(STORY_ITEMGETINF_EXCLUDE) / sizeof(int)));
+				for (int i = 0; i < 4; i++)
+					changed |= OrInto(itemGetInf[i], incomingItemGet[i]);
+
+				uint16_t incomingInfTable[30];
+				std::memcpy(incomingInfTable, other.infTable, sizeof(incomingInfTable));
+				StoryClearFlagBits(incomingInfTable, 30, STORY_INFTABLE_ITEM_EXCLUDE,
+				                   (int)(sizeof(STORY_INFTABLE_ITEM_EXCLUDE) / sizeof(int)));
+				for (int i = 0; i < 30; i++)
+				{
+					if (i != STORY_INFTABLE_EXCLUDE_INDEX)
+						changed |= OrInto(infTable[i], incomingInfTable[i]);
+				}
 			}
 			for (int i = 0; i < 4; i++)
 				changed |= OrInto(eventInf[i], other.eventInf[i]);

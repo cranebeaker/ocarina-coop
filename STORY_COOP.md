@@ -11,6 +11,8 @@ Open the party window, then tick **Story Co-op** in the party settings (party ad
 - **Items:** equipment, upgrades, quest items, songs, medallions, stones, heart containers and pieces, magic, dungeon items, small keys, boss keys, bottles themselves and Ruto's Letter. When one member gets one, every member has it.
 - **Stay per player (unless "Share Ammo, Rupees & HP" is on):** ammo counts, rupees, health refills and bottle contents.
 - **Story flags:** event check flags, item get flags, info tables, shared event inf bits, scene flags (switch, chest, clear, collect) and gold skulltula tokens.
+- **Gift flags stay per player too:** flags that mean an NPC already gave you an item that is not shared (the trade chains, the mask loans, Talon's milk, Bombchu shop purchases) are not shared, so every member can still receive those items.
+- **Loading a save:** a team snapshot is only applied to the save that was loaded when it was requested. Going to the title screen or loading another save drops anything pending, and the newly loaded save is uploaded again, which brings back what the team has that it lacks.
 - **Team save:** the server keeps the party's merged progress. A member who joins or reconnects is caught up on arrival, and the merge keeps their own consumables. The team save is stored with the server's other persistent data.
 
 Sharing is state based: clients send a compact progress snapshot, the server merges it (union / max) into the team save and relays the result. Echoes are harmless and nobody loses progress.
