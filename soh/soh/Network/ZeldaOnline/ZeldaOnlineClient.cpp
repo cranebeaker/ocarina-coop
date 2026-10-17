@@ -3144,3 +3144,6 @@ extern "C" const char* ZeldaOnline_LocalSkinName() {
     }
     return client->LocalSkinName().c_str();
 }
+// Scripted two-client test harness (inert unless --coop-test is passed). Included here so it builds without a CMake
+// reconfigure; see tools/coop-test/README.md.
+#include "soh/Enhancements/AutoTest/AutoTest.inl"

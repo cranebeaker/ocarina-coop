@@ -87,7 +87,11 @@ struct PlayerListActionEventConnect {
     std::string fileServer;
 };
 
+struct AutoTestAccess;
+
 class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
+    friend struct AutoTestAccess;
+
   private:
     static constexpr float LONG_PRESS_SECONDS = 0.5f;
 

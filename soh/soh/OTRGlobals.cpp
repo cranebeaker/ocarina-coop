@@ -116,6 +116,7 @@
 
 #include "soh/config/ConfigUpdaters.h"
 #include "soh/ShipInit.hpp"
+#include "soh/Enhancements/AutoTest/AutoTest.h"
 
 #ifdef _MSC_VER
 #define strdup _strdup
@@ -410,7 +411,12 @@ void OTRGlobals::RunExtract(int argc, char* argv[]) {
 
     std::filesystem::path ownPath;
     std::vector<std::string> args;
-    if (argc > 1) {
+    if (AutoTest::IsEnabled()) {
+        // Test mode: never treat test flags as ROM paths; only extract when oot.o2r is missing.
+        if (!std::filesystem::exists("oot.o2r") && !std::filesystem::exists("oot-mq.o2r")) {
+            args = AutoTest::ExtractArgs();
+        }
+    } else if (argc > 1) {
         for (int i = 1; i < argc; i++) {
             args.push_back(argv[i]);
         }
@@ -1520,7 +1526,11 @@ bool VerifyArchiveVersion(OTRVersion version) {
 
 extern "C" void InitOTR(int argc, char* argv[]) {
     OTRGlobals::Instance = new OTRGlobals();
+    AutoTest::ParseArgs(argc, argv);
     OTRGlobals::Instance->RunExtract(argc, argv);
+    if (AutoTest::ExtractOnly()) {
+        exit(std::filesystem::exists("oot.o2r") || std::filesystem::exists("oot-mq.o2r") ? 0 : 3);
+    }
 
     OTRGlobals::Instance->Initialize();
     CustomMessageManager::Instance = new CustomMessageManager();
@@ -1594,11 +1604,13 @@ extern "C" void InitOTR(int argc, char* argv[]) {
         Anchor::Instance->Enable();
     }
 
+    AutoTest::ApplyConfig();
     if (CVarGetInteger("gZeldaOnline.Enabled", 1)) {
         ZeldaOnline::ZeldaOnlineClient::Instance->Enable();
     }
 
     ShipInit::InitAll();
+    AutoTest::RegisterHooks();
     Rando::StaticData::InitHashMaps();
     OTRGlobals::Instance->gRandoContext->AddExcludedOptions();
 }

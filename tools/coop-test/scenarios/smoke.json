@@ -1,0 +1,68 @@
+{
+  "name": "smoke",
+  "server": { "host": "127.0.0.1", "port": 21650 },
+  "boot": { "entrance": 187, "age": "child" },
+  "roles": {
+    "A": {
+      "name": "TestA",
+      "steps": [
+        { "op": "wait_play", "timeout_frames": 1800 },
+        { "op": "connect" },
+        { "op": "wait_until", "cond": "connected", "timeout_frames": 1200 },
+        { "op": "wait_until", "cond": "net_id", "timeout_frames": 1200 },
+        { "op": "warp", "entrance": 238, "scene": 85, "timeout_frames": 1800 },
+        { "op": "wait_until", "cond": "other_players", "n": 1, "timeout_frames": 3600 },
+        { "op": "create_party", "story_coop": true, "story_code": "smoke-test" },
+        { "op": "wait_until", "cond": "has_party", "timeout_frames": 1200 },
+        { "op": "wait_until", "cond": "story_active", "timeout_frames": 1200 },
+        { "op": "invite" },
+        { "op": "wait_until", "cond": "party_size", "n": 2, "timeout_frames": 3600 },
+        { "op": "wait_until", "cond": "peers_in_scene", "n": 1, "timeout_frames": 3600 },
+        { "op": "wait_until", "cond": "peer_puppets", "n": 1, "timeout_frames": 1800 },
+        { "op": "wait_frames", "n": 120 },
+        { "op": "observe", "name": "in_forest" },
+        { "op": "wait_frames", "n": 300 },
+        { "op": "quit", "pass": true }
+      ]
+    },
+    "B": {
+      "name": "TestB",
+      "steps": [
+        { "op": "wait_play", "timeout_frames": 1800 },
+        { "op": "connect" },
+        { "op": "wait_until", "cond": "connected", "timeout_frames": 1200 },
+        { "op": "wait_until", "cond": "net_id", "timeout_frames": 1200 },
+        { "op": "warp", "entrance": 238, "scene": 85, "timeout_frames": 1800 },
+        { "op": "wait_until", "cond": "invite_pending", "timeout_frames": 7200 },
+        { "op": "accept_invite" },
+        { "op": "wait_until", "cond": "has_party", "timeout_frames": 1200 },
+        { "op": "wait_until", "cond": "story_active", "timeout_frames": 1200 },
+        { "op": "wait_until", "cond": "party_size", "n": 2, "timeout_frames": 3600 },
+        { "op": "wait_until", "cond": "peers_in_scene", "n": 1, "timeout_frames": 3600 },
+        { "op": "wait_until", "cond": "peer_puppets", "n": 1, "timeout_frames": 1800 },
+        { "op": "wait_frames", "n": 120 },
+        { "op": "observe", "name": "in_forest" },
+        { "op": "wait_frames", "n": 300 },
+        { "op": "quit", "pass": true }
+      ]
+    }
+  },
+  "assertions": [
+    { "type": "each", "obs": "in_forest", "path": "connected", "op": "eq", "value": true, "label": "both connected to the server" },
+    { "type": "each", "obs": "in_forest", "path": "scene", "op": "eq", "value": 85, "label": "both in Kokiri Forest" },
+    { "type": "same", "obs": "in_forest", "path": "scene", "label": "both in the same scene" },
+    { "type": "each", "obs": "in_forest", "path": "peers_in_scene", "op": "eq", "value": 1, "label": "each sees the other in its scene" },
+    { "type": "each", "obs": "in_forest", "path": "peer_puppets", "op": "ge", "value": 1, "label": "each sees the other player actor" },
+    { "type": "each", "obs": "in_forest", "path": "has_party", "op": "eq", "value": true, "label": "both are in a party" },
+    { "type": "each", "obs": "in_forest", "path": "party_size", "op": "eq", "value": 2, "label": "party has 2 members on both" },
+    { "type": "same", "obs": "in_forest", "path": "party_id", "label": "both report the same party id" },
+    { "type": "each", "obs": "in_forest", "path": "party_id", "op": "ne", "value": 0, "label": "party id is set" },
+    { "type": "count", "obs": "in_forest", "path": "party_admin", "value": true, "equals": 1, "label": "exactly one party admin" },
+    { "type": "each", "obs": "in_forest", "path": "story_coop", "op": "eq", "value": true, "label": "Story Co-op setting is on for both" },
+    { "type": "each", "obs": "in_forest", "path": "story_active", "op": "eq", "value": true, "label": "Story Co-op is active for both" },
+    { "type": "each", "obs": "in_forest", "path": "share_ammo", "op": "eq", "value": false, "label": "Share Ammo, Rupees & HP is off" },
+    { "type": "each", "obs": "in_forest", "path": "story_code", "op": "eq", "value": "smoke-test", "label": "story code reached both clients" },
+    { "type": "same", "obs": "in_forest", "path": "link_age", "label": "both are in the same era" },
+    { "type": "each", "obs": "in_forest", "path": "peers.0.age", "op": "eq", "value": 1, "label": "each sees the other as child (party era)" }
+  ]
+}

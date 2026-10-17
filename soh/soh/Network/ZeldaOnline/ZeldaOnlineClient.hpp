@@ -31,7 +31,11 @@ namespace ZeldaOnline {
     
 std::vector<std::string> MissingArchives(const std::vector<std::string>& archiveNames);
 
+struct AutoTestAccess;
+
 class ZeldaOnlineClient : public ZNetworking {
+    friend struct AutoTestAccess;
+
   private:
     static const unsigned int FRAME_HEADER_SIZE = 2;
     static const unsigned int MAX_FRAME_PAYLOAD = 0xFFFF;

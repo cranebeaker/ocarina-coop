@@ -6,6 +6,7 @@
 //
 
 #include "SohGui.hpp"
+#include "soh/Enhancements/AutoTest/AutoTest.h"
 
 #include <imgui.h>
 
@@ -241,6 +242,14 @@ void Destroy() {
 
 void RegisterPopup(std::string title, std::string message, std::string button1, std::string button2,
                    std::function<void()> button1callback, std::function<void()> button2callback) {
+    if (AutoTest::IsEnabled()) {
+        // Unattended test mode: answer every popup with its first button.
+        SPDLOG_INFO("[AutoTest] auto-confirming popup '{}'", title);
+        if (button1callback) {
+            button1callback();
+        }
+        return;
+    }
     mModalWindow->RegisterPopup(title, message, button1, button2, button1callback, button2callback);
 }
 
