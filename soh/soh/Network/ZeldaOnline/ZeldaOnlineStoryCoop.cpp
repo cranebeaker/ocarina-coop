@@ -150,8 +150,12 @@ void ZeldaOnlineClient::StoryRefreshState() {
     bool active = StoryCoopActive();
 
     if (active && (!m_storyWasActive || m_storyPartyID != m_partyID)) {
-        // newly joined, created or switched on: upload what we have so the team save is (re)seeded
+        // newly joined, created or switched on: upload what we have so the team save is (re)seeded.
+        // Anything pending or sent for a previous party is stale, so the catch-up starts from a clean slate.
         m_storySeedPending = true;
+        m_storyHasPending = false;
+        m_storyPending = StoryProgress();
+        m_storyLastSent = StoryProgress();
     } else if (!active) {
         m_storySeedPending = false;
         m_storyDirty = false;
