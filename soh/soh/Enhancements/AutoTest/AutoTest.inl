@@ -254,6 +254,8 @@ bool ReadFlag(const std::string& type, int flag) {
     if (type == "treasure") return Flags_GetTreasure(gPlayState, flag) != 0;
     if (type == "event_chk_inf") return Flags_GetEventChkInf(flag) != 0;
     if (type == "inf_table") return Flags_GetInfTable(flag) != 0;
+    if (type == "item_get_inf") return Flags_GetItemGetInf(flag) != 0;
+    if (type == "quest_item") return ((gSaveContext.inventory.questItems >> flag) & 1) != 0;
     return false;
 }
 
@@ -264,6 +266,7 @@ bool WriteFlag(const std::string& type, int flag) {
     else if (type == "treasure") Flags_SetTreasure(gPlayState, flag);
     else if (type == "event_chk_inf") Flags_SetEventChkInf(flag);
     else if (type == "inf_table") Flags_SetInfTable(flag);
+    else if (type == "item_get_inf") Flags_SetItemGetInf(flag);
     else return false;
     return true;
 }

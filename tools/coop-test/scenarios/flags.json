@@ -1,0 +1,941 @@
+{
+  "name": "flags",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "roles": {
+    "A": {
+      "name": "TestA",
+      "steps": [
+        {
+          "op": "wait_play",
+          "timeout_frames": 1800
+        },
+        {
+          "op": "reset_inventory"
+        },
+        {
+          "op": "connect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "connected",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "net_id",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "warp",
+          "entrance": 238,
+          "scene": 85,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_until",
+          "cond": "other_players",
+          "n": 1,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "create_party",
+          "story_code": "flags-test",
+          "story_coop": true
+        },
+        {
+          "op": "wait_until",
+          "cond": "has_party",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_active",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "party_size",
+          "n": 2,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "peers_in_scene",
+          "n": 1,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "observe",
+          "name": "a_start",
+          "flags": [
+            {
+              "type": "event_chk_inf",
+              "flag": 37
+            },
+            {
+              "type": "inf_table",
+              "flag": 96
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 16
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 2
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 44
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 35
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 140
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 64
+            },
+            {
+              "type": "quest_item",
+              "flag": 12
+            }
+          ]
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 37
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 96
+        },
+        {
+          "op": "set_flag",
+          "type": "item_get_inf",
+          "flag": 16
+        },
+        {
+          "op": "set_flag",
+          "type": "item_get_inf",
+          "flag": 2
+        },
+        {
+          "op": "set_flag",
+          "type": "item_get_inf",
+          "flag": 44
+        },
+        {
+          "op": "set_flag",
+          "type": "item_get_inf",
+          "flag": 35
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 140
+        },
+        {
+          "op": "give_item",
+          "item": 33
+        },
+        {
+          "op": "wait_frames",
+          "n": 300
+        },
+        {
+          "op": "observe",
+          "name": "a_after1",
+          "flags": [
+            {
+              "type": "event_chk_inf",
+              "flag": 37
+            },
+            {
+              "type": "inf_table",
+              "flag": 96
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 16
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 2
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 44
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 35
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 140
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 64
+            },
+            {
+              "type": "quest_item",
+              "flag": 12
+            }
+          ]
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 432
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 433,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "give_item",
+          "item": 35
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 64
+        },
+        {
+          "op": "wait_frames",
+          "n": 300
+        },
+        {
+          "op": "observe",
+          "name": "a_after2",
+          "flags": [
+            {
+              "type": "event_chk_inf",
+              "flag": 37
+            },
+            {
+              "type": "inf_table",
+              "flag": 96
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 16
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 2
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 44
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 35
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 140
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 64
+            },
+            {
+              "type": "quest_item",
+              "flag": 12
+            }
+          ]
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 434
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 435,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "give_item",
+          "item": 96
+        },
+        {
+          "op": "wait_frames",
+          "n": 300
+        },
+        {
+          "op": "observe",
+          "name": "a_after3",
+          "flags": [
+            {
+              "type": "event_chk_inf",
+              "flag": 37
+            },
+            {
+              "type": "inf_table",
+              "flag": 96
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 16
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 2
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 44
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 35
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 140
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 64
+            },
+            {
+              "type": "quest_item",
+              "flag": 12
+            }
+          ]
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 436
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 437,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "quit",
+          "pass": true
+        }
+      ]
+    },
+    "B": {
+      "name": "TestB",
+      "steps": [
+        {
+          "op": "wait_play",
+          "timeout_frames": 1800
+        },
+        {
+          "op": "reset_inventory"
+        },
+        {
+          "op": "connect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "connected",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "net_id",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "warp",
+          "entrance": 238,
+          "scene": 85,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_until",
+          "cond": "invite_pending",
+          "timeout_frames": 7200
+        },
+        {
+          "op": "accept_invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "has_party",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_active",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "party_size",
+          "n": 2,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_until",
+          "cond": "peers_in_scene",
+          "n": 1,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "observe",
+          "name": "b_start",
+          "flags": [
+            {
+              "type": "event_chk_inf",
+              "flag": 37
+            },
+            {
+              "type": "inf_table",
+              "flag": 96
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 16
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 2
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 44
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 35
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 140
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 64
+            },
+            {
+              "type": "quest_item",
+              "flag": 12
+            }
+          ]
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 432,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 100
+        },
+        {
+          "op": "observe",
+          "name": "b_r1",
+          "flags": [
+            {
+              "type": "event_chk_inf",
+              "flag": 37
+            },
+            {
+              "type": "inf_table",
+              "flag": 96
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 16
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 2
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 44
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 35
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 140
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 64
+            },
+            {
+              "type": "quest_item",
+              "flag": 12
+            }
+          ]
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 433
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 434,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 100
+        },
+        {
+          "op": "observe",
+          "name": "b_r2",
+          "flags": [
+            {
+              "type": "event_chk_inf",
+              "flag": 37
+            },
+            {
+              "type": "inf_table",
+              "flag": 96
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 16
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 2
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 44
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 35
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 140
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 64
+            },
+            {
+              "type": "quest_item",
+              "flag": 12
+            }
+          ]
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 435
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "type": "inf_table",
+          "flag": 436,
+          "timeout_frames": 3600
+        },
+        {
+          "op": "wait_frames",
+          "n": 100
+        },
+        {
+          "op": "observe",
+          "name": "b_r3",
+          "flags": [
+            {
+              "type": "event_chk_inf",
+              "flag": 37
+            },
+            {
+              "type": "inf_table",
+              "flag": 96
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 16
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 2
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 44
+            },
+            {
+              "type": "item_get_inf",
+              "flag": 35
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 140
+            },
+            {
+              "type": "event_chk_inf",
+              "flag": 64
+            },
+            {
+              "type": "quest_item",
+              "flag": 12
+            }
+          ]
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 437
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "quit",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "flags.0.value",
+      "op": "eq",
+      "label": "B starts without flag ('event_chk_inf', 37)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "flags.1.value",
+      "op": "eq",
+      "label": "B starts without flag ('inf_table', 96)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "flags.2.value",
+      "op": "eq",
+      "label": "B starts without flag ('item_get_inf', 16)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "flags.3.value",
+      "op": "eq",
+      "label": "B starts without flag ('item_get_inf', 2)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "flags.4.value",
+      "op": "eq",
+      "label": "B starts without flag ('item_get_inf', 44)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "flags.5.value",
+      "op": "eq",
+      "label": "B starts without flag ('item_get_inf', 35)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "flags.6.value",
+      "op": "eq",
+      "label": "B starts without flag ('event_chk_inf', 140)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "flags.7.value",
+      "op": "eq",
+      "label": "B starts without flag ('event_chk_inf', 64)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_r1",
+      "path": "flags.0.value",
+      "op": "eq",
+      "label": "B received shared flag ('event_chk_inf', 37)",
+      "roles": [
+        "B"
+      ],
+      "value": true
+    },
+    {
+      "type": "each",
+      "obs": "b_r1",
+      "path": "flags.1.value",
+      "op": "eq",
+      "label": "B received shared flag ('inf_table', 96)",
+      "roles": [
+        "B"
+      ],
+      "value": true
+    },
+    {
+      "type": "each",
+      "obs": "b_r1",
+      "path": "flags.2.value",
+      "op": "eq",
+      "label": "B received shared flag ('item_get_inf', 16)",
+      "roles": [
+        "B"
+      ],
+      "value": true
+    },
+    {
+      "type": "each",
+      "obs": "b_r1",
+      "path": "flags.3.value",
+      "op": "eq",
+      "label": "B does not get per-player gift flag ('item_get_inf', 2)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_r1",
+      "path": "flags.4.value",
+      "op": "eq",
+      "label": "B does not get per-player gift flag ('item_get_inf', 44)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_r1",
+      "path": "flags.5.value",
+      "op": "eq",
+      "label": "B does not get per-player gift flag ('item_get_inf', 35)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_r1",
+      "path": "flags.6.value",
+      "op": "eq",
+      "label": "B does not get per-player gift flag ('event_chk_inf', 140)",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_r1",
+      "path": "items.23",
+      "op": "eq",
+      "label": "B received Weird Egg",
+      "roles": [
+        "B"
+      ],
+      "value": 33
+    },
+    {
+      "type": "each",
+      "obs": "a_after2",
+      "path": "items.23",
+      "op": "eq",
+      "label": "A holds Zelda's Letter",
+      "roles": [
+        "A"
+      ],
+      "value": 35
+    },
+    {
+      "type": "each",
+      "obs": "b_r2",
+      "path": "items.23",
+      "op": "eq",
+      "label": "Letter held back without Lullaby (B has Chicken)",
+      "roles": [
+        "B"
+      ],
+      "value": 34
+    },
+    {
+      "type": "each",
+      "obs": "b_r2",
+      "path": "flags.7.value",
+      "op": "eq",
+      "label": "0x40 not shared without Lullaby",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_r3",
+      "path": "items.23",
+      "op": "eq",
+      "label": "B received Zelda's Letter after Lullaby",
+      "roles": [
+        "B"
+      ],
+      "value": 35
+    },
+    {
+      "type": "each",
+      "obs": "b_r3",
+      "path": "flags.7.value",
+      "op": "eq",
+      "label": "B received 0x40 after Lullaby",
+      "roles": [
+        "B"
+      ],
+      "value": true
+    },
+    {
+      "type": "each",
+      "obs": "b_r3",
+      "path": "flags.3.value",
+      "op": "eq",
+      "label": "B still lacks Talon milk flag at end",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_r3",
+      "path": "flags.4.value",
+      "op": "eq",
+      "label": "B still lacks Pocket Cucco flag at end",
+      "roles": [
+        "B"
+      ],
+      "value": false
+    },
+    {
+      "type": "each",
+      "obs": "b_start",
+      "path": "flags.8.value",
+      "op": "eq",
+      "value": false,
+      "label": "B starts without Lullaby",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_r2",
+      "path": "flags.8.value",
+      "op": "eq",
+      "value": false,
+      "label": "B has no Lullaby while the letter is held back",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_r3",
+      "path": "flags.8.value",
+      "op": "eq",
+      "value": true,
+      "label": "B received Lullaby",
+      "roles": [
+        "B"
+      ]
+    }
+  ]
+}

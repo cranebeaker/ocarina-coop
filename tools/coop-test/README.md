@@ -59,14 +59,14 @@ frames):
 | `leave_party` | |
 | `wait_frames` | `n` |
 | `observe` | `name`, optional `flags` (`type`, `flag`) to record |
-| `set_flag`, `unset_flag` | `type` (`switch`, `clear`, `collect`, `treasure`, `event_chk_inf`, `inf_table`), `flag` |
+| `set_flag`, `unset_flag` | `type` (`switch`, `clear`, `collect`, `treasure`, `event_chk_inf`, `inf_table`, `item_get_inf`, `quest_item`), `flag` |
 | `reset_inventory` | empties items, ammo, quest items, dungeon items, upgrades; 3 hearts, 0 rupees (the debug save starts full) |
 | `give_item` | `item` (item id), optional `map_index`; calls `Item_Give`, so the OnItemReceive hooks fire like a pickup |
 | `set_ammo`, `set_slot` | `slot`, `n` / `item`; direct inventory writes |
 | `set_health`, `set_rupees`, `set_time` | `health` / `n` / `day_time`, `night_flag` |
 | `log`, `quit` | `msg` / `pass`, `error` |
 
-Every step takes `timeout_frames`; a timeout fails the scenario. Scenarios: `smoke`, `items` (shared non-consumables, per-player ammo/rupees/HP/bottle contents, Share Ammo on, Story Co-op switched off mid session), `items_off` (Story Co-op never on). Cross-client sync inside a scenario uses a shared infTable flag as a signal.  Optional top-level `cvars` and per-role `cvars` set
+Every step takes `timeout_frames`; a timeout fails the scenario. Scenarios: `smoke`, `items` (shared non-consumables, per-player ammo/rupees/HP/bottle contents, Share Ammo on, Story Co-op switched off mid session), `items_off` (Story Co-op never on), `flags` (shared story flags, per-player gift flags, Weird Egg, Zelda's Letter gated on Lullaby). Cross-client sync inside a scenario uses a shared infTable flag as a signal.  Optional top-level `cvars` and per-role `cvars` set
 arbitrary CVars before the client starts.
 
 Assertion types: `each` (every client, or only `roles`, `obs`/`path`/`op`/`value`, ops `eq ne ge gt le lt truthy`), `count` (number of
