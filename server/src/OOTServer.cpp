@@ -100,6 +100,7 @@ namespace ZeldaOnline
 			m_nightSpeed = (unsigned int)cfg.value("nightSpeed", 640);
 			m_dungeonsReset = cfg.value("dungeonsReset", true);
 			m_dungeonsResetTimer = cfg.value("dungeonsResetTimer", 10);
+			m_dataDir = cfg.value("dataDir", std::string("data"));
 
 			if (cfg.contains("skins") && cfg["skins"].is_array())
 			{
@@ -131,6 +132,7 @@ namespace ZeldaOnline
 	{
 		soxInitialize();
 		LoadConfig();
+		Party::SetStoryDataDir(m_dataDir);
 
 		std::printf("Day Speed: %u (units per second)\n", m_daySpeed);
 		std::printf("Night Speed: %u (units per second)\n", m_nightSpeed);
@@ -167,6 +169,7 @@ namespace ZeldaOnline
 			reapConnections();
 		}
 
+		Party::SaveAllStory();
 		return 0;
 	}
 

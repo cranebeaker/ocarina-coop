@@ -31,6 +31,16 @@ Sharing is state based: clients send a compact progress snapshot, the server mer
 
 The party list shows each member's era (Adult or Child).
 
+## Server save
+
+The team save is written to disk, so it survives a server restart. Clients still keep their own progress in their own saves and still re-seed the team save by union when they join, so nothing depends on the file being present.
+
+- **Where:** `<dataDir>/story/<name>-<hash>.bin`. `dataDir` is set in `config.json` (default `data`, relative to where the server is started, empty disables saving).
+- **Which file:** the key is the admin's nickname plus an optional `storyCode` string in the party settings JSON (up to 32 characters). It is chosen when Story Co-op is switched on, and the matching file is loaded then, merged by union with anything the party already holds. Two admins with the same nickname and no code would share a file, so set a `storyCode` for a party you care about. If another running party already uses the key, the second one is simply not persisted.
+- **When:** a few seconds after the last change, when Story Co-op is switched off, when the party is dropped and on a clean shutdown (Ctrl+C or SIGTERM).
+- **Safety:** each write goes to a temporary file, is flushed to disk and renamed over the old one. The file has a magic, a format version and a checksum. Up to three rotating backups (`.bak1` newest) are kept, rotated at most every 10 minutes.
+- **Bad files:** a missing, truncated, corrupt or unknown version file is logged and skipped, falling back to the newest good backup, then to an empty team save. The server never stops because of it.
+
 ## Code map
 
 - Client: `soh/soh/Network/ZeldaOnline/ZeldaOnlineStoryCoop.cpp`, plus additions in `ZeldaOnlineClient.*`, `PartySettings.hpp` and `ZeldaOnlineRoomWindow.hpp`.

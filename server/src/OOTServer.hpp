@@ -192,6 +192,7 @@ namespace ZeldaOnline
 		std::unordered_map<uint64_t, std::unique_ptr<Scene>> m_scenes;
 		bool m_dungeonsReset = true;
 		int m_dungeonsResetTimer = 10;
+		std::string m_dataDir = "data";
 
 		ActorRegistry m_actors;
 		std::vector<PlayerSkin> m_skins;

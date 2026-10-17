@@ -2,6 +2,16 @@
 #include "Player.hpp"
 #include "Scene.hpp"
 #include "nlohmann/json.hpp"
+#include <cstdio>
+#include <cstring>
+#include <stdexcept>
+#include <filesystem>
+#include <system_error>
+#if defined(_WIN32)
+#include <io.h>
+#else
+#include <unistd.h>
+#endif
 
 namespace ZeldaOnline
 {
@@ -36,6 +46,25 @@ namespace ZeldaOnline
 			}
 		}
 
+		// Optional party code that names the on-disk team save together with the admin nickname
+		std::string ReadCodeKey(const nlohmann::json& object, const char* key)
+		{
+			try
+			{
+				auto it = object.find(key);
+				if (it == object.end() || !it->is_string())
+					return std::string();
+				std::string code = it->get<std::string>();
+				if (code.size() > 32)
+					code.resize(32);
+				return code;
+			}
+			catch (const std::exception&)
+			{
+				return std::string();
+			}
+		}
+
 		std::string DumpSettings(const nlohmann::json& object)
 		{
 			return object.dump(-1, ' ', false, nlohmann::json::error_handler_t::replace);
@@ -51,6 +80,7 @@ namespace ZeldaOnline
 			m_privateDungeons = false;
 			m_storyCoop = false;
 			m_shareConsumables = false;
+			m_storyCode.clear();
 			StorySettingsChanged(wasStoryCoop);
 			return;
 		}
@@ -65,6 +95,7 @@ namespace ZeldaOnline
 		m_privateDungeons = ReadBoolKey(parsed, "privateDungeons", false);
 		m_storyCoop = ReadBoolKey(parsed, "storyCoop", false);
 		m_shareConsumables = m_storyCoop && ReadBoolKey(parsed, "shareAmmoRupeesHp", false);
+		m_storyCode = ReadCodeKey(parsed, "storyCode");
 		try
 		{
 			m_settings = DumpSettings(parsed);
@@ -95,6 +126,7 @@ namespace ZeldaOnline
 
 		parsed["storyCoop"] = m_storyCoop;
 		parsed["shareAmmoRupeesHp"] = m_shareConsumables;
+		parsed["storyCode"] = m_storyCode;
 		try
 		{
 			SetSettings(DumpSettings(parsed));
@@ -125,6 +157,9 @@ namespace ZeldaOnline
 		if (m_story.MergeFrom(incoming))
 			changed = true;
 
+		if (changed)
+			MarkStoryDirty();
+
 		return changed;
 	}
 
@@ -154,6 +189,10 @@ namespace ZeldaOnline
 {
 	// A travel that has not finished by then (Chamber of Sages included) is considered done
 	static const int STORY_TRAVEL_TIMEOUT_SECONDS = 180;
+	// Unsaved team save changes are written this long after the first change
+	static const int STORY_SAVE_DEBOUNCE_SECONDS = 3;
+	static const int STORY_BACKUP_COUNT = 3;
+	static const int STORY_BACKUP_INTERVAL_MINUTES = 10;
 
 	bool Party::HasVoted(uint16_t netID) const
 	{
@@ -183,6 +222,7 @@ namespace ZeldaOnline
 			ResetVotes();
 			m_era = ERA_UNKNOWN;
 			m_era = ComputeEra();
+			SelectStorySave();
 		}
 		else if (wasStoryCoop && !m_storyCoop)
 		{
@@ -190,6 +230,8 @@ namespace ZeldaOnline
 			ResetVotes();
 			m_era = ERA_UNKNOWN;
 			SendVoteStatusTo(nullptr, false);
+			if (m_storyDirty)
+				WriteStorySave();
 		}
 	}
 
@@ -450,15 +492,325 @@ namespace ZeldaOnline
 		{
 			if (auto party = entry.second.lock())
 			{
-				if (party->m_storyCoop && party->m_travelling)
+				if (party->m_storyCoop && (party->m_travelling || party->m_storyDirty))
 					parties.push_back(party);
 			}
 		}
 
 		for (auto& party : parties)
 		{
-			if (now >= party->m_travelDeadline)
+			if (party->m_travelling && now >= party->m_travelDeadline)
 				party->CheckTravelDone(true);
+
+			if (party->m_storyDirty && now - party->m_storyDirtySince >= std::chrono::seconds(STORY_SAVE_DEBOUNCE_SECONDS))
+				party->WriteStorySave();
+		}
+	}
+}
+
+
+// Story Co-op team save on disk
+//
+// File: <dataDir>/story/<sanitized key>-<hash>.bin, with STORY_BACKUP_COUNT rotating backups (.bak1 is the newest).
+// Layout: magic "OOTSCSAV", u8 file version, u8 seeded, u8 dungeonKeys[19], u32 payload size, payload (StoryProgress::Serialize,
+// which carries its own version byte), u32 FNV-1a checksum of everything before it.
+namespace ZeldaOnline
+{
+	namespace
+	{
+		namespace fs = std::filesystem;
+
+		const char STORY_SAVE_MAGIC[8] = { 'O', 'O', 'T', 'S', 'C', 'S', 'A', 'V' };
+		const uint8_t STORY_SAVE_FILE_VERSION = 1;
+		const unsigned int STORY_SAVE_MAX_PAYLOAD = 1 << 20;
+
+		std::string s_storyDir;
+		std::unordered_map<std::string, uint32_t> s_saveKeyOwners;
+
+		uint32_t Fnv1a(const char* data, size_t size)
+		{
+			uint32_t hash = 2166136261u;
+			for (size_t i = 0; i < size; i++)
+			{
+				hash ^= (uint8_t)data[i];
+				hash *= 16777619u;
+			}
+			return hash;
+		}
+
+		std::string MakeFileStem(const std::string& key)
+		{
+			std::string stem;
+			for (char c : key)
+			{
+				if ((c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') || c == '-' || c == '_')
+					stem += c;
+				else if (c >= 'A' && c <= 'Z')
+					stem += (char)(c - 'A' + 'a');
+				else
+					stem += '_';
+				if (stem.size() >= 40)
+					break;
+			}
+
+			char hash[16];
+			std::snprintf(hash, sizeof(hash), "-%08x", Fnv1a(key.data(), key.size()));
+			return stem + hash;
+		}
+
+		bool WriteFileAtomic(const fs::path& path, const char* data, size_t size)
+		{
+			fs::path temp = path;
+			temp += ".tmp";
+
+			FILE* f = std::fopen(temp.string().c_str(), "wb");
+			if (f == nullptr)
+				return false;
+
+			bool ok = std::fwrite(data, 1, size, f) == size && std::fflush(f) == 0;
+			if (ok)
+			{
+#if defined(_WIN32)
+				_commit(_fileno(f));
+#else
+				fsync(fileno(f));
+#endif
+			}
+			ok = (std::fclose(f) == 0) && ok;
+
+			std::error_code ec;
+			if (ok)
+				fs::rename(temp, path, ec);
+			if (!ok || ec)
+			{
+				fs::remove(temp, ec);
+				return false;
+			}
+			return true;
+		}
+
+		bool ReadWholeFile(const fs::path& path, std::string& out)
+		{
+			FILE* f = std::fopen(path.string().c_str(), "rb");
+			if (f == nullptr)
+				return false;
+
+			out.clear();
+			char chunk[4096];
+			size_t got;
+			while ((got = std::fread(chunk, 1, sizeof(chunk), f)) > 0)
+			{
+				out.append(chunk, got);
+				if (out.size() > STORY_SAVE_MAX_PAYLOAD + 1024)
+					break;
+			}
+			std::fclose(f);
+			return true;
+		}
+
+		fs::path BackupPath(const fs::path& path, int index)
+		{
+			fs::path result = path;
+			result += ".bak" + std::to_string(index);
+			return result;
+		}
+	}
+
+	void Party::SetStoryDataDir(const std::string& dir)
+	{
+		s_storyDir = dir.empty() ? std::string() : (fs::path(dir) / "story").string();
+		if (!s_storyDir.empty())
+			std::printf("Story Co-op saves: %s\n", s_storyDir.c_str());
+		else
+			std::printf("Story Co-op saves: disabled (memory only)\n");
+	}
+
+	Party::~Party()
+	{
+		if (m_storyDirty)
+			WriteStorySave();
+		ReleaseSaveKey();
+		s_parties.erase(m_id);
+	}
+
+	void Party::SaveAllStory()
+	{
+		for (auto& entry : s_parties)
+		{
+			if (auto party = entry.second.lock())
+			{
+				if (party->m_storyDirty)
+					party->WriteStorySave();
+			}
+		}
+	}
+
+	void Party::ReleaseSaveKey()
+	{
+		if (m_saveKey.empty())
+			return;
+		auto it = s_saveKeyOwners.find(m_saveKey);
+		if (it != s_saveKeyOwners.end() && it->second == m_id)
+			s_saveKeyOwners.erase(it);
+		m_saveKey.clear();
+	}
+
+	void Party::MarkStoryDirty()
+	{
+		if (m_saveKey.empty())
+			return;
+		if (!m_storyDirty)
+			m_storyDirtySince = std::chrono::steady_clock::now();
+		m_storyDirty = true;
+	}
+
+	// Save key: the admin nickname plus the optional "storyCode" party setting. Chosen when Story Co-op is switched on.
+	void Party::SelectStorySave()
+	{
+		if (s_storyDir.empty())
+			return;
+
+		Player* admin = GetAdmin();
+		std::string key = (admin ? admin->NickName() : std::string("Player")) + "|" + m_storyCode;
+		if (key == m_saveKey)
+			return;
+
+		if (m_storyDirty)
+			WriteStorySave();
+		ReleaseSaveKey();
+
+		if (s_saveKeyOwners.find(key) != s_saveKeyOwners.end())
+		{
+			std::printf("Story Co-op: save key already used by another running party, this party is not persisted\n");
+			return;
+		}
+
+		s_saveKeyOwners[key] = m_id;
+		m_saveKey = key;
+		LoadStorySave();
+	}
+
+	void Party::LoadStorySave()
+	{
+		fs::path path = fs::path(s_storyDir) / (MakeFileStem(m_saveKey) + ".bin");
+
+		for (int attempt = 0; attempt <= STORY_BACKUP_COUNT; attempt++)
+		{
+			fs::path file = attempt == 0 ? path : BackupPath(path, attempt);
+			std::error_code ec;
+			if (!fs::exists(file, ec))
+				continue;
+
+			try
+			{
+				std::string blob;
+				if (!ReadWholeFile(file, blob) || blob.size() < sizeof(STORY_SAVE_MAGIC) + 2 + 19 + 4 + 4)
+					throw std::runtime_error("too short");
+
+				const size_t sumPos = blob.size() - 4;
+				uint32_t sum;
+				std::memcpy(&sum, blob.data() + sumPos, 4);
+				if (sum != Fnv1a(blob.data(), sumPos))
+					throw std::runtime_error("checksum mismatch");
+
+				if (std::memcmp(blob.data(), STORY_SAVE_MAGIC, sizeof(STORY_SAVE_MAGIC)) != 0)
+					throw std::runtime_error("bad magic");
+
+				size_t pos = sizeof(STORY_SAVE_MAGIC);
+				if ((uint8_t)blob[pos++] != STORY_SAVE_FILE_VERSION)
+					throw std::runtime_error("unsupported file version");
+
+				const bool seeded = blob[pos++] != 0;
+				uint8_t keys[19];
+				std::memcpy(keys, blob.data() + pos, 19);
+				pos += 19;
+
+				uint32_t payloadSize;
+				std::memcpy(&payloadSize, blob.data() + pos, 4);
+				pos += 4;
+				if (payloadSize > STORY_SAVE_MAX_PAYLOAD || payloadSize != sumPos - pos)
+					throw std::runtime_error("bad payload size");
+
+				ByteStream payload(blob.data() + pos, payloadSize);
+				StoryProgress loaded;
+				if (!loaded.Deserialize(payload))
+					throw std::runtime_error("team save payload rejected");
+
+				if (!seeded)
+					return;
+
+				// union into whatever the party already holds; key counts are only taken when the party has none yet
+				m_story.MergeFrom(loaded);
+				for (int i = 0; i < 19; i++)
+				{
+					if (!m_storySeeded || m_dungeonKeys[i] == 0)
+						m_dungeonKeys[i] = keys[i];
+				}
+				m_storySeeded = true;
+				std::printf("Story Co-op: loaded team save %s%s\n", file.filename().string().c_str(), attempt ? " (backup)" : "");
+				return;
+			}
+			catch (const std::exception& e)
+			{
+				std::printf("Story Co-op: team save %s is unusable (%s)\n", file.filename().string().c_str(), e.what());
+			}
+		}
+	}
+
+	bool Party::WriteStorySave()
+	{
+		m_storyDirty = false;
+		if (s_storyDir.empty() || m_saveKey.empty() || !m_storySeeded)
+			return false;
+
+		try
+		{
+			ByteStream payload;
+			m_story.Serialize(payload);
+
+			std::string blob;
+			blob.append(STORY_SAVE_MAGIC, sizeof(STORY_SAVE_MAGIC));
+			blob += (char)STORY_SAVE_FILE_VERSION;
+			blob += (char)1;
+			blob.append((const char*)m_dungeonKeys, 19);
+			uint32_t payloadSize = payload.Length();
+			blob.append((const char*)&payloadSize, 4);
+			blob.append(payload.Text(), payload.Length());
+			uint32_t sum = Fnv1a(blob.data(), blob.size());
+			blob.append((const char*)&sum, 4);
+
+			std::error_code ec;
+			fs::create_directories(s_storyDir, ec);
+			fs::path path = fs::path(s_storyDir) / (MakeFileStem(m_saveKey) + ".bin");
+
+			// rotate the backups at most every few minutes
+			const auto now = std::chrono::steady_clock::now();
+			if (fs::exists(path, ec) && (m_lastBackup == std::chrono::steady_clock::time_point{} ||
+				now - m_lastBackup >= std::chrono::minutes(STORY_BACKUP_INTERVAL_MINUTES)))
+			{
+				fs::remove(BackupPath(path, STORY_BACKUP_COUNT), ec);
+				for (int i = STORY_BACKUP_COUNT - 1; i >= 1; i--)
+				{
+					if (fs::exists(BackupPath(path, i), ec))
+						fs::rename(BackupPath(path, i), BackupPath(path, i + 1), ec);
+				}
+				fs::copy_file(path, BackupPath(path, 1), fs::copy_options::overwrite_existing, ec);
+				m_lastBackup = now;
+			}
+
+			if (!WriteFileAtomic(path, blob.data(), blob.size()))
+			{
+				std::printf("Story Co-op: failed to write team save %s\n", path.string().c_str());
+				m_storyDirty = true;
+				m_storyDirtySince = now;
+				return false;
+			}
+			return true;
+		}
+		catch (const std::exception& e)
+		{
+			std::printf("Story Co-op: team save write failed (%s)\n", e.what());
+			return false;
 		}
 	}
 }

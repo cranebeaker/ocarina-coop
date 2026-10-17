@@ -5,6 +5,8 @@
 	"dungeonsReset": true,   "_comment":"If you're using a randomizer, set dungeonsReset to false.",
 	"dungeonsResetTimer": 10,  "_comment":"Minutes after the last person leaves before the dungeon resets",
 	
+	"dataDir": "data",  "_comment":"Folder for server side saves (Story Co-op team saves go in data/story). Relative to where the server is started. Empty disables saving.",
+
 	"skins": [
 	  { "displayName": "Link", "referenceName": "link", "pitch": 1.0 },
 	  { "displayName": "3DSLink By MalonRose", "referenceName": "3DSLink", "pitch": 1.0  },

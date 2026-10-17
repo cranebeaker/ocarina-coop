@@ -4,6 +4,7 @@
 #include <chrono>
 #include <cstdint>
 #include <memory>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -43,10 +44,12 @@ namespace ZeldaOnline
 			return it->second.lock();
 		}
 
-		~Party()
-		{
-			s_parties.erase(m_id);
-		}
+		~Party();
+
+		// Story Co-op team save on disk. An empty directory disables it. Files live in <dir>/story/.
+		static void SetStoryDataDir(const std::string& dir);
+		// Writes every party with unsaved changes (clean shutdown).
+		static void SaveAllStory();
 
 		uint32_t ID() const
 		{
@@ -147,7 +150,11 @@ namespace ZeldaOnline
 
 		void SetDungeonKeys(int mapIndex, uint8_t count) {
 			if (mapIndex >= 0 && mapIndex < 19)
+			{
+				if (m_dungeonKeys[mapIndex] != count && m_storyCoop && m_storySeeded)
+					MarkStoryDirty();
 				m_dungeonKeys[mapIndex] = count;
+			}
 		}
 
 		uint8_t DungeonKeys(int mapIndex) const {
@@ -179,6 +186,11 @@ namespace ZeldaOnline
 		}
 
 		void StorySettingsChanged(bool wasStoryCoop);
+		void MarkStoryDirty();
+		void SelectStorySave();
+		void LoadStorySave();
+		bool WriteStorySave();
+		void ReleaseSaveKey();
 		void EvaluateVotes(bool forceBroadcast);
 		void StartTravel();
 		void CheckTravelDone(bool timedOut);
@@ -198,6 +210,11 @@ namespace ZeldaOnline
 		uint8_t m_dungeonKeys[19]{};
 		StoryProgress m_story;
 		bool m_storySeeded = false;
+		std::string m_storyCode;
+		std::string m_saveKey;
+		bool m_storyDirty = false;
+		std::chrono::steady_clock::time_point m_storyDirtySince;
+		std::chrono::steady_clock::time_point m_lastBackup{};
 		std::vector<uint16_t> m_votes;
 		uint8_t m_era = ERA_UNKNOWN;
 		bool m_travelling = false;
