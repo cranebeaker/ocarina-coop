@@ -19,6 +19,9 @@
 #include <ctime>
 #include "Guid.hpp"
 #include "PartySettings.hpp"
+#include "StoryProgress.hpp"
+
+struct GetItemEntry;
 
 
 
@@ -105,6 +108,18 @@ class ZeldaOnlineClient : public ZNetworking {
     std::unordered_map<unsigned int, uint32_t> m_savedChests;
     RequestRoomSceneChange m_roomSceneChange = RequestRoomSceneChange::RequestRoomSceneChangeNone;
 
+    // Story Co-op (see ZeldaOnlineStoryCoop.cpp)
+    bool m_storyWasActive = false;
+    uint32_t m_storyPartyID = 0U;
+    bool m_storySeedPending = false;
+    bool m_storyDirty = false;
+    bool m_storyHasPending = false;
+    int m_storyFrame = 0;
+    int m_storySendCooldown = 0;
+    int m_storyNotifyCooldown = 0;
+    StoryProgress m_storyLastSent;
+    StoryProgress m_storyPending;
+
     void ReportBandwidth();
     bool NextPacket(ByteStream& out);
     void SendPacket_PlayerUpdate();
@@ -118,6 +133,19 @@ class ZeldaOnlineClient : public ZNetworking {
     void InitPuppetPlayer(Actor* actor);
     void OnSceneInited(int sceneNum);
     void NetworkHook();
+
+    bool StoryCoopActive() const;
+    bool StoryShareConsumables() const;
+    void StoryRefreshState();
+    void StoryMarkDirty();
+    StoryProgress StoryCapture();
+    bool StoryApply(const StoryProgress& team);
+    bool StoryCanApply();
+    void StorySendProgress(const StoryProgress& progress, bool seed);
+    void StoryUpdate();
+    void StoryOnItemReceive(const GetItemEntry& entry);
+    void OnStoryState(ByteStream& packet);
+    void OnStoryShareItem(ByteStream& packet);
 
   public:
     static ZeldaOnlineClient* Instance;

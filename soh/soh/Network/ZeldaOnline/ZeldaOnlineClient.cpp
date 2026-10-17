@@ -537,8 +537,7 @@ void ZeldaOnlineClient::SetPartySettings(const PartySettings& settings) {
             ReloadSceneInPlace(gPlayState);
     }
     m_partySettings = settings;
-
-
+    StoryRefreshState();
 }
 
 void ZeldaOnlineClient::LoadPartySettings() {
@@ -584,6 +583,7 @@ void ZeldaOnlineClient::OnDisconnected() {
     m_didDisconnect = true;
     m_hasWorldTime = false;
     m_partyID = 0U;
+    StoryRefreshState();
     printf("PLAYER DISCONNECTED\n");
     RegisterNetworkingHook(false);
     RegisterHooks(false);
@@ -1362,6 +1362,8 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
             } else
                 m_partySize = 1;
 
+            StoryRefreshState();
+
             if (gPlayState && (IsDungeonScene(gPlayState->sceneNum) || IsBossScene(gPlayState->sceneNum)))
                 ReloadSceneInPlace(gPlayState);
 
@@ -1563,6 +1565,9 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
 
             if (!isTreasureSet)
             {
+                // Story Co-op shares the item through the progress snapshot, so consumables in a chest stay with the
+                // opener and shared items are not applied twice
+                if (!StoryCoopActive()) {
                 if (getItemEntry.modIndex == MOD_NONE) {
                     if (getItemEntry.getItemId == GI_SWORD_BGS) {
                         gSaveContext.bgsFlag = true;
@@ -1596,6 +1601,7 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
                     gSaveContext.inventory.questItems += (heartPieces % 4) << (QUEST_HEART_PIECE + 4);
                     gSaveContext.healthCapacity += 0x10 * (heartPieces / 4);
                     gSaveContext.health += 0x10 * (heartPieces / 4);
+                }
                 }
 
                 GameInteractionEffect::SetSceneFlag effect;
@@ -1682,6 +1688,14 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
             if (mapIndex < 19)
                 gSaveContext.inventory.dungeonKeys[mapIndex] = count;
         } break;
+        case SERVER_PACKET_STORY_STATE:
+            OnStoryState(packet);
+            break;
+
+        case SERVER_PACKET_STORY_SHARE_ITEM:
+            OnStoryShareItem(packet);
+            break;
+
         default:
             SPDLOG_DEBUG("[ZeldaOnline] unhandled server packet id {}", serverPacketID);
             break;
@@ -2009,6 +2023,11 @@ void ZeldaOnlineClient::RegisterHooks(bool enabled) {
         }
     });
 
+    // Story Co-op: these only mark the progress snapshot dirty, StoryUpdate does the work
+    COND_HOOK(OnItemReceive, enabled, [&](GetItemEntry itemEntry) { StoryOnItemReceive(itemEntry); });
+    COND_HOOK(OnFlagSet, enabled, [&](s16, s16) { StoryMarkDirty(); });
+    COND_HOOK(OnSceneFlagSet, enabled, [&](s16, s16, s16) { StoryMarkDirty(); });
+
     COND_HOOK(OnFlagSet, enabled, [&](s16 flagType, s16 flag) {
         if (gPlayState == NULL)
             return;
@@ -2332,6 +2351,8 @@ void ZeldaOnlineClient::OnGameFrameUpdate() {
         return;
 
     auto localPlayer = GET_PLAYER(gPlayState);
+
+    StoryUpdate();
 
    // ReportBandwidth();
     if (m_hasWorldTime) {
