@@ -1228,6 +1228,7 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
                     //Adopt the servers scene flags (ignore locked doors flags)
                     gPlayState->actorCtx.flags.swch = sceneFlags | (m_savedSwch & doorMask);
                     gPlayState->actorCtx.flags.clear = clearFlags;
+                    StoryApplyDungeonFlags(gPlayState);
                     gPlayState->actorCtx.flags.tempSwch = (gPlayState->actorCtx.flags.tempSwch & 0xFF000000) | (tempSceneFlags & 0x00FFFFFF);
                 } else {
                     //Not a dungeon, just OR the flags
@@ -2617,6 +2618,8 @@ void ZeldaOnlineClient::OnSceneInited(int sceneNum) {
         m_savedChests[sceneNum] |= saved->chest;
 
     m_savedSwch = saved->swch;
+
+    StoryRememberDungeonFlags(sceneNum, saved->swch, saved->clear);
 
     saved->swch = 0;
     saved->clear = 0;

@@ -274,6 +274,10 @@ void ZeldaOnlineClient::StoryOnSaveChanged(bool loaded) {
     m_storyDirty = false;
     m_storySeedPending = false;
 
+    // dungeon progress belongs to the save that is gone, the next save gets it back from the team save
+    std::memset(m_storyDungeonSwch, 0, sizeof(m_storyDungeonSwch));
+    std::memset(m_storyDungeonClear, 0, sizeof(m_storyDungeonClear));
+
     // a vote belongs to the scene of the save that is gone
     if (m_storyHold) {
         StorySendVote(false);
@@ -289,6 +293,26 @@ void ZeldaOnlineClient::StoryOnSaveChanged(bool loaded) {
 void ZeldaOnlineClient::StoryMarkDirty() {
     if (StoryCoopActive())
         m_storyDirty = true;
+}
+
+// Called when a dungeon or boss scene is entered, right before the saved switch and clear flags are emptied for the
+// server instance. They are what the player had when the scene was last left, like the vanilla save keeps them.
+void ZeldaOnlineClient::StoryRememberDungeonFlags(int sceneNum, uint32_t swch, uint32_t clear) {
+    if (!StoryCoopActive() || sceneNum < 0 || sceneNum >= STORY_SCENE_COUNT)
+        return;
+
+    m_storyDungeonSwch[sceneNum] |= swch & ~StorySceneSwchExclude(sceneNum);
+    m_storyDungeonClear[sceneNum] |= clear;
+}
+
+// Called once the server instance flags of a dungeon or boss scene have been adopted. The party's permanent flags are
+// added on top, so a dungeon whose instance was reset still has its doors open and its rooms cleared.
+void ZeldaOnlineClient::StoryApplyDungeonFlags(PlayState* play) {
+    if (!StoryCoopActive() || play == nullptr || play->sceneNum < 0 || play->sceneNum >= STORY_SCENE_COUNT)
+        return;
+
+    play->actorCtx.flags.swch |= m_storyDungeonSwch[play->sceneNum] & ~StorySceneSwchExclude(play->sceneNum);
+    play->actorCtx.flags.clear |= m_storyDungeonClear[play->sceneNum];
 }
 
 StoryProgress ZeldaOnlineClient::StoryCapture() {
@@ -376,20 +400,20 @@ StoryProgress ZeldaOnlineClient::StoryCapture() {
         // the loaded scene keeps its live flags in the actor context until it is saved on exit
         if (gPlayState != nullptr && gPlayState->sceneNum == s) {
             scene.chest = gPlayState->actorCtx.flags.chest;
-            scene.swch = gPlayState->actorCtx.flags.swch;
-            scene.clear = gPlayState->actorCtx.flags.clear;
             scene.collect = gPlayState->actorCtx.flags.collect;
+            // dungeons and boss rooms keep their live switch and clear flags in the server instance while loaded
+            // (the saved copy is empty then), so only what was kept at the last visit is shared
+            if (!StoryIsPartyScene(s)) {
+                scene.swch = gPlayState->actorCtx.flags.swch;
+                scene.clear = gPlayState->actorCtx.flags.clear;
+            }
         }
 
-        // dungeons and boss rooms use per party server instances for switches and clear flags
+        // permanent dungeon progress; the Water and Forest Temple exclusions are applied by MergeScene
         if (StoryIsPartyScene(s)) {
-            scene.swch = 0;
-            scene.clear = 0;
+            scene.swch |= m_storyDungeonSwch[s];
+            scene.clear |= m_storyDungeonClear[s];
         }
-        if (s == SCENE_WATER_TEMPLE)
-            scene.swch &= ~STORY_WATER_TEMPLE_SWCH_EXCLUDE;
-        if (s == SCENE_FOREST_TEMPLE)
-            scene.swch &= ~STORY_FOREST_TEMPLE_SWCH_EXCLUDE;
 
         p.MergeScene(scene);
     }
@@ -616,12 +640,17 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
         bool party = StoryIsPartyScene(scene.sceneNum);
         u32 chest = scene.chest;
         u32 collect = scene.collect;
-        u32 swch = party ? 0 : scene.swch;
-        u32 clear = party ? 0 : scene.clear;
-        if (scene.sceneNum == SCENE_WATER_TEMPLE)
-            swch &= ~STORY_WATER_TEMPLE_SWCH_EXCLUDE;
-        if (scene.sceneNum == SCENE_FOREST_TEMPLE)
-            swch &= ~STORY_FOREST_TEMPLE_SWCH_EXCLUDE;
+        u32 swch = scene.swch & ~StorySceneSwchExclude(scene.sceneNum);
+        u32 clear = scene.clear;
+
+        // dungeon and boss scenes: the switch and clear flags are applied the next time the scene is loaded
+        // (StoryApplyDungeonFlags), the saved copy and the live flags belong to the server instance
+        if (party) {
+            m_storyDungeonSwch[scene.sceneNum] |= swch;
+            m_storyDungeonClear[scene.sceneNum] |= clear;
+            swch = 0;
+            clear = 0;
+        }
 
         SavedSceneFlags& saved = gSaveContext.sceneFlags[scene.sceneNum];
         saved.chest |= chest;

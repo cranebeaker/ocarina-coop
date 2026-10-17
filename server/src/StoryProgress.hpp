@@ -23,6 +23,20 @@ namespace ZeldaOnline
 	static const int STORY_INFTABLE_EXCLUDE_INDEX = 29;                     // swordless flag row
 	static const uint32_t STORY_WATER_TEMPLE_SWCH_EXCLUDE = 0x70000000u;    // swch 0x1C-0x1E
 	static const uint32_t STORY_FOREST_TEMPLE_SWCH_EXCLUDE = 0x08000000u;   // swch 0x1B
+	static const int STORY_SCENE_FOREST_TEMPLE = 0x03;
+	static const int STORY_SCENE_WATER_TEMPLE = 0x05;
+
+	// Switch flags of a scene that are never shared. They describe the state of an actor that always starts in its
+	// default place when the scene loads (the Water Temple water level, the Forest Temple elevator), so a persisted
+	// bit would leave the flag and the actor disagreeing.
+	static inline uint32_t StorySceneSwchExclude(int sceneNum)
+	{
+		if (sceneNum == STORY_SCENE_WATER_TEMPLE)
+			return STORY_WATER_TEMPLE_SWCH_EXCLUDE;
+		if (sceneNum == STORY_SCENE_FOREST_TEMPLE)
+			return STORY_FOREST_TEMPLE_SWCH_EXCLUDE;
+		return 0;
+	}
 
 	// eventChkInf bit numbers set only by the Master Sword time travel flow
 	// (PULLED_MASTER_SWORD_FROM_PEDESTAL, ENTERED_MASTER_SWORD_CHAMBER, SHEIK_SPAWNED_AT_MASTER_SWORD_PEDESTAL, TIME_TRAVELED_TO_ADULT)
@@ -340,8 +354,11 @@ namespace ZeldaOnline
 		}
 
 		// OR one scene entry into the sorted table. Returns true when anything changed.
-		bool MergeScene(const StorySceneFlags& scene)
+		bool MergeScene(const StorySceneFlags& incoming)
 		{
+			StorySceneFlags scene = incoming;
+			scene.swch &= ~StorySceneSwchExclude(scene.sceneNum);
+
 			if (scene.chest == 0 && scene.swch == 0 && scene.clear == 0 && scene.collect == 0)
 				return false;
 

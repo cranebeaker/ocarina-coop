@@ -124,6 +124,12 @@ class ZeldaOnlineClient : public ZNetworking {
     uint32_t m_storyPendingParty = 0U;
     uint32_t m_storyPendingSerial = 0U;
 
+    // Story Co-op dungeon progress: permanent switch and clear flags of dungeon and boss scenes. The netcode empties the
+    // saved copy while a dungeon is loaded (the server instance owns the live flags), so they are kept here between visits
+    // and re-applied whenever the scene is loaded, including after the server instance has reset.
+    uint32_t m_storyDungeonSwch[STORY_SCENE_COUNT] = {};
+    uint32_t m_storyDungeonClear[STORY_SCENE_COUNT] = {};
+
     // Story Co-op time travel: the pedestal vote
     bool m_storyHold = false;                // waiting at the Master Sword pedestal for the other members
     int m_storyApprovedFrames = 0;           // the server said everybody voted, the pedestal may run its native sequence
@@ -152,6 +158,8 @@ class ZeldaOnlineClient : public ZNetworking {
     void StoryRefreshState();
     void StoryOnSaveChanged(bool loaded);
     void StoryMarkDirty();
+    void StoryRememberDungeonFlags(int sceneNum, uint32_t swch, uint32_t clear);
+    void StoryApplyDungeonFlags(PlayState* play);
     StoryProgress StoryCapture();
     bool StoryApply(const StoryProgress& team);
     bool StoryCanApply();
