@@ -19,6 +19,7 @@
 #include "soh/Enhancements/randomizer/randomizer.h"
 #include <spdlog/spdlog.h>
 #include <cstring>
+#include <cstdlib>
 #include <cstdio>
 #include "HorsePuppet.hpp"
 #include "PacketStrings.hpp"
@@ -245,6 +246,16 @@ void ZeldaOnlineClient::Connect() {
     m_host = CVarGetString("gZeldaOnline.Host", "awu.fks.mybluehost.me");
     m_port = CVarGetInteger("gZeldaOnline.Port", 21050);
     m_nickName = CVarGetString("gZeldaOnline.Nickname", "Player");
+    // OOTSteamLink (tools/steamlink) starts the game with OOT_SERVER=host:port to route the connection through its
+    // local relay. Unset in normal play.
+    if (const char* serverOverride = std::getenv("OOT_SERVER")) {
+        const std::string over = serverOverride;
+        const size_t colon = over.rfind(':');
+        if (colon != std::string::npos && colon > 0 && colon + 1 < over.size()) {
+            m_host = over.substr(0, colon);
+            m_port = atoi(over.c_str() + colon + 1);
+        }
+    }
 
 
     std::vector<std::string> archives;
@@ -479,7 +490,7 @@ void ZeldaOnlineClient::Enable() {
 
     ZeldaOnlineRoomWindow::Instance->SetCurrentSkin(m_skinRef);
 
-    if (CVarGetInteger("gZeldaOnline.AutoConnect", 0) != 0)
+    if (CVarGetInteger("gZeldaOnline.AutoConnect", 0) != 0 || std::getenv("OOT_SERVER") != nullptr)
     {
         ZeldaOnlineRoomWindow::Instance->BeginAutoConnect();
     }
