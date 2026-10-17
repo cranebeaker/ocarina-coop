@@ -120,6 +120,15 @@ static int32_t g_pipe;
 static u64 g_me;
 
 /* Keyboard only when stdin is a real console (tests and services run without one). */
+static volatile LONG g_stop, g_done; /* set by Ctrl+C / Ctrl+Break / closing the window */
+static BOOL WINAPI on_ctrl(DWORD type)
+{
+    InterlockedExchange(&g_stop, 1);
+    if (type == CTRL_CLOSE_EVENT || type == CTRL_LOGOFF_EVENT || type == CTRL_SHUTDOWN_EVENT)
+        for (int i = 0; i < 150 && !g_done; i++) Sleep(100); /* give the main loop time to stop the server cleanly */
+    return TRUE;
+}
+
 static bool g_console;
 static bool key_hit(void) { return g_console && _kbhit(); }
 static int key_get(void) { return g_console ? _getch() : -1; }
@@ -298,7 +307,7 @@ static void find_exe(char *out, const char *name, const char *subdirs[])
     }
 }
 
-static HANDLE spawn(const char *exe, const char *args, DWORD flags, DWORD *pid)
+static HANDLE spawn(const char *exe, const char *args, DWORD flags, DWORD *pid, const char *logname)
 {
     char cmd[2048], cwd[MAX_PATH], *slash;
     snprintf(cmd, sizeof(cmd), "\"%s\" %s", exe, args);
@@ -306,7 +315,22 @@ static HANDLE spawn(const char *exe, const char *args, DWORD flags, DWORD *pid)
     if ((slash = strrchr(cwd, '\\'))) *slash = 0;
     STARTUPINFOA si; PROCESS_INFORMATION pi;
     memset(&si, 0, sizeof(si)); si.cb = sizeof(si);
-    if (!CreateProcessA(exe, cmd, NULL, NULL, FALSE, flags, NULL, cwd, &si, &pi)) {
+    HANDLE log = INVALID_HANDLE_VALUE;
+    if (logname) { /* send the child's console output to a log file in its folder */
+        char path[MAX_PATH];
+        SECURITY_ATTRIBUTES sa = { sizeof(sa), NULL, TRUE };
+        snprintf(path, sizeof(path), "%s\\%s", cwd, logname);
+        log = CreateFileA(path, FILE_APPEND_DATA, FILE_SHARE_READ | FILE_SHARE_WRITE, &sa, OPEN_ALWAYS, 0, NULL);
+        if (log != INVALID_HANDLE_VALUE) {
+            si.dwFlags = STARTF_USESTDHANDLES;
+            si.hStdOutput = si.hStdError = log;
+            si.hStdInput = GetStdHandle(STD_INPUT_HANDLE);
+            SetHandleInformation(si.hStdInput, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+        }
+    }
+    BOOL ok = CreateProcessA(exe, cmd, NULL, NULL, log != INVALID_HANDLE_VALUE, flags, NULL, cwd, &si, &pi);
+    if (log != INVALID_HANDLE_VALUE) CloseHandle(log);
+    if (!ok) {
         char buf[MAX_PATH + 100];
         snprintf(buf, sizeof(buf), "Could not start %s (error %lu).", exe, GetLastError());
         fail(buf);
@@ -342,7 +366,16 @@ static void start_server(void)
     char args[64];
     snprintf(args, sizeof(args), "--port %d", g_port);
     /* own process group so Ctrl+Break can stop it cleanly (it saves team progress on exit) */
-    g_server = spawn(g_server_exe, args, CREATE_NEW_PROCESS_GROUP, &g_server_pid);
+    g_server = spawn(g_server_exe, args, CREATE_NEW_PROCESS_GROUP, &g_server_pid, "OOTServer.log");
+    /* safety net: if this tool is killed, the server goes with it */
+    HANDLE job = CreateJobObjectA(NULL, NULL);
+    if (job) {
+        JOBOBJECT_EXTENDED_LIMIT_INFORMATION info;
+        memset(&info, 0, sizeof(info));
+        info.BasicLimitInformation.LimitFlags = JOB_OBJECT_LIMIT_KILL_ON_JOB_CLOSE;
+        SetInformationJobObject(job, JobObjectExtendedLimitInformation, &info, sizeof(info));
+        AssignProcessToJobObject(job, g_server);
+    }
     for (int i = 0; i < 100; i++) {
         if (tcp_port_open(g_port)) { printf("Server running on port %d.\n", g_port); return; }
         if (WaitForSingleObject(g_server, 0) == WAIT_OBJECT_0) fail("OOTServer.exe stopped right after starting.");
@@ -378,7 +411,7 @@ static void start_game(const char *host, int port)
     char addr[128];
     snprintf(addr, sizeof(addr), "%s:%d", host, port);
     SetEnvironmentVariableA("OOT_SERVER", addr); /* the game connects here instead of its saved server */
-    g_game = spawn(g_game_exe, "", 0, NULL);
+    g_game = spawn(g_game_exe, "", 0, NULL, NULL);
     printf("Started the game (server %s).\n", addr);
 }
 
@@ -689,6 +722,7 @@ static int run_host(void)
         }
         if (g_server && WaitForSingleObject(g_server, 0) == WAIT_OBJECT_0) { printf("OOTServer stopped.\n"); break; }
         if (key_hit()) { int c = key_get(); if (c == 'q' || c == 'Q') break; }
+        if (g_stop) break;
         Sleep(1);
     }
     for (int i = 0; i < MAX_PEERS; i++)
@@ -885,6 +919,7 @@ static int run_join(u64 lobby)
         }
         if (game_exited()) break;
         if (key_hit()) { int c = key_get(); if (c == 'q' || c == 'Q' || c == 27) break; }
+        if (g_stop) break;
         Sleep(1);
     }
     send_control(g_host, 'B');
@@ -916,6 +951,7 @@ int main(int argc, char **argv)
     }
 
     setvbuf(stdout, NULL, _IONBF, 0);
+    SetConsoleCtrlHandler(on_ctrl, TRUE);
     DWORD cm;
     g_console = GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &cm) != 0;
     WSADATA w;
@@ -941,5 +977,6 @@ int main(int argc, char **argv)
     else fail("Usage: OOTSteamLink.exe [host | join [lobby id]]");
     printf("Relayed %llu bytes from the game and %llu bytes to the game.\n", g_bytes_up, g_bytes_down);
     S.Shutdown();
+    InterlockedExchange(&g_done, 1);
     return r;
 }
