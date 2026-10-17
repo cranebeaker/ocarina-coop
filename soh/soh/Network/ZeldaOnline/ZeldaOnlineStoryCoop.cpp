@@ -116,15 +116,37 @@ bool StoryIsBottleSlot(int slot) {
     return slot >= SLOT_BOTTLE_1 && slot <= SLOT_BOTTLE_4;
 }
 
-// Slots that are never shared as slot items (bottles and trade items are per player, beans are bought)
+// Slots that are never shared as slot items (bottles and adult trade items are per player, beans are bought).
+// The child trade slot is shared up to Zelda's Letter (see StoryTradeChildItem); the mask chain after it stays per
+// player. The randomizer shuffles these items, so there the slot stays per player.
 bool StorySlotIsPerPlayer(int slot) {
-    return StoryIsBottleSlot(slot) || slot == SLOT_TRADE_ADULT || slot == SLOT_TRADE_CHILD || slot == STORY_SLOT_BEAN;
+    return StoryIsBottleSlot(slot) || slot == SLOT_TRADE_ADULT || (slot == SLOT_TRADE_CHILD && IS_RANDO) ||
+           slot == STORY_SLOT_BEAN;
+}
+
+// Child trade item that is shared: Weird Egg, Chicken or Zelda's Letter. Whoever is further along in the mask chain
+// counts as having the letter. The letter only travels once Zelda's Lullaby does, because Sram_OpenSave takes the
+// letter back from a save that has the courtyard flag but no Lullaby.
+u8 StoryTradeChildItem(u8 item, bool lullaby) {
+    if (item < ITEM_WEIRD_EGG || item > ITEM_SOLD_OUT)
+        return ITEM_NONE;
+    if (item >= ITEM_LETTER_ZELDA)
+        return lullaby ? (u8)ITEM_LETTER_ZELDA : (u8)ITEM_CHICKEN;
+    return item;
 }
 
 // eventChkInf and infTable masks of the bits that must never be shared
-void StoryEventChkInfMask(uint16_t out[14]) {
+// lullaby: Zelda's Lullaby is owned, which lets the courtyard flag (Zelda's Letter) travel
+void StoryEventChkInfMask(uint16_t out[14], bool lullaby) {
     for (int i = 0; i < 14; i++)
         out[i] = 0xFFFF;
+    if (IS_RANDO || !lullaby) {
+        // 0x12 weird egg from Malon (randomizer only, the item is shuffled there) and 0x40 Zelda's Letter
+        // (without Lullaby the next load undoes it)
+        if (IS_RANDO)
+            out[0x12 >> 4] &= (uint16_t)~(1 << (0x12 & 0xF));
+        out[0x40 >> 4] &= (uint16_t)~(1 << (0x40 & 0xF));
+    }
     for (int flag : STORY_EVENTCHKINF_EXCLUDE) {
         if ((flag >> 4) < 14)
             out[flag >> 4] &= (uint16_t)~(1 << (flag & 0xF));
@@ -286,6 +308,8 @@ StoryProgress ZeldaOnlineClient::StoryCapture() {
             p.items[i] = ITEM_NONE;
         } else if (StorySlotIsPerPlayer(i)) {
             p.items[i] = ITEM_NONE;
+        } else if (i == SLOT_TRADE_CHILD) {
+            p.items[i] = StoryTradeChildItem(inv.items[i], CHECK_QUEST_ITEM(QUEST_SONG_LULLABY) != 0);
         } else {
             p.items[i] = inv.items[i];
         }
@@ -317,7 +341,7 @@ StoryProgress ZeldaOnlineClient::StoryCapture() {
     p.gsTokens = inv.gsTokens > 0 ? (uint16_t)inv.gsTokens : 0;
 
     uint16_t eventMask[14];
-    StoryEventChkInfMask(eventMask);
+    StoryEventChkInfMask(eventMask, CHECK_QUEST_ITEM(QUEST_SONG_LULLABY) != 0);
     for (int i = 0; i < 14; i++)
         p.eventChkInf[i] = gSaveContext.eventChkInf[i] & eventMask[i];
     uint16_t itemGetMask[4];
@@ -400,7 +424,8 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
 
     // flags first, later steps look at them
     uint16_t eventMask[14];
-    StoryEventChkInfMask(eventMask);
+    bool lullaby = CHECK_QUEST_ITEM(QUEST_SONG_LULLABY) || (team.questItems & (1u << QUEST_SONG_LULLABY));
+    StoryEventChkInfMask(eventMask, lullaby);
     for (int i = 0; i < 14; i++)
         gSaveContext.eventChkInf[i] |= (team.eventChkInf[i] & eventMask[i]);
     uint16_t itemGetMask[4];
@@ -433,12 +458,14 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
     if (inv.gsTokens > 0)
         inv.questItems |= (1u << QUEST_SKULL_TOKEN);
 
-    // slot items (bottles, trade items and beans are per player and never in the snapshot)
+    // slot items (bottles, adult trade items and beans are per player and never in the snapshot)
     for (int slot = 0; slot < 24; slot++) {
         if (StorySlotIsPerPlayer(slot))
             continue;
 
         u8 teamItem = team.items[slot];
+        if (slot == SLOT_TRADE_CHILD)
+            teamItem = StoryTradeChildItem(teamItem, lullaby);
         if (teamItem == ITEM_NONE)
             continue;
 

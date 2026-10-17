@@ -8,10 +8,11 @@ Open the party window, then tick **Story Co-op** in the party settings (party ad
 
 ## What is shared
 
-- **Items:** equipment, upgrades, quest items, songs, medallions, stones, heart containers and pieces, magic, dungeon items, small keys, boss keys, bottles themselves and Ruto's Letter. When one member gets one, every member has it.
+- **Items:** equipment, upgrades, quest items, songs, medallions, stones, heart containers and pieces, magic, dungeon items, small keys, boss keys, bottles themselves, Ruto's Letter and the child trade items up to Zelda's Letter (Weird Egg, Chicken, Zelda's Letter). When one member gets one, every member has it.
 - **Stay per player (unless "Share Ammo, Rupees & HP" is on):** ammo counts, rupees, health refills and bottle contents.
 - **Story flags:** event check flags, item get flags, info tables, shared event inf bits, scene flags (switch, chest, clear, collect) and gold skulltula tokens.
-- **Gift flags stay per player too:** flags that mean an NPC already gave you an item that is not shared (the trade chains, the mask loans, Talon's milk, Bombchu shop purchases) are not shared, so every member can still receive those items.
+- **Gift flags stay per player too:** flags that mean an NPC already gave you an item that is not shared (the adult trade chain, the mask loans, Talon's milk, Bombchu shop purchases) are not shared, so every member can still receive those items.
+- **Zelda's Letter and the Weird Egg:** the Malon egg flag and the courtyard flag (Zelda's Letter) are story gates for Saria, the owl, Mido, the Kokiri, Talon and the Kakariko gate, so they are shared together with the child trade slot. A member who never saw the courtyard gets the flag, the letter and Zelda's Lullaby, so the NPCs act the same for everyone. The letter and its flag only travel once Zelda's Lullaby is owned, because the game takes the letter back from a save that has the flag but no Lullaby. A member further along the mask chain counts as having the letter and keeps their masks, and the trade items stay per player in the randomizer.
 - **Loading a save:** a team snapshot is only applied to the save that was loaded when it was requested. Going to the title screen or loading another save drops anything pending, and the newly loaded save is uploaded again, which brings back what the team has that it lacks.
 - **Team save:** the server keeps the party's merged progress. A member who joins or reconnects is caught up on arrival, and the merge keeps their own consumables. The team save is stored with the server's other persistent data.
 

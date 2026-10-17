@@ -28,11 +28,11 @@ namespace ZeldaOnline
 	// (PULLED_MASTER_SWORD_FROM_PEDESTAL, ENTERED_MASTER_SWORD_CHAMBER, SHEIK_SPAWNED_AT_MASTER_SWORD_PEDESTAL, TIME_TRAVELED_TO_ADULT)
 	static const int STORY_EVENTCHKINF_EXCLUDE[] = { 0x45, 0x4F, 0xC5, 0xC9 };
 
-	// eventChkInf bits meaning "an NPC already gave this player an item that stays per player" (trade chain and mask loans).
+	// eventChkInf bits meaning "an NPC already gave this player an item that stays per player" (mask loans).
 	// Sharing them would stop the other members from ever receiving that item.
-	//   0x12 weird egg from Malon, 0x40 Zelda's Letter (courtyard cutscene),
+	//   (0x12 weird egg from Malon and 0x40 Zelda's Letter are story gates and are shared, together with the child trade slot)
 	//   0x8C-0x8F mask fees paid back to the Happy Mask Shop (mask loan chain)
-	static const int STORY_EVENTCHKINF_ITEM_EXCLUDE[] = { 0x12, 0x40, 0x8C, 0x8D, 0x8E, 0x8F };
+	static const int STORY_EVENTCHKINF_ITEM_EXCLUDE[] = { 0x8C, 0x8D, 0x8E, 0x8F };
 
 	// itemGetInf bits meaning "already got / bought item X" for things that stay per player.
 	//   0x02 Talon's Lon Lon Milk (bottle contents)
