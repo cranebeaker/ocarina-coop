@@ -1,0 +1,2346 @@
+{
+  "name": "dungeon",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "stages": [
+    {
+      "name": "dungeon_progress_live",
+      "server": "fresh",
+      "server_config": {
+        "dungeonsResetTimer": 0
+      },
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "dg-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 452
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 5
+            },
+            {
+              "op": "set_flag",
+              "type": "clear",
+              "flag": 2
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 9
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "observe",
+              "name": "a_dk_set",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "a_dk_reenter1",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "unset_flag",
+              "type": "switch",
+              "flag": 9
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "a_dk_reenter2",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 4
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 27
+            },
+            {
+              "op": "set_flag",
+              "type": "clear",
+              "flag": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "observe",
+              "name": "a_ft_set",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 4
+                },
+                {
+                  "type": "switch",
+                  "flag": 27
+                },
+                {
+                  "type": "clear",
+                  "flag": 1
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "a_ft_reenter",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 4
+                },
+                {
+                  "type": "switch",
+                  "flag": 27
+                },
+                {
+                  "type": "clear",
+                  "flag": 1
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 2
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 28
+            },
+            {
+              "op": "set_flag",
+              "type": "clear",
+              "flag": 4
+            },
+            {
+              "op": "observe",
+              "name": "a_wt_set",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 2
+                },
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 40,
+              "type": "switch",
+              "flag": 2
+            },
+            {
+              "op": "observe",
+              "name": "a_wt_reenter",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 2
+                },
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 453
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 454
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 7200
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 453
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "b_dk",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "b_ft",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 4
+                },
+                {
+                  "type": "switch",
+                  "flag": 27
+                },
+                {
+                  "type": "clear",
+                  "flag": 1
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 40,
+              "type": "switch",
+              "flag": 2
+            },
+            {
+              "op": "observe",
+              "name": "b_wt",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 2
+                },
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 454
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "a_dk_set",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Deku Tree: door switch set live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter1",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A re-enter Deku Tree: permanent switch kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter1",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A re-enter Deku Tree: room clear kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter1",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "A re-enter Deku Tree: toggle switch still on after leaving",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter2",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Deku Tree: permanent switch still on",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter2",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Deku Tree: room clear still on",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter2",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "A Deku Tree: toggled-off switch stays OFF after leaving and re-entering (not stuck on)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_dk",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Deku Tree: A permanent switch applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_dk",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Deku Tree: A room clear applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_dk",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "B Deku Tree: toggled-off switch is OFF for B (not stuck on)",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_ft_reenter",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Forest Temple: normal switch kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_ft_reenter",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Forest Temple: room clear kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_ft",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Forest Temple: normal switch applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_ft",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Forest Temple: room clear applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt_set",
+          "path": "scene",
+          "op": "eq",
+          "value": 5,
+          "label": "A really is in the Water Temple when the flags are set",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt_reenter",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Water Temple: normal switch kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt_reenter",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Water Temple: room clear kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Water Temple: normal switch applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Water Temple: room clear applied",
+          "roles": [
+            "B"
+          ]
+        }
+      ],
+      "stop_server": true,
+      "server_checks": [
+        {
+          "type": "clean_exit",
+          "label": "Ctrl+Break flushes the saves"
+        },
+        {
+          "type": "files",
+          "glob": "data/story/*.bin",
+          "min": 1,
+          "label": "team save written"
+        }
+      ]
+    },
+    {
+      "name": "dungeon_progress_instance_kept",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "dg-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 452
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 5
+            },
+            {
+              "op": "set_flag",
+              "type": "clear",
+              "flag": 2
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 9
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "observe",
+              "name": "a_dk_set",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "a_dk_reenter1",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "unset_flag",
+              "type": "switch",
+              "flag": 9
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "a_dk_reenter2",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 4
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 27
+            },
+            {
+              "op": "set_flag",
+              "type": "clear",
+              "flag": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "observe",
+              "name": "a_ft_set",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 4
+                },
+                {
+                  "type": "switch",
+                  "flag": 27
+                },
+                {
+                  "type": "clear",
+                  "flag": 1
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "a_ft_reenter",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 4
+                },
+                {
+                  "type": "switch",
+                  "flag": 27
+                },
+                {
+                  "type": "clear",
+                  "flag": 1
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 2
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 28
+            },
+            {
+              "op": "set_flag",
+              "type": "clear",
+              "flag": 4
+            },
+            {
+              "op": "observe",
+              "name": "a_wt_set",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 2
+                },
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 40,
+              "type": "switch",
+              "flag": 2
+            },
+            {
+              "op": "observe",
+              "name": "a_wt_reenter",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 2
+                },
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 453
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 454
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 7200
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 453
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "b_dk",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "b_ft",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 4
+                },
+                {
+                  "type": "switch",
+                  "flag": 27
+                },
+                {
+                  "type": "clear",
+                  "flag": 1
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 40,
+              "type": "switch",
+              "flag": 2
+            },
+            {
+              "op": "observe",
+              "name": "b_wt",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 2
+                },
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 454
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "a_dk_set",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Deku Tree: door switch set live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter1",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A re-enter Deku Tree: permanent switch kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter1",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A re-enter Deku Tree: room clear kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter1",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "A re-enter Deku Tree: toggle switch still on after leaving",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter2",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Deku Tree: permanent switch still on",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter2",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Deku Tree: room clear still on",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_dk_reenter2",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "A Deku Tree: toggled-off switch stays OFF after leaving and re-entering (not stuck on)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_dk",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Deku Tree: A permanent switch applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_dk",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Deku Tree: A room clear applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_dk",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "B Deku Tree: toggled-off switch is OFF for B (not stuck on)",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_ft_reenter",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Forest Temple: normal switch kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_ft_reenter",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Forest Temple: room clear kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_ft",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Forest Temple: normal switch applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_ft",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Forest Temple: room clear applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt_set",
+          "path": "scene",
+          "op": "eq",
+          "value": 5,
+          "label": "A really is in the Water Temple when the flags are set",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt_reenter",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Water Temple: normal switch kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt_reenter",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Water Temple: room clear kept",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Water Temple: normal switch applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B Water Temple: room clear applied",
+          "roles": [
+            "B"
+          ]
+        }
+      ],
+      "stop_server": true,
+      "server_checks": [
+        {
+          "type": "log_contains",
+          "text": "switched off again",
+          "label": "server dropped the toggled-off switch from the team save"
+        }
+      ]
+    },
+    {
+      "name": "dungeon_progress_after_restart",
+      "server": "restart",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "dg-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 452
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "a2_dk",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "a2_ft",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 4
+                },
+                {
+                  "type": "switch",
+                  "flag": 27
+                },
+                {
+                  "type": "clear",
+                  "flag": 1
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 40,
+              "type": "switch",
+              "flag": 2
+            },
+            {
+              "op": "observe",
+              "name": "a2_wt",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 2
+                },
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 455
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 456
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 7200
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 452
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "b2_dk",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 5
+                },
+                {
+                  "type": "switch",
+                  "flag": 9
+                },
+                {
+                  "type": "clear",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "b2_ft",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 4
+                },
+                {
+                  "type": "switch",
+                  "flag": 27
+                },
+                {
+                  "type": "clear",
+                  "flag": 1
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 40,
+              "type": "switch",
+              "flag": 2
+            },
+            {
+              "op": "observe",
+              "name": "b2_wt",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 2
+                },
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 456
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "a2_dk",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A after server restart: Deku Tree door switch re-applied",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_dk",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A after server restart: Deku Tree room clear re-applied",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_dk",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "A after server restart: toggled-off Deku Tree switch stays OFF",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_ft",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A after server restart: Forest Temple switch re-applied",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_ft",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A after server restart: Forest Temple clear re-applied",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_ft",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "A after server restart: Forest Temple elevator switch 0x1B excluded as designed",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_wt",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A after server restart: Water Temple switch re-applied",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_wt",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A after server restart: Water Temple clear re-applied",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_wt",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "A after server restart: Water Temple water level switch 0x1C excluded as designed",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_dk",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B after server restart: Deku Tree door switch re-applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_dk",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B after server restart: Deku Tree room clear re-applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_dk",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "B after server restart: toggled-off Deku Tree switch stays OFF",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_ft",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B after server restart: Forest Temple switch re-applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_ft",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B after server restart: Forest Temple clear re-applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_ft",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "B after server restart: Forest Temple elevator switch 0x1B excluded as designed",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_wt",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B after server restart: Water Temple switch re-applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_wt",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B after server restart: Water Temple clear re-applied",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_wt",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": false,
+          "label": "B after server restart: Water Temple water level switch 0x1C excluded as designed",
+          "roles": [
+            "B"
+          ]
+        }
+      ],
+      "stop_server": true,
+      "server_checks": [
+        {
+          "type": "log_contains",
+          "text": "Story Co-op: loaded team save",
+          "label": "team save loaded from disk"
+        },
+        {
+          "type": "clean_exit",
+          "label": "clean stop"
+        }
+      ]
+    }
+  ]
+}

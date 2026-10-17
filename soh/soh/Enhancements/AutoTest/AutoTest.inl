@@ -281,6 +281,13 @@ bool WriteFlag(const std::string& type, int flag) {
     return true;
 }
 
+bool UnwriteFlag(const std::string& type, int flag) {
+    if (type == "switch") Flags_UnsetSwitch(gPlayState, flag);
+    else if (type == "clear") Flags_UnsetClear(gPlayState, flag);
+    else return false;
+    return true;
+}
+
 json Observe(const json& step) {
     json o;
     o["name"] = step.value("name", "obs");
@@ -578,6 +585,9 @@ bool RunStep(const json& step) {
         if (!PlayReady()) return timedOut("set_flag not ready");
         if (op == "set_flag" && !WriteFlag(step.value("type", "switch"), step.value("flag", 0))) {
             Finish(false, "unknown flag type");
+        }
+        if (op == "unset_flag" && !UnwriteFlag(step.value("type", "switch"), step.value("flag", 0))) {
+            Finish(false, "unknown flag type for unset_flag (switch and clear only)");
         }
         return true;
     }

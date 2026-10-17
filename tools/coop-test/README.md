@@ -59,7 +59,7 @@ frames):
 | `leave_party` | |
 | `wait_frames` | `n` |
 | `observe` | `name`, optional `flags` (`type`, `flag`) to record |
-| `set_flag`, `unset_flag` | `type` (`switch`, `clear`, `collect`, `treasure`, `event_chk_inf`, `inf_table`, `item_get_inf`, `quest_item`), `flag` |
+| `set_flag`, `unset_flag` | `type` (`switch`, `clear`, `collect`, `treasure`, `event_chk_inf`, `inf_table`, `item_get_inf`, `quest_item`), `flag`; `unset_flag` supports `switch` and `clear` only (the toggle-off path) |
 | `reset_inventory` | empties items, ammo, quest items, dungeon items, upgrades; 3 hearts, 0 rupees (the debug save starts full) |
 | `give_item` | `item` (item id), optional `map_index`; calls `Item_Give`, so the OnItemReceive hooks fire like a pickup |
 | `set_ammo`, `set_slot` | `slot`, `n` / `item`; direct inventory writes |
@@ -106,3 +106,13 @@ log, `files` (`glob` under the server folder, `min`), `alive` and `clean_exit`.
 title screen while the team progresses, restoring the team save after a server restart, falling back to backups
 when the save file is corrupt, starting empty and staying alive when every file is corrupt, and no save sharing
 between unrelated parties whose admins have the same nickname.
+
+## Dungeon scenario
+
+`dungeon` covers permanent dungeon progress: switches and room clears set in the Deku Tree, Forest Temple and Water
+Temple are kept when everyone leaves and the server resets the dungeon instance (stage option `server_config`
+`{"dungeonsResetTimer": 0}` makes every first entry reset it), a switch that is toggled back off stays off for the
+player and for the others, the Forest Temple elevator (0x1B) and Water Temple water level (0x1C) switches are not shared,
+and everything is restored after a server restart from the team save. A stage may set `server_config` to override keys
+of the server `config.json` for a fresh server. The Water Temple is only visited briefly because with the test warp Link
+is carried out of the temple about 30 frames after spawning (also offline, so unrelated to the netcode).

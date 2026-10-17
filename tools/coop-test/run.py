@@ -461,6 +461,11 @@ def main():
                     if mode == "fresh" and os.path.exists(server_cfg):
                         with open(server_cfg) as f:
                             cfg_text = f.read()
+                        if stage.get("server_config"):
+                            # scenario overrides, e.g. {"dungeonsResetTimer": 0} to reset a dungeon instance on every first entry
+                            merged = json.loads(cfg_text)
+                            merged.update(stage["server_config"])
+                            cfg_text = json.dumps(merged, indent=1)
                         with open(os.path.join(sdir, "config.json"), "w") as f:
                             f.write(cfg_text)
                     if server_log is not None:
