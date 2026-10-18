@@ -197,6 +197,10 @@
               "flag": 436
             },
             {
+              "op": "stand_near_chest",
+              "chest": 2
+            },
+            {
               "op": "wait_frames",
               "n": 10
             },
@@ -1002,6 +1006,10 @@
               "timeout_frames": 1800,
               "type": "inf_table",
               "flag": 436
+            },
+            {
+              "op": "stand_near_chest",
+              "chest": 2
             },
             {
               "op": "wait_frames",

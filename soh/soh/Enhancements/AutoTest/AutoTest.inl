@@ -574,7 +574,8 @@ void ResetInventory() {
     for (int i = 1; i < 4; i++) {
         gSaveContext.equips.buttonItems[i] = ITEM_NONE;
     }
-    gSaveContext.equips.equipment = 0;
+    // worn Kokiri tunic and boots (index 1 each): with none worn Link moves with garbage physics and flies off
+    gSaveContext.equips.equipment = 0x1100;
     gSaveContext.healthCapacity = 0x30;
     gSaveContext.health = 0x30;
     gSaveContext.rupees = 0;
@@ -985,6 +986,24 @@ bool RunStep(const json& step) {
             return true;
         }
         return timedOut("room did not load");
+    }
+    if (op == "stand_near_chest") {
+        // Put Link in front of a chest of the current room (chests only update while Link is in range).
+        if (!PlayReady()) return timedOut("stand_near_chest not ready");
+        for (Actor* a = gPlayState->actorCtx.actorLists[ACTORCAT_CHEST].head; a != nullptr; a = a->next) {
+            if (a->id != ACTOR_EN_BOX || (a->params & 0x1F) != step.value("chest", 0)) {
+                continue;
+            }
+            Player* pl = GET_PLAYER(gPlayState);
+            pl->actor.world.pos.x = a->world.pos.x + Math_SinS(a->shape.rot.y) * 70.0f;
+            pl->actor.world.pos.y = a->world.pos.y + 5.0f;
+            pl->actor.world.pos.z = a->world.pos.z + Math_CosS(a->shape.rot.y) * 70.0f;
+            pl->actor.prevPos = pl->actor.world.pos;
+            pl->actor.velocity.x = pl->actor.velocity.y = pl->actor.velocity.z = 0.0f;
+            return true;
+        }
+        Finish(false, "stand_near_chest: no such chest");
+        return true;
     }
     if (op == "spawn_collectible") {
         // A floor pickup that carries a collect flag (a key, heart piece, ...), placed a little way from Link.
