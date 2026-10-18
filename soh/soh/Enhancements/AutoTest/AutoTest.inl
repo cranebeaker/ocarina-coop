@@ -9,6 +9,9 @@
 #include <cstdlib>
 #include <cstring>
 #include <type_traits>
+#ifndef _WIN32
+#include <unistd.h> // _exit
+#endif
 
 extern "C" {
 #include "global.h"
@@ -1205,7 +1208,11 @@ bool RunStep(const json& step) {
         sState.finished = true;
         sState.pass = true;
         WriteLog();
+#ifdef _WIN32
         TerminateProcess(GetCurrentProcess(), 3);
+#else
+        _exit(3); // same idea: immediate exit, no atexit handlers, no flushing
+#endif
         return true;
     }
     if (op == "reset_inventory") {
