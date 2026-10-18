@@ -1,3 +1,5 @@
+#include <thread>
+#include <chrono>
 #include "SaveManager.h"
 #include "OTRGlobals.h"
 #include "Enhancements/game-interactor/GameInteractor.h"
@@ -1191,8 +1193,12 @@ void SaveManager::SaveFileThreaded(int fileNum, SaveContext* saveContext, int se
     std::filesystem::path fileName = GetFileName(fileNum);
     std::filesystem::path tempFile = GetFileTempName(fileNum);
 
-    if (std::filesystem::exists(tempFile)) {
-        std::filesystem::remove(tempFile);
+    try {
+        if (std::filesystem::exists(tempFile)) {
+            std::filesystem::remove(tempFile);
+        }
+    } catch (const std::filesystem::filesystem_error& e) {
+        SPDLOG_ERROR("Save File - could not remove the old temp file: {}", e.what());
     }
 
 #if defined(__SWITCH__) || defined(__WIIU__)
@@ -1215,7 +1221,20 @@ void SaveManager::SaveFileThreaded(int fileNum, SaveContext* saveContext, int se
         std::filesystem::remove(tempFile);
     }
 #else
-    std::filesystem::rename(tempFile, fileName);
+    // The rename can fail on Windows while something else (virus scanner, indexer) has the file open. This runs on a
+    // worker thread, where an uncaught exception ends the whole game, so retry briefly and then give up on this save.
+    for (int attempt = 0;; attempt++) {
+        try {
+            std::filesystem::rename(tempFile, fileName);
+            break;
+        } catch (const std::filesystem::filesystem_error& e) {
+            if (attempt >= 40) {
+                SPDLOG_ERROR("Save File - could not replace the save file: {}", e.what());
+                break;
+            }
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
+        }
+    }
 #endif
 
     delete saveContext;
