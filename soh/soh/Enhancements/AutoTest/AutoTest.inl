@@ -1173,11 +1173,18 @@ bool RunStep(const json& step) {
         return true;
     }
     if (op == "start_text") {
-        // opens a text box the way an NPC talk does; actor_id is the NPC the text belongs to (passed to the client
-        // as a test-only talk actor id, the text box itself has no actor)
+        // opens a text box the way an NPC talk does, owned by a real NPC of the scene (a Kokiri by default);
+        // actor_id is the NPC the client treats the conversation as coming from (test-only override)
         if (!PlayReady()) return timedOut("start_text not ready");
+        Actor* owner = nullptr;
+        for (int cat = 0; cat < ACTORCAT_MAX && owner == nullptr; cat++) {
+            for (Actor* a = gPlayState->actorCtx.actorLists[cat].head; a != nullptr; a = a->next) {
+                if (a->id == step.value("owner_id", (int)ACTOR_EN_KO)) { owner = a; break; }
+            }
+        }
+        if (owner == nullptr) return timedOut("start_text: no NPC to own the text box");
         AutoTestAccess::SetDlgTestActor(step.value("actor_id", -1));
-        Message_StartTextbox(gPlayState, (u16)step.value("text_id", 0), nullptr);
+        Message_StartTextbox(gPlayState, (u16)step.value("text_id", 0), owner);
         return true;
     }
     if (op == "continue_text") {

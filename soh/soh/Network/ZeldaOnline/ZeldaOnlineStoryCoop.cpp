@@ -1707,7 +1707,8 @@ void ZeldaOnlineClient::StoryWatchDialogue() {
     if (m_storyDlgFollowing)
         return;
     const bool talking = msg->msgMode != MSGMODE_NONE && msg->msgLength != 0 && play->csCtx.state == CS_STATE_IDLE &&
-                         StoryDialogueActorIsKey(msg->talkActor != nullptr ? msg->talkActor->id : m_storyDlgTestActor);
+                         msg->talkActor != nullptr &&
+                         StoryDialogueActorIsKey(m_storyDlgTestActor >= 0 ? m_storyDlgTestActor : msg->talkActor->id);
     if (talking) {
         if (!m_storyDlgSpeaking || msg->textId != m_storyDlgSentText || ++m_storyDlgBeat >= STORY_DLG_BEAT_FRAMES) {
             WritePacket(newPacket(CLIENT_PACKET_STORY_DIALOGUE) << PackedUInt1(0) << PackedUInt2((unsigned int)msg->textId));

@@ -466,7 +466,7 @@
             {
               "op": "start_text",
               "actor_id": 62,
-              "text_id": 2309
+              "text_id": 28750
             },
             {
               "op": "wait_frames",
@@ -478,7 +478,7 @@
             },
             {
               "op": "continue_text",
-              "text_id": 2310
+              "text_id": 28751
             },
             {
               "op": "wait_frames",
@@ -503,7 +503,7 @@
             {
               "op": "start_text",
               "actor_id": 355,
-              "text_id": 2309
+              "text_id": 28750
             },
             {
               "op": "wait_frames",
@@ -524,7 +524,7 @@
             {
               "op": "start_text",
               "actor_id": 62,
-              "text_id": 2309
+              "text_id": 28750
             },
             {
               "op": "wait_frames",
@@ -621,7 +621,7 @@
               "op": "wait_until",
               "cond": "msg_text",
               "timeout_frames": 1200,
-              "value": 2309
+              "value": 28750
             },
             {
               "op": "observe",
@@ -631,7 +631,7 @@
               "op": "wait_until",
               "cond": "msg_text",
               "timeout_frames": 600,
-              "value": 2310
+              "value": 28751
             },
             {
               "op": "observe",
@@ -668,7 +668,7 @@
               "op": "wait_until",
               "cond": "msg_text",
               "timeout_frames": 1200,
-              "value": 2309
+              "value": 28750
             },
             {
               "op": "observe",
@@ -719,7 +719,7 @@
           "obs": "b_sees_first",
           "path": "msg_text_id",
           "op": "eq",
-          "value": 2309,
+          "value": 28750,
           "label": "B shows the same text id"
         },
         {
@@ -752,7 +752,7 @@
           "obs": "b_sees_second",
           "path": "msg_text_id",
           "op": "eq",
-          "value": 2310,
+          "value": 28751,
           "label": "B moves on to the next text with A"
         },
         {
@@ -833,7 +833,7 @@
           "obs": "b_sees_again",
           "path": "msg_text_id",
           "op": "eq",
-          "value": 2309,
+          "value": 28750,
           "label": "B joins a second conversation"
         },
         {
@@ -943,7 +943,7 @@
             {
               "op": "start_text",
               "actor_id": 62,
-              "text_id": 2309
+              "text_id": 28750
             },
             {
               "op": "wait_frames",
