@@ -258,6 +258,7 @@ struct State {
     json bootOverride = json::object();
     // scripted controller input (applied just before the game reads it)
     uint16_t padMask = 0;
+    uint16_t padHold = 0; // held on every frame of the input (Z targeting while tapping B)
     int padFrames = 0;
     int padTotal = 0;
     int padEvery = 0;
@@ -635,6 +636,7 @@ uint16_t ButtonMask(const std::string& name) {
     if (name == "B") return BTN_B;
     if (name == "START") return BTN_START;
     if (name == "R") return BTN_R;
+    if (name == "Z") return BTN_Z;
     return 0;
 }
 
@@ -664,6 +666,11 @@ void OnMainStart() {
     Input* in = &gPlayState->state.input[0];
     const int idx = sState.padTotal - sState.padFrames;
     sState.padFrames--;
+    if (sState.padHold != 0) {
+        in->cur.button |= sState.padHold;
+        if (idx == 0)
+            in->press.button |= sState.padHold;
+    }
     if (sState.padEvery > 0 && (idx % sState.padEvery) != 0) {
         return;
     }
@@ -930,6 +937,8 @@ bool RunStep(const json& step) {
             uint16_t mask = 0;
             for (auto& b : step.value("buttons", json::array())) mask |= ButtonMask(b.get<std::string>());
             StartInput(mask, step.value("x", 0), step.value("y", 0), step.value("n", 1), step.value("every", 0));
+            sState.padHold = 0;
+            for (auto& b : step.value("hold", json::array())) sState.padHold |= ButtonMask(b.get<std::string>());
             return false;
         }
         if (sState.padFrames > 0) return timedOut("input still running");
@@ -1180,6 +1189,35 @@ bool RunStep(const json& step) {
         if (!PlayReady()) return timedOut("close_text not ready");
         Message_CloseTextbox(gPlayState);
         AutoTestAccess::SetDlgTestActor(-1);
+        return true;
+    }
+    if (op == "approach_actor") {
+        // puts Link `dist` units from the nearest awake actor with this id, facing it (for filming fights)
+        if (!PlayReady()) return timedOut("approach_actor not ready");
+        Player* p = GET_PLAYER(gPlayState);
+        Actor* best = nullptr;
+        float bestD = 1e9f;
+        for (int cat = 0; cat < ACTORCAT_MAX; cat++) {
+            for (Actor* a = gPlayState->actorCtx.actorLists[cat].head; a != nullptr; a = a->next) {
+                if (a->id != step.value("id", -1) || a->update == nullptr || a->colChkInfo.health == 0) continue;
+                float dx = a->world.pos.x - p->actor.world.pos.x, dz = a->world.pos.z - p->actor.world.pos.z;
+                float d = dx * dx + dz * dz;
+                if (d < bestD) { bestD = d; best = a; }
+            }
+        }
+        if (best == nullptr) return timedOut("approach_actor: none");
+        float dist = step.value("dist", 70.0f);
+        float side = step.value("side", 0.0f);
+        float dx = p->actor.world.pos.x - best->world.pos.x, dz = p->actor.world.pos.z - best->world.pos.z;
+        float len = sqrtf(dx * dx + dz * dz);
+        if (len < 1.0f) { dx = 1.0f; dz = 0.0f; len = 1.0f; }
+        dx /= len; dz /= len;
+        p->actor.world.pos.x = best->world.pos.x + dx * dist - dz * side;
+        p->actor.world.pos.z = best->world.pos.z + dz * dist + dx * side;
+        p->actor.world.pos.y = best->world.pos.y;
+        p->actor.prevPos = p->actor.world.pos;
+        s16 yaw = Math_Vec3f_Yaw(&p->actor.world.pos, &best->world.pos);
+        p->actor.shape.rot.y = p->actor.world.rot.y = p->yaw = yaw;
         return true;
     }
     if (op == "log") {
