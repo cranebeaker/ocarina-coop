@@ -4,6 +4,10 @@
 
 [![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cranebeaker)
 
+
+
+
+
 Story Co-op is a party mode for [Ship of Harkinian](https://github.com/HarbourMasters/Shipwright) (the PC port of
 Ocarina of Time) built on the online netcode of [ShipwrightOnline](https://github.com/lukegrahamSydney/ShipwrightOnline)
 by lukegrahamSydney. Two or more players go through the adventure together as one playthrough.
@@ -22,6 +26,10 @@ by lukegrahamSydney. Two or more players go through the adventure together as on
 No IP addresses or port forwarding: the connection goes through Steam's relay network (Valve's free "Spacewar" app).
 Both players need Steam running. You can also run `OOTServer.exe` yourself and connect by address as in
 ShipwrightOnline.
+
+https://github.com/user-attachments/assets/fedb77e0-4b35-44a7-9120-dce0d7005fcd
+
+
 
 ## What is shared
 
