@@ -2190,8 +2190,8 @@
           "obs": "a2_ft",
           "path": "flags.1.value",
           "op": "eq",
-          "value": false,
-          "label": "A after server restart: Forest Temple elevator switch 0x1B excluded as designed",
+          "value": true,
+          "label": "A after server restart: Forest Temple elevator switch 0x1B restored like a single player save",
           "roles": [
             "A"
           ]
@@ -2223,8 +2223,8 @@
           "obs": "a2_wt",
           "path": "flags.1.value",
           "op": "eq",
-          "value": false,
-          "label": "A after server restart: Water Temple water level switch 0x1C excluded as designed",
+          "value": true,
+          "label": "A after server restart: Water Temple water level switch 0x1C restored like a single player save",
           "roles": [
             "A"
           ]
@@ -2289,8 +2289,8 @@
           "obs": "b2_ft",
           "path": "flags.1.value",
           "op": "eq",
-          "value": false,
-          "label": "B after server restart: Forest Temple elevator switch 0x1B excluded as designed",
+          "value": true,
+          "label": "B after server restart: Forest Temple elevator switch 0x1B restored like a single player save",
           "roles": [
             "B"
           ]
@@ -2322,8 +2322,8 @@
           "obs": "b2_wt",
           "path": "flags.1.value",
           "op": "eq",
-          "value": false,
-          "label": "B after server restart: Water Temple water level switch 0x1C excluded as designed",
+          "value": true,
+          "label": "B after server restart: Water Temple water level switch 0x1C restored like a single player save",
           "roles": [
             "B"
           ]

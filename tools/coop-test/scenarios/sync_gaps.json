@@ -1,0 +1,2478 @@
+{
+  "name": "sync_gaps",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 238,
+    "age": "child"
+  },
+  "stages": [
+    {
+      "name": "sync_gaps_live",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "n": 1,
+              "timeout_frames": 3600
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "sg-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "n": 2,
+              "timeout_frames": 3600
+            },
+            {
+              "op": "set_field",
+              "field": "world_map",
+              "value": 61680
+            },
+            {
+              "op": "set_field",
+              "field": "high_score:0",
+              "value": 1500
+            },
+            {
+              "op": "set_field",
+              "field": "high_score:3",
+              "value": 45
+            },
+            {
+              "op": "set_field",
+              "field": "high_score:6",
+              "value": 58
+            },
+            {
+              "op": "set_field",
+              "field": "high_score:4",
+              "value": 77
+            },
+            {
+              "op": "set_field",
+              "field": "high_score:2",
+              "value": 201327897
+            },
+            {
+              "op": "set_field",
+              "field": "event_inf:0",
+              "value": 6
+            },
+            {
+              "op": "set_field",
+              "field": "horse_scene",
+              "value": 87
+            },
+            {
+              "op": "set_field",
+              "field": "horse_x",
+              "value": -2065
+            },
+            {
+              "op": "set_field",
+              "field": "horse_y",
+              "value": -863
+            },
+            {
+              "op": "set_field",
+              "field": "horse_z",
+              "value": 1839
+            },
+            {
+              "op": "set_field",
+              "field": "horse_angle",
+              "value": 1234
+            },
+            {
+              "op": "set_field",
+              "field": "scarecrow_spawn_note:0",
+              "value": 3
+            },
+            {
+              "op": "set_field",
+              "field": "scarecrow_spawn_note:1",
+              "value": 4
+            },
+            {
+              "op": "set_field",
+              "field": "scarecrow_spawn_note:15",
+              "value": 1
+            },
+            {
+              "op": "set_field",
+              "field": "scarecrow_spawn_set",
+              "value": 1
+            },
+            {
+              "op": "set_field",
+              "field": "scarecrow_long_note:0",
+              "value": 2
+            },
+            {
+              "op": "set_field",
+              "field": "scarecrow_long_note:107",
+              "value": 3
+            },
+            {
+              "op": "set_field",
+              "field": "scarecrow_long_set",
+              "value": 1
+            },
+            {
+              "op": "set_field",
+              "field": "scene_rooms:8",
+              "value": 31
+            },
+            {
+              "op": "set_field",
+              "field": "scene_floors:8",
+              "value": 3
+            },
+            {
+              "op": "set_field",
+              "field": "scene_rooms:99",
+              "value": 3
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 441,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "observe",
+              "name": "a_phase1",
+              "fields": [
+                "world_map",
+                "high_score:0",
+                "high_score:1",
+                "high_score:2",
+                "high_score:3",
+                "high_score:4",
+                "high_score:6",
+                "event_inf:0",
+                "horse_scene",
+                "horse_x",
+                "horse_y",
+                "horse_z",
+                "horse_angle",
+                "scarecrow_spawn_set",
+                "scarecrow_spawn_note:0",
+                "scarecrow_spawn_note:1",
+                "scarecrow_spawn_note:15",
+                "scarecrow_long_set",
+                "scarecrow_long_note:0",
+                "scarecrow_long_note:107",
+                "scene_rooms:8",
+                "scene_floors:8",
+                "scene_rooms:99"
+              ]
+            },
+            {
+              "op": "set_field",
+              "field": "high_score:1",
+              "value": 100
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:1",
+              "value": 200,
+              "cmp": "ge",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 442
+            },
+            {
+              "op": "add_field",
+              "field": "high_score:1",
+              "value": 100
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:1",
+              "value": 400,
+              "cmp": "ge",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_frames",
+              "n": 200
+            },
+            {
+              "op": "observe",
+              "name": "a_poe",
+              "fields": [
+                "high_score:1"
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 443
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 444,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "horse_scene",
+              "value": 90,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "horse_x",
+              "value": 100,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "horse_angle",
+              "value": 77,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "observe",
+              "name": "a_horse",
+              "fields": [
+                "horse_scene",
+                "horse_x",
+                "horse_y",
+                "horse_z",
+                "horse_angle"
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 4
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 28
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 29
+            },
+            {
+              "op": "unset_flag",
+              "type": "switch",
+              "flag": 28
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 30
+            },
+            {
+              "op": "unset_flag",
+              "type": "switch",
+              "flag": 29
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 29
+            },
+            {
+              "op": "unset_flag",
+              "type": "switch",
+              "flag": 30
+            },
+            {
+              "op": "observe",
+              "name": "a_wt",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "switch",
+                  "flag": 29
+                },
+                {
+                  "type": "switch",
+                  "flag": 30
+                }
+              ],
+              "actors": [
+                101
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 445
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 4
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 27
+            },
+            {
+              "op": "unset_flag",
+              "type": "switch",
+              "flag": 27
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 27
+            },
+            {
+              "op": "observe",
+              "name": "a_ft",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 27
+                }
+              ],
+              "actors": [
+                135
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 446
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 447,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "n": 1,
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 7200
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "n": 2,
+              "timeout_frames": 3600
+            },
+            {
+              "op": "set_field",
+              "field": "high_score:2",
+              "value": 4096
+            },
+            {
+              "op": "set_field",
+              "field": "high_score:4",
+              "value": 99
+            },
+            {
+              "op": "set_field",
+              "field": "high_score:0",
+              "value": 400
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 440,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "world_map",
+              "value": 61680,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:0",
+              "value": 1500,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:3",
+              "value": 45,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:6",
+              "value": 58,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:2",
+              "value": 201331993,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "horse_scene",
+              "value": 87,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "horse_angle",
+              "value": 1234,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scarecrow_spawn_set",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scarecrow_long_set",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scarecrow_long_note:107",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scene_rooms:8",
+              "value": 31,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scene_floors:8",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scene_rooms:99",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "observe",
+              "name": "b_phase1",
+              "fields": [
+                "world_map",
+                "high_score:0",
+                "high_score:1",
+                "high_score:2",
+                "high_score:3",
+                "high_score:4",
+                "high_score:6",
+                "event_inf:0",
+                "horse_scene",
+                "horse_x",
+                "horse_y",
+                "horse_z",
+                "horse_angle",
+                "scarecrow_spawn_set",
+                "scarecrow_spawn_note:0",
+                "scarecrow_spawn_note:1",
+                "scarecrow_spawn_note:15",
+                "scarecrow_long_set",
+                "scarecrow_long_note:0",
+                "scarecrow_long_note:107",
+                "scene_rooms:8",
+                "scene_floors:8",
+                "scene_rooms:99"
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:1",
+              "value": 100,
+              "cmp": "ge",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "add_field",
+              "field": "high_score:1",
+              "value": 100
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 442,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "add_field",
+              "field": "high_score:1",
+              "value": 100
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:1",
+              "value": 400,
+              "cmp": "ge",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 443,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "observe",
+              "name": "b_poe",
+              "fields": [
+                "high_score:1"
+              ]
+            },
+            {
+              "op": "set_field",
+              "field": "horse_scene",
+              "value": 90
+            },
+            {
+              "op": "set_field",
+              "field": "horse_x",
+              "value": 100
+            },
+            {
+              "op": "set_field",
+              "field": "horse_y",
+              "value": 50
+            },
+            {
+              "op": "set_field",
+              "field": "horse_z",
+              "value": -200
+            },
+            {
+              "op": "set_field",
+              "field": "horse_angle",
+              "value": 77
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 444
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 445,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "switch",
+              "flag": 29,
+              "timeout_frames": 600
+            },
+            {
+              "op": "observe",
+              "name": "b_wt",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "switch",
+                  "flag": 29
+                },
+                {
+                  "type": "switch",
+                  "flag": 30
+                }
+              ],
+              "actors": [
+                101
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 446,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "switch",
+              "flag": 27,
+              "timeout_frames": 600
+            },
+            {
+              "op": "observe",
+              "name": "b_ft",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 27
+                }
+              ],
+              "actors": [
+                135
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 447
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.world_map",
+          "op": "eq",
+          "value": 61680,
+          "label": "map areas visited by A reach B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.high_score:0",
+          "op": "eq",
+          "value": 1500,
+          "label": "A's horseback archery best reaches B (higher than B's 400)",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_phase1",
+          "path": "fields.high_score:0",
+          "op": "eq",
+          "value": 1500,
+          "label": "B's lower archery score does not replace A's",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.high_score:3",
+          "op": "eq",
+          "value": 45,
+          "label": "Lon Lon race record reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.high_score:6",
+          "op": "eq",
+          "value": 58,
+          "label": "Dampe race record reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.high_score:2",
+          "op": "eq",
+          "value": 201331993,
+          "label": "fishing record and prize bits reach B and B keeps its own pond owner hat state",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_phase1",
+          "path": "fields.high_score:2",
+          "op": "eq",
+          "value": 201327897,
+          "label": "B's pond owner hat state does not reach A",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.high_score:4",
+          "op": "eq",
+          "value": 99,
+          "label": "Running Man scratch score of B is not touched",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_phase1",
+          "path": "fields.high_score:4",
+          "op": "eq",
+          "value": 77,
+          "label": "Running Man scratch score of A is not sent to B",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.event_inf:0",
+          "op": "eq",
+          "value": 0,
+          "label": "A's running minigame state (eventInf) is not forced on B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_phase1",
+          "path": "fields.event_inf:0",
+          "op": "eq",
+          "value": 6,
+          "label": "A keeps its own minigame state",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.horse_scene",
+          "op": "eq",
+          "value": 87,
+          "label": "Epona's parking scene reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.horse_x",
+          "op": "eq",
+          "value": -2065,
+          "label": "Epona's parking x reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.horse_z",
+          "op": "eq",
+          "value": 1839,
+          "label": "Epona's parking z reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.horse_angle",
+          "op": "eq",
+          "value": 1234,
+          "label": "Epona's parking angle reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.scarecrow_spawn_set",
+          "op": "eq",
+          "value": 1,
+          "label": "scarecrow spawn song flag reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.scarecrow_spawn_note:0",
+          "op": "eq",
+          "value": 3,
+          "label": "scarecrow spawn song note 0 reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.scarecrow_spawn_note:15",
+          "op": "eq",
+          "value": 1,
+          "label": "scarecrow spawn song last note reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.scarecrow_long_set",
+          "op": "eq",
+          "value": 1,
+          "label": "scarecrow long song flag reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.scarecrow_long_note:0",
+          "op": "eq",
+          "value": 2,
+          "label": "scarecrow long song first note reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.scarecrow_long_note:107",
+          "op": "eq",
+          "value": 3,
+          "label": "scarecrow long song last note reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.scene_rooms:8",
+          "op": "eq",
+          "value": 31,
+          "label": "Bottom of the Well map rooms visited reach B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.scene_floors:8",
+          "op": "eq",
+          "value": 3,
+          "label": "Bottom of the Well map floors visited reach B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.scene_rooms:99",
+          "op": "eq",
+          "value": 3,
+          "label": "Lon Lon Ranch map rooms visited reach B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_poe",
+          "path": "fields.high_score:1",
+          "op": "eq",
+          "value": 400,
+          "label": "Big Poe points add up across both deliveries and a simultaneous one (A)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_poe",
+          "path": "fields.high_score:1",
+          "op": "eq",
+          "value": 400,
+          "label": "Big Poe points add up across both deliveries and a simultaneous one (B)",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_horse",
+          "path": "fields.horse_scene",
+          "op": "eq",
+          "value": 90,
+          "label": "the last member to park Epona decides: scene (A sees B's)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_horse",
+          "path": "fields.horse_x",
+          "op": "eq",
+          "value": 100,
+          "label": "the last member to park Epona decides: x",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_horse",
+          "path": "fields.horse_z",
+          "op": "eq",
+          "value": -200,
+          "label": "the last member to park Epona decides: z",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt",
+          "path": "scene",
+          "op": "eq",
+          "value": 5,
+          "label": "A really is in the Water Temple when it changes the level",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": false,
+          "label": "A Water Temple: old level 1 switch is off",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Water Temple: final level 2 switch is on",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": false,
+          "label": "A Water Temple: level 3 switch is off",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "scene",
+          "op": "eq",
+          "value": 5,
+          "label": "B really is in the Water Temple",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": false,
+          "label": "B enters the Water Temple: level 1 switch off",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "B enters the Water Temple: level 2 is the live level",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": false,
+          "label": "B enters the Water Temple: level 3 switch off",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_wt",
+          "path": "actors.0.params",
+          "op": "eq",
+          "value": 29,
+          "label": "A's water plane actor follows the level switch (params 0x1D)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "actors.0.params",
+          "op": "eq",
+          "value": 29,
+          "label": "B's water plane actor is rebuilt at level 2 from the switches",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_wt",
+          "path": "actors.0.y",
+          "op": "eq",
+          "value": 445.0,
+          "label": "B's water plane stands at the level 2 height (445)",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_ft",
+          "path": "scene",
+          "op": "eq",
+          "value": 3,
+          "label": "A really is in the Forest Temple",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_ft",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A Forest Temple: elevator switch on after down, up, down",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_ft",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B enters the Forest Temple: elevator state follows A",
+          "roles": [
+            "B"
+          ]
+        }
+      ],
+      "stop_server": true
+    },
+    {
+      "name": "sync_gaps_after_restart",
+      "server": "restart",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "n": 1,
+              "timeout_frames": 3600
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "sg-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "n": 2,
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "world_map",
+              "value": 61680,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:0",
+              "value": 1500,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:1",
+              "value": 400,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:3",
+              "value": 45,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:6",
+              "value": 58,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:2",
+              "value": 201327897,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "horse_scene",
+              "value": 90,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "horse_x",
+              "value": 100,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scarecrow_spawn_set",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scarecrow_long_set",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scarecrow_long_note:107",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scene_rooms:8",
+              "value": 31,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scene_rooms:99",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "observe",
+              "name": "a2_fields",
+              "fields": [
+                "world_map",
+                "high_score:0",
+                "high_score:1",
+                "high_score:2",
+                "high_score:3",
+                "high_score:4",
+                "high_score:6",
+                "event_inf:0",
+                "horse_scene",
+                "horse_x",
+                "horse_y",
+                "horse_z",
+                "horse_angle",
+                "scarecrow_spawn_set",
+                "scarecrow_spawn_note:0",
+                "scarecrow_spawn_note:1",
+                "scarecrow_spawn_note:15",
+                "scarecrow_long_set",
+                "scarecrow_long_note:0",
+                "scarecrow_long_note:107",
+                "scene_rooms:8",
+                "scene_floors:8",
+                "scene_rooms:99"
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "switch",
+              "flag": 29,
+              "timeout_frames": 600
+            },
+            {
+              "op": "observe",
+              "name": "a2_wt",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "switch",
+                  "flag": 29
+                },
+                {
+                  "type": "switch",
+                  "flag": 30
+                }
+              ],
+              "actors": [
+                101
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "warp",
+              "entrance": 361,
+              "scene": 3,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "switch",
+              "flag": 27,
+              "timeout_frames": 600
+            },
+            {
+              "op": "observe",
+              "name": "a2_ft",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 27
+                }
+              ],
+              "actors": [
+                135
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 447,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "n": 1,
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 7200
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "n": 2,
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "world_map",
+              "value": 61680,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:0",
+              "value": 1500,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:1",
+              "value": 400,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:3",
+              "value": 45,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:6",
+              "value": 58,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "high_score:2",
+              "value": 201327897,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "horse_scene",
+              "value": 90,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "horse_x",
+              "value": 100,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scarecrow_spawn_set",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scarecrow_long_set",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scarecrow_long_note:107",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scene_rooms:8",
+              "value": 31,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "scene_rooms:99",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "observe",
+              "name": "b2_fields",
+              "fields": [
+                "world_map",
+                "high_score:0",
+                "high_score:1",
+                "high_score:2",
+                "high_score:3",
+                "high_score:4",
+                "high_score:6",
+                "event_inf:0",
+                "horse_scene",
+                "horse_x",
+                "horse_y",
+                "horse_z",
+                "horse_angle",
+                "scarecrow_spawn_set",
+                "scarecrow_spawn_note:0",
+                "scarecrow_spawn_note:1",
+                "scarecrow_spawn_note:15",
+                "scarecrow_long_set",
+                "scarecrow_long_note:0",
+                "scarecrow_long_note:107",
+                "scene_rooms:8",
+                "scene_floors:8",
+                "scene_rooms:99"
+              ]
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 440,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "warp",
+              "entrance": 16,
+              "scene": 5,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "switch",
+              "flag": 29,
+              "timeout_frames": 600
+            },
+            {
+              "op": "observe",
+              "name": "b2_wt",
+              "flags": [
+                {
+                  "type": "switch",
+                  "flag": 28
+                },
+                {
+                  "type": "switch",
+                  "flag": 29
+                },
+                {
+                  "type": "switch",
+                  "flag": 30
+                }
+              ],
+              "actors": [
+                101
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 447
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit",
+              "pass": true
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.world_map",
+          "op": "eq",
+          "value": 61680,
+          "label": "after restart: map areas restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.high_score:0",
+          "op": "eq",
+          "value": 1500,
+          "label": "after restart: archery best restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.high_score:1",
+          "op": "eq",
+          "value": 400,
+          "label": "after restart: Big Poe points restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.high_score:3",
+          "op": "eq",
+          "value": 45,
+          "label": "after restart: Lon Lon race record restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.high_score:6",
+          "op": "eq",
+          "value": 58,
+          "label": "after restart: Dampe race record restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.high_score:2",
+          "op": "eq",
+          "value": 201327897,
+          "label": "after restart: fishing record restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.high_score:4",
+          "op": "eq",
+          "value": 0,
+          "label": "after restart: Running Man scratch score is per player and starts empty",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.event_inf:0",
+          "op": "eq",
+          "value": 0,
+          "label": "after restart: no minigame state (eventInf) is restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.horse_scene",
+          "op": "eq",
+          "value": 90,
+          "label": "after restart: Epona's parking spot is the last member's",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.horse_x",
+          "op": "eq",
+          "value": 100,
+          "label": "after restart: Epona's parking x",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.horse_angle",
+          "op": "eq",
+          "value": 77,
+          "label": "after restart: Epona's parking angle",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.scarecrow_spawn_set",
+          "op": "eq",
+          "value": 1,
+          "label": "after restart: scarecrow spawn song restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.scarecrow_spawn_note:1",
+          "op": "eq",
+          "value": 4,
+          "label": "after restart: scarecrow spawn song note",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.scarecrow_long_note:107",
+          "op": "eq",
+          "value": 3,
+          "label": "after restart: scarecrow long song restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.scene_rooms:8",
+          "op": "eq",
+          "value": 31,
+          "label": "after restart: Bottom of the Well rooms visited",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.scene_floors:8",
+          "op": "eq",
+          "value": 3,
+          "label": "after restart: Bottom of the Well floors visited",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.world_map",
+          "op": "eq",
+          "value": 61680,
+          "label": "after restart: map areas restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.high_score:0",
+          "op": "eq",
+          "value": 1500,
+          "label": "after restart: archery best restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.high_score:1",
+          "op": "eq",
+          "value": 400,
+          "label": "after restart: Big Poe points restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.high_score:3",
+          "op": "eq",
+          "value": 45,
+          "label": "after restart: Lon Lon race record restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.high_score:6",
+          "op": "eq",
+          "value": 58,
+          "label": "after restart: Dampe race record restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.high_score:2",
+          "op": "eq",
+          "value": 201327897,
+          "label": "after restart: fishing record restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.high_score:4",
+          "op": "eq",
+          "value": 0,
+          "label": "after restart: Running Man scratch score is per player and starts empty",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.event_inf:0",
+          "op": "eq",
+          "value": 0,
+          "label": "after restart: no minigame state (eventInf) is restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.horse_scene",
+          "op": "eq",
+          "value": 90,
+          "label": "after restart: Epona's parking spot is the last member's",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.horse_x",
+          "op": "eq",
+          "value": 100,
+          "label": "after restart: Epona's parking x",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.horse_angle",
+          "op": "eq",
+          "value": 77,
+          "label": "after restart: Epona's parking angle",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.scarecrow_spawn_set",
+          "op": "eq",
+          "value": 1,
+          "label": "after restart: scarecrow spawn song restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.scarecrow_spawn_note:1",
+          "op": "eq",
+          "value": 4,
+          "label": "after restart: scarecrow spawn song note",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.scarecrow_long_note:107",
+          "op": "eq",
+          "value": 3,
+          "label": "after restart: scarecrow long song restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.scene_rooms:8",
+          "op": "eq",
+          "value": 31,
+          "label": "after restart: Bottom of the Well rooms visited",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.scene_floors:8",
+          "op": "eq",
+          "value": 3,
+          "label": "after restart: Bottom of the Well floors visited",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_wt",
+          "path": "scene",
+          "op": "eq",
+          "value": 5,
+          "label": "after restart: really in the Water Temple",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_wt",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": false,
+          "label": "after restart: Water Temple level 1 switch off",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_wt",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "after restart: fresh Water Temple starts at the party's level 2",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_wt",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": false,
+          "label": "after restart: Water Temple level 3 (the default top) switch off",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_wt",
+          "path": "actors.0.params",
+          "op": "eq",
+          "value": 29,
+          "label": "after restart: water plane actor starts at level 2",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_wt",
+          "path": "actors.0.y",
+          "op": "eq",
+          "value": 445.0,
+          "label": "after restart: water plane stands at the level 2 height (445)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_wt",
+          "path": "scene",
+          "op": "eq",
+          "value": 5,
+          "label": "after restart: really in the Water Temple",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_wt",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": false,
+          "label": "after restart: Water Temple level 1 switch off",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_wt",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "after restart: fresh Water Temple starts at the party's level 2",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_wt",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": false,
+          "label": "after restart: Water Temple level 3 (the default top) switch off",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_wt",
+          "path": "actors.0.params",
+          "op": "eq",
+          "value": 29,
+          "label": "after restart: water plane actor starts at level 2",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_wt",
+          "path": "actors.0.y",
+          "op": "eq",
+          "value": 445.0,
+          "label": "after restart: water plane stands at the level 2 height (445)",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_ft",
+          "path": "scene",
+          "op": "eq",
+          "value": 3,
+          "label": "after restart: really in the Forest Temple",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_ft",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "after restart: fresh Forest Temple starts with the elevator down",
+          "roles": [
+            "A"
+          ]
+        }
+      ],
+      "stop_server": true,
+      "server_checks": [
+        {
+          "type": "log_contains",
+          "text": "Story Co-op: loaded team save",
+          "label": "team save loaded from disk"
+        },
+        {
+          "type": "clean_exit",
+          "label": "clean stop"
+        }
+      ]
+    }
+  ]
+}
