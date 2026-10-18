@@ -55,7 +55,10 @@ enum ClientPackets {
         CLIENT_PACKET_STORY_ADD_COUNTER = 41,
         // a story cutscene started here: u1 kind (0 script, 1 scene cutscene transition), u2 entrance, u2 cutscene index,
         // u2 path length + path (kind 0); relayed to the party members in the same scene
-        CLIENT_PACKET_STORY_CUTSCENE = 42
+        CLIENT_PACKET_STORY_CUTSCENE = 42,
+        // key NPC dialogue the speaker has open: u1 kind (0 text on screen, 1 closed), u2 text id; relayed to the
+        // party members in the same scene (the speaker repeats kind 0 about once a second while the box stays open)
+        CLIENT_PACKET_STORY_DIALOGUE = 43
 
 };
 
@@ -109,7 +112,9 @@ enum ServerPackets {
         // a permanent dungeon switch or clear flag was switched off again (u1 sceneNum, u4 switch mask, u4 clear mask)
         SERVER_PACKET_STORY_DUNGEON_CLEAR = 41,
         // u2 sender network id, then the CLIENT_PACKET_STORY_CUTSCENE fields
-        SERVER_PACKET_STORY_CUTSCENE = 42
+        SERVER_PACKET_STORY_CUTSCENE = 42,
+        // u2 sender network id, then the CLIENT_PACKET_STORY_DIALOGUE fields
+        SERVER_PACKET_STORY_DIALOGUE = 43
 };
 
 static const int PLAYER_PUPPET_ROOM = -1;

@@ -18,7 +18,7 @@ namespace ZeldaOnline
 	static const uint8_t STORY_FLAG_SEED = (1 << 0);     // client -> server: snapshot uploaded to seed or re-seed the team save
 
 	// Exclusion masks. Bits listed here are never shared (they belong to the time travel flow or are per player).
-	static const uint16_t STORY_EQUIPMENT_EXCLUDE = (1 << 1);               // Master Sword inventory bit (EQUIP_INV_SWORD_MASTER)
+	static const uint16_t STORY_EQUIPMENT_EXCLUDE = (1 << 1) | (1 << 3);  // Master Sword bit (time travel flow) and the broken Giant's Knife state bit (per player)
 	static const uint32_t STORY_QUEST_ITEMS_EXCLUDE = 0xF0000000u;          // heart piece counter nibble, shared as heartQuarters
 	static const int STORY_INFTABLE_EXCLUDE_INDEX = 29;                     // swordless flag row
 	static const uint32_t STORY_WATER_TEMPLE_SWCH_EXCLUDE = 0x70000000u;    // swch 0x1C-0x1E

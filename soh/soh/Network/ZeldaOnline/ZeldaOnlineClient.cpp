@@ -240,6 +240,7 @@ static void ReloadSceneInPlace(PlayState* play) {
 static const std::string CURRENT_VERSION = "BETA000003";
 ZeldaOnlineClient::ZeldaOnlineClient() {
     m_blockedParentSpawners.insert(ACTOR_BG_SPOT01_OBJECTS2);
+    StoryRegisterSave();
 }
 
 void ZeldaOnlineClient::Connect() {
@@ -1717,6 +1718,10 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
 
         case SERVER_PACKET_STORY_CUTSCENE:
             OnStoryCutscene(packet);
+            break;
+
+        case SERVER_PACKET_STORY_DIALOGUE:
+            OnStoryDialogue(packet);
             break;
 
         case SERVER_PACKET_STORY_VOTE_STATUS:

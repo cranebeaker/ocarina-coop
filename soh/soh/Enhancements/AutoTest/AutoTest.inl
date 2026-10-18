@@ -30,6 +30,14 @@ struct AutoTestAccess {
     static ZeldaOnlineClient* C() {
         return ZeldaOnlineClient::Instance;
     }
+    static void SetDlgTestActor(int id) {
+        if (C() != nullptr)
+            C()->m_storyDlgTestActor = id;
+    }
+    static void ResetEquipLost() {
+        if (C() != nullptr)
+            C()->StoryResetEquipLost();
+    }
     static ZeldaOnlineRoomWindow* W() {
         return ZeldaOnlineRoomWindow::Instance;
     }
@@ -97,6 +105,18 @@ struct AutoTestAccess {
     }
     static int CsReceived() {
         return C()->m_storyCsReceived;
+    }
+    static int DlgSent() {
+        return C()->m_storyDlgSent;
+    }
+    static int DlgReceived() {
+        return C()->m_storyDlgReceived;
+    }
+    static int DlgShown() {
+        return C()->m_storyDlgShown;
+    }
+    static bool DlgFollowing() {
+        return C()->m_storyDlgFollowing;
     }
     static int CsStarted() {
         return C()->m_storyCsStarted;
@@ -279,6 +299,7 @@ struct State {
     json bootOverride = json::object();
     // scripted controller input (applied just before the game reads it)
     uint16_t padMask = 0;
+    uint16_t padHold = 0; // held on every frame of the input (Z targeting while tapping B)
     int padFrames = 0;
     int padTotal = 0;
     int padEvery = 0;
@@ -452,6 +473,10 @@ json Observe(const json& step) {
     o["cs_sent"] = AutoTestAccess::CsSent();
     o["cs_received"] = AutoTestAccess::CsReceived();
     o["cs_started"] = AutoTestAccess::CsStarted();
+    o["dlg_sent"] = AutoTestAccess::DlgSent();
+    o["dlg_received"] = AutoTestAccess::DlgReceived();
+    o["dlg_shown"] = AutoTestAccess::DlgShown();
+    o["dlg_following"] = AutoTestAccess::DlgFollowing();
     o["cs_index"] = (int)gSaveContext.cutsceneIndex;
     o["vote_total"] = AutoTestAccess::VoteTotal();
     o["move_era"] = AutoTestAccess::MoveEra();
@@ -525,6 +550,8 @@ json Observe(const json& step) {
             o["state2"] = p->stateFlags2;
             o["cs_state"] = gPlayState->csCtx.state;
             o["msg_mode"] = gPlayState->msgCtx.msgMode;
+            o["msg_text_id"] = gPlayState->msgCtx.textId;
+            o["frozen"] = (p->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE) != 0;
             o["carrying"] = (p->stateFlags1 & PLAYER_STATE1_CARRYING_ACTOR) != 0;
             o["held_actor"] = p->heldActor != nullptr;
             o["link_pos"] = { p->actor.world.pos.x, p->actor.world.pos.y, p->actor.world.pos.z };
@@ -625,6 +652,7 @@ void ResetInventory() {
         inv.ammo[i] = 0;
     }
     inv.equipment = 0;
+    AutoTestAccess::ResetEquipLost();
     inv.upgrades = 0;
     inv.questItems = 0;
     for (int i = 0; i < 20; i++) {
@@ -656,6 +684,7 @@ uint16_t ButtonMask(const std::string& name) {
     if (name == "B") return BTN_B;
     if (name == "START") return BTN_START;
     if (name == "R") return BTN_R;
+    if (name == "Z") return BTN_Z;
     return 0;
 }
 
@@ -685,6 +714,11 @@ void OnMainStart() {
     Input* in = &gPlayState->state.input[0];
     const int idx = sState.padTotal - sState.padFrames;
     sState.padFrames--;
+    if (sState.padHold != 0) {
+        in->cur.button |= sState.padHold;
+        if (idx == 0)
+            in->press.button |= sState.padHold;
+    }
     if (sState.padEvery > 0 && (idx % sState.padEvery) != 0) {
         return;
     }
@@ -706,8 +740,17 @@ Actor* FindPedestal() {
 }
 
 // Returns true when the step is complete.
+// hide_ui: keeps the online window closed once connected (for recordings)
+static bool sHideUi = false;
+
 bool RunStep(const json& step) {
     const std::string op = step.value("op", "");
+    if (sHideUi && AutoTestAccess::Connected() && AutoTestAccess::W() != nullptr && AutoTestAccess::W()->IsVisible())
+        AutoTestAccess::W()->Hide();
+    if (op == "hide_ui") {
+        sHideUi = true;
+        return true;
+    }
     const uint32_t timeout = step.value("timeout_frames", 3600);
     const bool first = !sState.stepStarted;
     sState.stepStarted = true;
@@ -815,6 +858,15 @@ bool RunStep(const json& step) {
             // back to normal play after a cutscene (optionally in `scene`)
             ok = PlayReady() && gPlayState->csCtx.state == CS_STATE_IDLE && !Player_InCsMode(gPlayState) &&
                  sState.stepFrames > 20 && (!step.contains("scene") || gPlayState->sceneNum == step.value("scene", 0));
+        } else if (cond == "dlg_received") {
+            ok = AutoTestAccess::DlgReceived() >= n;
+        } else if (cond == "dlg_following") {
+            ok = AutoTestAccess::DlgFollowing() == step.value("value", true);
+        } else if (cond == "msg_text") {
+            ok = gPlayState != nullptr && gPlayState->msgCtx.msgMode != MSGMODE_NONE &&
+                 gPlayState->msgCtx.textId == step.value("value", 0);
+        } else if (cond == "msg_closed") {
+            ok = gPlayState != nullptr && gPlayState->msgCtx.msgMode == MSGMODE_NONE;
         } else if (cond == "cs_received") {
             ok = AutoTestAccess::CsReceived() >= n;
         } else if (PlayReady()) {
@@ -970,6 +1022,8 @@ bool RunStep(const json& step) {
             uint16_t mask = 0;
             for (auto& b : step.value("buttons", json::array())) mask |= ButtonMask(b.get<std::string>());
             StartInput(mask, step.value("x", 0), step.value("y", 0), step.value("n", 1), step.value("every", 0));
+            sState.padHold = 0;
+            for (auto& b : step.value("hold", json::array())) sState.padHold |= ButtonMask(b.get<std::string>());
             return false;
         }
         if (sState.padFrames > 0) return timedOut("input still running");
@@ -1201,6 +1255,61 @@ bool RunStep(const json& step) {
     if (op == "set_time") {
         if (step.contains("day_time")) gSaveContext.dayTime = step["day_time"].get<int>();
         if (step.contains("night_flag")) gSaveContext.nightFlag = step["night_flag"].get<int>();
+        return true;
+    }
+    if (op == "start_text") {
+        // opens a text box the way an NPC talk does, owned by a real NPC of the scene (a Kokiri by default);
+        // actor_id is the NPC the client treats the conversation as coming from (test-only override)
+        if (!PlayReady()) return timedOut("start_text not ready");
+        Actor* owner = nullptr;
+        for (int cat = 0; cat < ACTORCAT_MAX && owner == nullptr; cat++) {
+            for (Actor* a = gPlayState->actorCtx.actorLists[cat].head; a != nullptr; a = a->next) {
+                if (a->id == step.value("owner_id", (int)ACTOR_EN_KO)) { owner = a; break; }
+            }
+        }
+        if (owner == nullptr) return timedOut("start_text: no NPC to own the text box");
+        AutoTestAccess::SetDlgTestActor(step.value("actor_id", -1));
+        Message_StartTextbox(gPlayState, (u16)step.value("text_id", 0), owner);
+        return true;
+    }
+    if (op == "continue_text") {
+        if (!PlayReady()) return timedOut("continue_text not ready");
+        Message_ContinueTextbox(gPlayState, (u16)step.value("text_id", 0));
+        return true;
+    }
+    if (op == "close_text") {
+        if (!PlayReady()) return timedOut("close_text not ready");
+        Message_CloseTextbox(gPlayState);
+        AutoTestAccess::SetDlgTestActor(-1);
+        return true;
+    }
+    if (op == "approach_actor") {
+        // puts Link `dist` units from the nearest awake actor with this id, facing it (for filming fights)
+        if (!PlayReady()) return timedOut("approach_actor not ready");
+        Player* p = GET_PLAYER(gPlayState);
+        Actor* best = nullptr;
+        float bestD = 1e9f;
+        for (int cat = 0; cat < ACTORCAT_MAX; cat++) {
+            for (Actor* a = gPlayState->actorCtx.actorLists[cat].head; a != nullptr; a = a->next) {
+                if (a->id != step.value("id", -1) || a->update == nullptr || a->colChkInfo.health == 0) continue;
+                float dx = a->world.pos.x - p->actor.world.pos.x, dz = a->world.pos.z - p->actor.world.pos.z;
+                float d = dx * dx + dz * dz;
+                if (d < bestD) { bestD = d; best = a; }
+            }
+        }
+        if (best == nullptr) return timedOut("approach_actor: none");
+        float dist = step.value("dist", 70.0f);
+        float side = step.value("side", 0.0f);
+        float dx = p->actor.world.pos.x - best->world.pos.x, dz = p->actor.world.pos.z - best->world.pos.z;
+        float len = sqrtf(dx * dx + dz * dz);
+        if (len < 1.0f) { dx = 1.0f; dz = 0.0f; len = 1.0f; }
+        dx /= len; dz /= len;
+        p->actor.world.pos.x = best->world.pos.x + dx * dist - dz * side;
+        p->actor.world.pos.z = best->world.pos.z + dz * dist + dx * side;
+        p->actor.world.pos.y = best->world.pos.y;
+        p->actor.prevPos = p->actor.world.pos;
+        s16 yaw = Math_Vec3f_Yaw(&p->actor.world.pos, &best->world.pos);
+        p->actor.shape.rot.y = p->actor.world.rot.y = p->yaw = yaw;
         return true;
     }
     if (op == "log") {

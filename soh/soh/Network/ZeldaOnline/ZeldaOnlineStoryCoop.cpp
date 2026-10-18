@@ -8,6 +8,7 @@
 #include "ZeldaOnlineClient.hpp"
 
 #include "soh/OTRGlobals.h"
+#include "soh/SaveManager.h"
 #include "soh/Enhancements/game-interactor/GameInteractor.h"
 #include "soh/Enhancements/game-interactor/GameInteractor_Hooks.h"
 #include "soh/Enhancements/item-tables/ItemTableManager.h"
@@ -338,6 +339,59 @@ bool ZeldaOnlineClient::StoryShareConsumables() const {
     return StoryCoopActive() && m_partySettings.shareAmmoRupeesHp;
 }
 
+// Per player gear loss. Owned equipment is a union across the party, so without this a shield eaten by a Like Like
+// (or a burned Deku Shield, an eaten tunic) would come straight back from the team save. The owned bits this player
+// had and then lost are remembered in the save file; the union skips them until the player owns the item again
+// (bought or found), which clears the mark. Nothing is ever uploaded as a removal, so teammates keep their gear.
+static uint16_t sStoryEquipLost = 0;
+static uint16_t sStoryEquipSeen = 0;
+static uint32_t sStoryEquipSerial = 0xFFFFFFFFu;
+
+static void StoryEquipLostInit(bool) {
+    sStoryEquipLost = 0;
+    sStoryEquipSerial = 0xFFFFFFFFu;
+}
+
+static void StoryEquipLostLoad() {
+    uint16_t lost = 0;
+    SaveManager::Instance->LoadData("lostEquipment", lost);
+    sStoryEquipLost = lost;
+}
+
+static void StoryEquipLostSave(SaveContext*, int, bool) {
+    SaveManager::Instance->SaveData("lostEquipment", sStoryEquipLost);
+}
+
+void ZeldaOnlineClient::StoryRegisterSave() {
+    static bool registered = false;
+    if (registered || SaveManager::Instance == nullptr)
+        return;
+    registered = true;
+    SaveManager::Instance->AddInitFunction(StoryEquipLostInit);
+    SaveManager::Instance->AddLoadFunction("storyCoopGear", 1, StoryEquipLostLoad);
+    SaveManager::Instance->AddSaveFunction("storyCoopGear", 1, StoryEquipLostSave, true, SECTION_PARENT_NONE);
+}
+
+void ZeldaOnlineClient::StoryResetEquipLost() {
+    sStoryEquipLost = 0;
+    sStoryEquipSerial = 0xFFFFFFFFu;
+}
+
+void ZeldaOnlineClient::StoryTrackEquipment() {
+    if (gSaveContext.fileNum == 0xFF || gSaveContext.gameMode != GAMEMODE_NORMAL)
+        return;
+    const uint16_t tracked = (uint16_t)~STORY_EQUIPMENT_EXCLUDE;
+    uint16_t now = gSaveContext.inventory.equipment & tracked;
+    if (sStoryEquipSerial != m_storySaveSerial) {
+        sStoryEquipSerial = m_storySaveSerial;
+        sStoryEquipSeen = now;
+        return;
+    }
+    sStoryEquipLost |= (uint16_t)(sStoryEquipSeen & ~now);
+    sStoryEquipLost &= (uint16_t)~now;
+    sStoryEquipSeen = now;
+}
+
 // Called whenever the party id or the party settings may have changed.
 void ZeldaOnlineClient::StoryRefreshState() {
     bool active = StoryCoopActive();
@@ -347,6 +401,9 @@ void ZeldaOnlineClient::StoryRefreshState() {
         StoryReleaseHold(true);
         m_storyApprovedFrames = 0;
         m_storyMoveEra = -1;
+        if (m_storyDlgFollowing)
+            StoryReleaseDialogue();
+        m_storyDlgSpeaking = false;
     }
 
     if (active && (!m_storyWasActive || m_storyPartyID != m_partyID)) {
@@ -590,6 +647,7 @@ StoryProgress ZeldaOnlineClient::StoryCapture() {
     p.bottleCount = (uint8_t)bottles;
     p.hasRutoLetter = hasLetter ? 1 : 0;
 
+    StoryTrackEquipment();
     p.equipment = (uint16_t)(inv.equipment & ~STORY_EQUIPMENT_EXCLUDE);
     p.upgrades = inv.upgrades;
     p.questItems = inv.questItems & ~STORY_QUEST_ITEMS_EXCLUDE;
@@ -818,11 +876,14 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
     }
 
     // equipment: swords, shields, tunics and boots (the Master Sword bit is excluded)
-    inv.equipment |= (u16)(team.equipment & ~STORY_EQUIPMENT_EXCLUDE);
-    if (CHECK_OWNED_EQUIP(EQUIP_TYPE_SWORD, EQUIP_INV_SWORD_BIGGORON)) {
-        // owning the Biggoron Sword replaces the Giant's Knife
+    // gear this player lost (Like Like, fire) is not handed back by the team union, only buying or finding it again is
+    StoryTrackEquipment();
+    inv.equipment |= (u16)(team.equipment & ~STORY_EQUIPMENT_EXCLUDE & ~sStoryEquipLost);
+    if (CHECK_OWNED_EQUIP(EQUIP_TYPE_SWORD, EQUIP_INV_SWORD_BIGGORON) && gSaveContext.bgsFlag) {
+        // owning the Biggoron Sword replaces the Giant's Knife (a knife that broke for this player alone stays broken)
         inv.equipment &= (u16)~OWNED_EQUIP_FLAG_ALT(EQUIP_TYPE_SWORD, EQUIP_INV_SWORD_BROKENGIANTKNIFE);
     }
+    sStoryEquipSeen = inv.equipment & (uint16_t)~STORY_EQUIPMENT_EXCLUDE;
     if (team.bgsFlag)
         gSaveContext.bgsFlag = 1;
     if (gSaveContext.swordHealth < team.swordHealth)
@@ -995,6 +1056,7 @@ void ZeldaOnlineClient::StoryUpdate() {
         StoryRestorePlayer();
     StoryMoveToEra();
     StoryWatchCutscenes();
+    StoryWatchDialogue();
 
     // upload first, so a joining member contributes its own progress before the team save is merged into it
     bool poll = m_storyDirty || (m_storyFrame % 20) == 0;
@@ -1225,6 +1287,12 @@ void ZeldaOnlineClient::StoryOnSwitchAge(bool* should) {
 }
 
 void ZeldaOnlineClient::StoryOnSceneInit() {
+    m_storyDlgSpeaking = false;
+    if (m_storyDlgFollowing) {
+        m_storyDlgFollowing = false;
+        m_storyDlgFroze = false;
+        m_storyDlgShownText = 0;
+    }
     // a scene change ends any wait: withdraw the vote so the others do not wait for somebody who left
     if (m_storyHold) {
         StorySendVote(false);
@@ -1542,4 +1610,152 @@ void ZeldaOnlineClient::OnStoryCutscene(ByteStream& packet) {
     m_storyCsPendingEntrance = entrance;
     m_storyCsPendingIndex = index;
     m_storyCsPendingPath = path;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Key story dialogue watched together
+// ---------------------------------------------------------------------------------------------------------------
+//
+// Some story moments are a plain text box with an NPC, not a cutscene. When the player talks to one of the story
+// NPCs below, the members in the same scene are pulled in: their Link is held and they see the same text, at the
+// speaker's pace. The speaker sends the id of the text on screen whenever it changes (and about once a second as a
+// heartbeat), and a close message when the box is gone. A receiver shows the text with the same message calls the
+// game uses, ignores its own buttons and is released when the speaker closes, leaves or goes quiet for a few
+// seconds, so nobody can get stuck. Yes/no questions are answered by the speaker alone; the others only read.
+// Talking to any other NPC, shop keepers, minigame hosts or the same NPCs inside a cutscene is not mirrored.
+
+namespace {
+
+const int STORY_DLG_BEAT_FRAMES = 20;  // the speaker repeats the text id this often
+const int STORY_DLG_QUIET_FRAMES = 80; // a receiver lets go after this long without hearing from the speaker
+
+bool StoryDialogueActorIsKey(int actorId) {
+    switch (actorId) {
+        case ACTOR_BG_TREEMOUTH: // the Great Deku Tree before the dungeon
+        case ACTOR_EN_ZL1:       // Zelda in the castle garden and the courtyard
+        case ACTOR_EN_ZL2:
+        case ACTOR_EN_ZL3:
+        case ACTOR_EN_ZL4:
+        case ACTOR_EN_SA:        // Saria
+        case ACTOR_DEMO_IM:      // Impa
+        case ACTOR_EN_DU:        // Darunia
+        case ACTOR_EN_KZ:        // King Zora
+        case ACTOR_EN_RU1:       // Ruto
+        case ACTOR_EN_RU2:
+        case ACTOR_EN_NB:        // Nabooru
+        case ACTOR_EN_XC:        // Sheik
+            return true;
+        default:
+            return false;
+    }
+}
+
+} // namespace
+
+// Called every frame from StoryUpdate.
+void ZeldaOnlineClient::StoryWatchDialogue() {
+    PlayState* play = gPlayState;
+    Player* player = GET_PLAYER(play);
+    MessageContext* msg = &play->msgCtx;
+    const bool busy = play->csCtx.state != CS_STATE_IDLE || play->transitionTrigger == TRANS_TRIGGER_START ||
+                      player == nullptr || gSaveContext.health <= 0 || m_storyHold || m_storyApprovedFrames > 0;
+
+    // receiving
+    if (m_storyDlgFollowing) {
+        m_storyDlgQuiet++;
+        if (busy || m_storyDlgQuiet > STORY_DLG_QUIET_FRAMES) {
+            StoryReleaseDialogue();
+        } else {
+            // held like in a cutscene, and the text only moves on when the speaker says so
+            player->stateFlags1 |= PLAYER_STATE1_IN_CUTSCENE;
+            Input* input = &play->state.input[0];
+            input->press.button = 0;
+            input->cur.button = 0;
+            input->rel.stick_x = input->rel.stick_y = 0;
+            input->cur.stick_x = input->cur.stick_y = 0;
+        }
+    }
+
+    if (m_storyDlgHasPending) {
+        m_storyDlgHasPending = false;
+        if (m_storyDlgPendingKind == 1) {
+            if (m_storyDlgFollowing && m_storyDlgPendingSender == m_storyDlgSpeaker)
+                StoryReleaseDialogue();
+        } else if (m_storyDlgFollowing && m_storyDlgPendingSender != m_storyDlgSpeaker) {
+            // somebody else's conversation, the first one wins
+        } else if (!busy && (m_storyDlgFollowing || (msg->msgMode == MSGMODE_NONE && !Player_InCsMode(play) &&
+                                                      !m_storyDlgSpeaking && play->transitionMode == TRANS_MODE_OFF &&
+                                                      gSaveContext.gameMode == GAMEMODE_NORMAL))) {
+            if (!m_storyDlgFollowing && !(player->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE))
+                m_storyDlgFroze = true;
+            m_storyDlgFollowing = true;
+            m_storyDlgSpeaker = m_storyDlgPendingSender;
+            m_storyDlgQuiet = 0;
+            player->stateFlags1 |= PLAYER_STATE1_IN_CUTSCENE;
+            if (m_storyDlgShownText != m_storyDlgPendingText || msg->msgMode == MSGMODE_NONE) {
+                if (msg->msgMode == MSGMODE_NONE)
+                    Message_StartTextbox(play, m_storyDlgPendingText, nullptr);
+                else
+                    Message_ContinueTextbox(play, m_storyDlgPendingText);
+                m_storyDlgShownText = m_storyDlgPendingText;
+                m_storyDlgShown++;
+            }
+        }
+    }
+
+    // speaking: only a conversation of this player with a story NPC outside of a cutscene
+    if (m_storyDlgFollowing)
+        return;
+    const bool talking = msg->msgMode != MSGMODE_NONE && msg->msgLength != 0 && play->csCtx.state == CS_STATE_IDLE &&
+                         msg->talkActor != nullptr &&
+                         StoryDialogueActorIsKey(m_storyDlgTestActor >= 0 ? m_storyDlgTestActor : msg->talkActor->id);
+    if (talking) {
+        if (!m_storyDlgSpeaking || msg->textId != m_storyDlgSentText || ++m_storyDlgBeat >= STORY_DLG_BEAT_FRAMES) {
+            WritePacket(newPacket(CLIENT_PACKET_STORY_DIALOGUE) << PackedUInt1(0) << PackedUInt2((unsigned int)msg->textId));
+            m_storyDlgSent++;
+            m_storyDlgSpeaking = true;
+            m_storyDlgSentText = msg->textId;
+            m_storyDlgBeat = 0;
+        }
+    } else if (m_storyDlgSpeaking) {
+        WritePacket(newPacket(CLIENT_PACKET_STORY_DIALOGUE) << PackedUInt1(1) << PackedUInt2((unsigned int)m_storyDlgSentText));
+        m_storyDlgSpeaking = false;
+    }
+}
+
+// The speaker closed, left or went quiet: closes the borrowed text box and gives the player back.
+void ZeldaOnlineClient::StoryReleaseDialogue() {
+    PlayState* play = gPlayState;
+    m_storyDlgFollowing = false;
+    m_storyDlgHasPending = false;
+    m_storyDlgShownText = 0;
+    m_storyDlgQuiet = 0;
+    if (play == nullptr)
+        return;
+    if (play->msgCtx.msgMode != MSGMODE_NONE && play->msgCtx.msgLength != 0 && play->msgCtx.talkActor == nullptr)
+        Message_CloseTextbox(play);
+    Player* player = GET_PLAYER(play);
+    if (m_storyDlgFroze && player != nullptr)
+        player->stateFlags1 &= ~PLAYER_STATE1_IN_CUTSCENE;
+    m_storyDlgFroze = false;
+}
+
+void ZeldaOnlineClient::OnStoryDialogue(ByteStream& packet) {
+    if (packet.BytesLeft() < 4)
+        return;
+
+    unsigned int sender = (unsigned int)packet.Read<PackedUInt2>().value();
+    uint8_t kind = (uint8_t)packet.Read<PackedUInt1>().value();
+    uint16_t textId = (uint16_t)packet.Read<PackedUInt2>().value();
+
+    if (!StoryCoopActive() || gPlayState == nullptr || kind > 1)
+        return;
+
+    m_storyDlgReceived++;
+    m_storyDlgPendingSender = sender;
+    m_storyDlgPendingKind = kind;
+    m_storyDlgPendingText = textId;
+    m_storyDlgHasPending = true;
+    if (m_storyDlgFollowing && sender == m_storyDlgSpeaker)
+        m_storyDlgQuiet = 0;
 }

@@ -2016,6 +2016,24 @@ namespace ZeldaOnline
 		}
 		break;
 
+		case CLIENT_PACKET_STORY_DIALOGUE:
+		{
+			auto party = player->GetParty();
+			Scene* scene = player->CurrentScene();
+			if (!party || !party->StoryCoop() || scene == nullptr || data.BytesLeft() < 2 || data.BytesLeft() > 8)
+				break;
+
+			auto kind = data.Read<PackedUInt1>().value();
+			auto textId = data.Read<PackedUInt2>().value();
+			if (kind > 1)
+				break;
+
+			// the key conversation this member has open: the members in the same scene see the same text
+			party->SendToScene(scene, newPacket(SERVER_PACKET_STORY_DIALOGUE)
+				<< PackedUInt2((unsigned int)player->NetworkID()) << PackedUInt1(kind) << PackedUInt2(textId), player);
+		}
+		break;
+
 		case CLIENT_PACKET_STORY_SHARE_ITEM:
 		{
 			auto party = player->GetParty();
