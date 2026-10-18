@@ -1,0 +1,1626 @@
+{
+  "name": "dungeon_live",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "stages": [
+    {
+      "name": "live_sync",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "dl-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 433
+            },
+            {
+              "op": "open_chest",
+              "flag": 3
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 432
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 434
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_p2",
+              "flags": [
+                {
+                  "type": "collect",
+                  "flag": 7
+                },
+                {
+                  "type": "switch",
+                  "flag": 8
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 435
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_live",
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 6
+                }
+              ]
+            },
+            {
+              "op": "goto_room",
+              "n": 10,
+              "near_chest": 6,
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_room10",
+              "chests": true,
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 6
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 437
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 436
+            },
+            {
+              "op": "wait_frames",
+              "n": 10
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_same10",
+              "chests": true
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_same30",
+              "chests": true
+            },
+            {
+              "op": "wait_frames",
+              "n": 50
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_same",
+              "chests": true,
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "give_item",
+              "item": 119,
+              "map_index": 0
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 438
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 439
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_keys_after_use"
+            },
+            {
+              "op": "spawn_collectible",
+              "flag": 12
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_p5_before",
+              "actors": [
+                {
+                  "id": 21,
+                  "radius": 2000,
+                  "params": 17
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "observe",
+              "name": "a_p5_after",
+              "actors": [
+                {
+                  "id": 21,
+                  "radius": 2000,
+                  "params": 17
+                }
+              ],
+              "flags": [
+                {
+                  "type": "collect",
+                  "flag": 12
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 442
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 594,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "goto_room",
+              "n": 10,
+              "near_chest": 6,
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "observe",
+              "name": "b_p0",
+              "chests": true,
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 3
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 433
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 432
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "b_p1_live",
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 3
+                }
+              ]
+            },
+            {
+              "op": "goto_room",
+              "n": 0,
+              "near_chest": 3,
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "observe",
+              "name": "b_p1_room0",
+              "chests": true,
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 3
+                }
+              ]
+            },
+            {
+              "op": "goto_room",
+              "n": 10,
+              "near_chest": 6,
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "set_flag",
+              "type": "collect",
+              "flag": 7
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 8
+            },
+            {
+              "op": "set_flag",
+              "type": "clear",
+              "flag": 4
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 434
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "open_chest",
+              "flag": 6
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 435
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 437
+            },
+            {
+              "op": "open_chest",
+              "flag": 2
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 436
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 438
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "b_keys_after_give"
+            },
+            {
+              "op": "use_key",
+              "map_index": 0
+            },
+            {
+              "op": "wait_frames",
+              "n": 10
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 439
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "spawn_collectible",
+              "flag": 12
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "b_p5_before",
+              "actors": [
+                {
+                  "id": 21,
+                  "radius": 2000,
+                  "params": 17
+                }
+              ]
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "set_flag",
+              "type": "collect",
+              "flag": 12
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 442
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "b_p0",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": false,
+          "label": "B room 10 before: chest 3 closed",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_p1_live",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B in room 10 sees A's room 0 chest open live",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_p1_room0",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B walks into room 0: chest flag set",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_p1_room0",
+          "path": "chests.flag=3.anim_frame",
+          "op": "gt",
+          "value": 0,
+          "label": "B walks into room 0: chest shows open",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p2",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A sees B's collect flag live (other room)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p2",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "A sees B's switch live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p2",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A sees B's room clear live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p3_live",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A in room 0 sees B's room 10 chest open live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p3_room10",
+          "path": "chests.flag=6.anim_frame",
+          "op": "gt",
+          "value": 0,
+          "label": "A walks into room 10: chest shows open",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p3_same",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A in the same room sees the second chest flag live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p3_same",
+          "path": "chests.flag=2.anim_frame",
+          "op": "gt",
+          "value": 0,
+          "label": "A in the same room sees the chest animate open",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_keys_after_give",
+          "path": "dungeon_keys.0",
+          "op": "eq",
+          "value": 1,
+          "label": "B gets A's small key live",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_keys_after_use",
+          "path": "dungeon_keys.0",
+          "op": "eq",
+          "value": 0,
+          "label": "A sees B spending the key live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p5_before",
+          "path": "actor_count",
+          "op": "eq",
+          "value": 1,
+          "label": "A has its own floor pickup",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_p5_before",
+          "path": "actor_count",
+          "op": "eq",
+          "value": 1,
+          "label": "B has its own floor pickup",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p5_after",
+          "path": "actor_count",
+          "op": "eq",
+          "value": 0,
+          "label": "A's floor pickup is gone once B collected it",
+          "roles": [
+            "A"
+          ]
+        }
+      ]
+    },
+    {
+      "name": "live_sync_private_dungeons",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "dl-qa-code",
+              "private_dungeons": true
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 433
+            },
+            {
+              "op": "open_chest",
+              "flag": 3
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 432
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 434
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_p2",
+              "flags": [
+                {
+                  "type": "collect",
+                  "flag": 7
+                },
+                {
+                  "type": "switch",
+                  "flag": 8
+                },
+                {
+                  "type": "clear",
+                  "flag": 4
+                }
+              ]
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 435
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_live",
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 6
+                }
+              ]
+            },
+            {
+              "op": "goto_room",
+              "n": 10,
+              "near_chest": 6,
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_room10",
+              "chests": true,
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 6
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 437
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 436
+            },
+            {
+              "op": "wait_frames",
+              "n": 10
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_same10",
+              "chests": true
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_same30",
+              "chests": true
+            },
+            {
+              "op": "wait_frames",
+              "n": 50
+            },
+            {
+              "op": "observe",
+              "name": "a_p3_same",
+              "chests": true,
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 2
+                }
+              ]
+            },
+            {
+              "op": "give_item",
+              "item": 119,
+              "map_index": 0
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 438
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 439
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_keys_after_use"
+            },
+            {
+              "op": "spawn_collectible",
+              "flag": 12
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "a_p5_before",
+              "actors": [
+                {
+                  "id": 21,
+                  "radius": 2000,
+                  "params": 17
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "observe",
+              "name": "a_p5_after",
+              "actors": [
+                {
+                  "id": 21,
+                  "radius": 2000,
+                  "params": 17
+                }
+              ],
+              "flags": [
+                {
+                  "type": "collect",
+                  "flag": 12
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 442
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 594,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "goto_room",
+              "n": 10,
+              "near_chest": 6,
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "observe",
+              "name": "b_p0",
+              "chests": true,
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 3
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 433
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 432
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "b_p1_live",
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 3
+                }
+              ]
+            },
+            {
+              "op": "goto_room",
+              "n": 0,
+              "near_chest": 3,
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "observe",
+              "name": "b_p1_room0",
+              "chests": true,
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 3
+                }
+              ]
+            },
+            {
+              "op": "goto_room",
+              "n": 10,
+              "near_chest": 6,
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "set_flag",
+              "type": "collect",
+              "flag": 7
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 8
+            },
+            {
+              "op": "set_flag",
+              "type": "clear",
+              "flag": 4
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 434
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "open_chest",
+              "flag": 6
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 435
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 437
+            },
+            {
+              "op": "open_chest",
+              "flag": 2
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 436
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 438
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "b_keys_after_give"
+            },
+            {
+              "op": "use_key",
+              "map_index": 0
+            },
+            {
+              "op": "wait_frames",
+              "n": 10
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 439
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "spawn_collectible",
+              "flag": 12
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "observe",
+              "name": "b_p5_before",
+              "actors": [
+                {
+                  "id": 21,
+                  "radius": 2000,
+                  "params": 17
+                }
+              ]
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "set_flag",
+              "type": "collect",
+              "flag": 12
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 442
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "b_p0",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": false,
+          "label": "B room 10 before: chest 3 closed",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_p1_live",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B in room 10 sees A's room 0 chest open live",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_p1_room0",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B walks into room 0: chest flag set",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_p1_room0",
+          "path": "chests.flag=3.anim_frame",
+          "op": "gt",
+          "value": 0,
+          "label": "B walks into room 0: chest shows open",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p2",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A sees B's collect flag live (other room)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p2",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "A sees B's switch live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p2",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A sees B's room clear live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p3_live",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A in room 0 sees B's room 10 chest open live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p3_room10",
+          "path": "chests.flag=6.anim_frame",
+          "op": "gt",
+          "value": 0,
+          "label": "A walks into room 10: chest shows open",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p3_same",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A in the same room sees the second chest flag live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p3_same",
+          "path": "chests.flag=2.anim_frame",
+          "op": "gt",
+          "value": 0,
+          "label": "A in the same room sees the chest animate open",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_keys_after_give",
+          "path": "dungeon_keys.0",
+          "op": "eq",
+          "value": 1,
+          "label": "B gets A's small key live",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_keys_after_use",
+          "path": "dungeon_keys.0",
+          "op": "eq",
+          "value": 0,
+          "label": "A sees B spending the key live",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p5_before",
+          "path": "actor_count",
+          "op": "eq",
+          "value": 1,
+          "label": "A has its own floor pickup",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_p5_before",
+          "path": "actor_count",
+          "op": "eq",
+          "value": 1,
+          "label": "B has its own floor pickup",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a_p5_after",
+          "path": "actor_count",
+          "op": "eq",
+          "value": 0,
+          "label": "A's floor pickup is gone once B collected it",
+          "roles": [
+            "A"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1388 @@
+{
+  "name": "time_field",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "stages": [
+    {
+      "name": "frozen_night",
+      "server": "fresh",
+      "server_config": {
+        "startTime": 51200,
+        "daySpeed": 0,
+        "nightSpeed": 0
+      },
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "tf-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 205,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 205,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "close",
+          "a": {
+            "role": "A",
+            "obs": "t1",
+            "path": "day_time"
+          },
+          "b": {
+            "role": "B",
+            "obs": "t1",
+            "path": "day_time"
+          },
+          "max_diff": 700,
+          "wrap": 65536,
+          "label": "frozen_night t1: both clients show the same time of day"
+        },
+        {
+          "type": "same",
+          "obs": "t1",
+          "path": "night_flag",
+          "label": "frozen_night t1: both clients agree on day or night"
+        },
+        {
+          "type": "each",
+          "obs": "t1",
+          "path": "night_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "frozen_night t1: it is night on both"
+        },
+        {
+          "type": "each",
+          "obs": "t1",
+          "path": "actor_count",
+          "op": "ge",
+          "value": 1,
+          "label": "frozen_night t1: Stalchildren are present",
+          "roles": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "actor_match",
+          "obs": "t1",
+          "tolerance": 200,
+          "min_count": 1,
+          "label": "frozen_night t1: both clients see the same Stalchildren"
+        },
+        {
+          "type": "close",
+          "a": {
+            "role": "A",
+            "obs": "t2",
+            "path": "day_time"
+          },
+          "b": {
+            "role": "B",
+            "obs": "t2",
+            "path": "day_time"
+          },
+          "max_diff": 700,
+          "wrap": 65536,
+          "label": "frozen_night t2: both clients show the same time of day"
+        },
+        {
+          "type": "same",
+          "obs": "t2",
+          "path": "night_flag",
+          "label": "frozen_night t2: both clients agree on day or night"
+        },
+        {
+          "type": "each",
+          "obs": "t2",
+          "path": "night_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "frozen_night t2: it is night on both"
+        },
+        {
+          "type": "each",
+          "obs": "t2",
+          "path": "actor_count",
+          "op": "ge",
+          "value": 1,
+          "label": "frozen_night t2: Stalchildren are present",
+          "roles": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "actor_match",
+          "obs": "t2",
+          "tolerance": 200,
+          "min_count": 1,
+          "label": "frozen_night t2: both clients see the same Stalchildren"
+        }
+      ]
+    },
+    {
+      "name": "running_dusk",
+      "server": "fresh",
+      "server_config": {
+        "startTime": 47500
+      },
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "tf-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 205,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 205,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "close",
+          "a": {
+            "role": "A",
+            "obs": "t1",
+            "path": "day_time"
+          },
+          "b": {
+            "role": "B",
+            "obs": "t1",
+            "path": "day_time"
+          },
+          "max_diff": 700,
+          "wrap": 65536,
+          "label": "running_dusk t1: both clients show the same time of day"
+        },
+        {
+          "type": "same",
+          "obs": "t1",
+          "path": "night_flag",
+          "label": "running_dusk t1: both clients agree on day or night"
+        },
+        {
+          "type": "each",
+          "obs": "t1",
+          "path": "night_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "running_dusk t1: it is night on both"
+        },
+        {
+          "type": "each",
+          "obs": "t1",
+          "path": "actor_count",
+          "op": "ge",
+          "value": 1,
+          "label": "running_dusk t1: Stalchildren are present",
+          "roles": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "actor_match",
+          "obs": "t1",
+          "tolerance": 200,
+          "min_count": 1,
+          "label": "running_dusk t1: both clients see the same Stalchildren"
+        },
+        {
+          "type": "close",
+          "a": {
+            "role": "A",
+            "obs": "t2",
+            "path": "day_time"
+          },
+          "b": {
+            "role": "B",
+            "obs": "t2",
+            "path": "day_time"
+          },
+          "max_diff": 700,
+          "wrap": 65536,
+          "label": "running_dusk t2: both clients show the same time of day"
+        },
+        {
+          "type": "same",
+          "obs": "t2",
+          "path": "night_flag",
+          "label": "running_dusk t2: both clients agree on day or night"
+        },
+        {
+          "type": "each",
+          "obs": "t2",
+          "path": "night_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "running_dusk t2: it is night on both"
+        },
+        {
+          "type": "each",
+          "obs": "t2",
+          "path": "actor_count",
+          "op": "ge",
+          "value": 1,
+          "label": "running_dusk t2: Stalchildren are present",
+          "roles": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "actor_match",
+          "obs": "t2",
+          "tolerance": 200,
+          "min_count": 1,
+          "label": "running_dusk t2: both clients see the same Stalchildren"
+        }
+      ]
+    },
+    {
+      "name": "hand_set_time",
+      "server": "fresh",
+      "server_config": {
+        "startTime": 51200,
+        "daySpeed": 0,
+        "nightSpeed": 0
+      },
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "tf-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 205,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_time",
+              "day_time": 47104,
+              "night_flag": 0
+            },
+            {
+              "op": "wait_frames",
+              "n": 400
+            },
+            {
+              "op": "observe",
+              "name": "ov",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 205,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "set_time",
+              "day_time": 52000,
+              "night_flag": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 400
+            },
+            {
+              "op": "observe",
+              "name": "ov",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "close",
+          "a": {
+            "role": "A",
+            "obs": "ov",
+            "path": "day_time"
+          },
+          "b": {
+            "role": "B",
+            "obs": "ov",
+            "path": "day_time"
+          },
+          "max_diff": 700,
+          "wrap": 65536,
+          "label": "hand_set_time ov: both clients show the same time of day"
+        },
+        {
+          "type": "same",
+          "obs": "ov",
+          "path": "night_flag",
+          "label": "hand_set_time ov: both clients agree on day or night"
+        },
+        {
+          "type": "each",
+          "obs": "ov",
+          "path": "night_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "hand_set_time ov: it is night on both"
+        },
+        {
+          "type": "each",
+          "obs": "ov",
+          "path": "actor_count",
+          "op": "ge",
+          "value": 1,
+          "label": "hand_set_time ov: Stalchildren are present",
+          "roles": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "actor_match",
+          "obs": "ov",
+          "tolerance": 200,
+          "min_count": 1,
+          "label": "hand_set_time ov: both clients see the same Stalchildren"
+        }
+      ]
+    },
+    {
+      "name": "far_apart",
+      "server": "fresh",
+      "server_config": {
+        "startTime": 51200,
+        "daySpeed": 0,
+        "nightSpeed": 0
+      },
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "tf-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 205,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 393,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 500
+            },
+            {
+              "op": "observe",
+              "name": "t2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 7200,
+              "type": "inf_table",
+              "flag": 441
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "close",
+          "a": {
+            "role": "A",
+            "obs": "t1",
+            "path": "day_time"
+          },
+          "b": {
+            "role": "B",
+            "obs": "t1",
+            "path": "day_time"
+          },
+          "max_diff": 700,
+          "wrap": 65536,
+          "label": "far_apart t1: both clients show the same time of day"
+        },
+        {
+          "type": "same",
+          "obs": "t1",
+          "path": "night_flag",
+          "label": "far_apart t1: both clients agree on day or night"
+        },
+        {
+          "type": "each",
+          "obs": "t1",
+          "path": "night_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "far_apart t1: it is night on both"
+        },
+        {
+          "type": "each",
+          "obs": "t1",
+          "path": "actor_count",
+          "op": "ge",
+          "value": 1,
+          "label": "far_apart t1: Stalchildren are present",
+          "roles": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "actor_match",
+          "obs": "t1",
+          "tolerance": 200,
+          "min_count": 1,
+          "label": "far_apart t1: both clients see the same Stalchildren"
+        },
+        {
+          "type": "close",
+          "a": {
+            "role": "A",
+            "obs": "t2",
+            "path": "day_time"
+          },
+          "b": {
+            "role": "B",
+            "obs": "t2",
+            "path": "day_time"
+          },
+          "max_diff": 700,
+          "wrap": 65536,
+          "label": "far_apart t2: both clients show the same time of day"
+        },
+        {
+          "type": "same",
+          "obs": "t2",
+          "path": "night_flag",
+          "label": "far_apart t2: both clients agree on day or night"
+        },
+        {
+          "type": "each",
+          "obs": "t2",
+          "path": "night_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "far_apart t2: it is night on both"
+        },
+        {
+          "type": "each",
+          "obs": "t2",
+          "path": "actor_count",
+          "op": "ge",
+          "value": 1,
+          "label": "far_apart t2: Stalchildren are present",
+          "roles": [
+            "A",
+            "B"
+          ]
+        },
+        {
+          "type": "actor_match",
+          "obs": "t2",
+          "tolerance": 200,
+          "min_count": 1,
+          "label": "far_apart t2: both clients see the same Stalchildren"
+        }
+      ]
+    }
+  ]
+}

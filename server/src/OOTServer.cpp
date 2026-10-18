@@ -98,6 +98,8 @@ namespace ZeldaOnline
 
 			m_daySpeed = (unsigned int)cfg.value("daySpeed", 320);
 			m_nightSpeed = (unsigned int)cfg.value("nightSpeed", 640);
+			// time of day the world starts at (0-65535, 0x8000 is noon); speeds of 0 keep it there
+			m_worldTime = (unsigned int)cfg.value("startTime", 0x8000) & 0xFFFF;
 			m_dungeonsReset = cfg.value("dungeonsReset", true);
 			m_dungeonsResetTimer = cfg.value("dungeonsResetTimer", 10);
 			m_dataDir = cfg.value("dataDir", std::string("data"));

@@ -131,6 +131,17 @@ def dig(obj, path):
             cur = cur[part]
         elif isinstance(cur, list) and part.isdigit() and int(part) < len(cur):
             cur = cur[int(part)]
+        elif isinstance(cur, list) and "=" in part:
+            # "key=value" picks the first list entry whose field `key` equals `value` (numbers compare as numbers)
+            key, want = part.split("=", 1)
+            hit = None
+            for item in cur:
+                if isinstance(item, dict) and str(item.get(key)) == want:
+                    hit = item
+                    break
+            if hit is None:
+                return None
+            cur = hit
         else:
             return None
     return cur
@@ -215,6 +226,42 @@ def check(scenario, logs):
                 ok = compare(a.get("op", "eq"), vb, va)
             want = ("b - a == %r" % a["delta"]) if "delta" in a else ("b %s a" % a.get("op", "eq"))
             results.append((ok, "%s: a=%r b=%r, want %s" % (label, va, vb, want)))
+        elif kind == "close":
+            # two values (possibly of different roles) differ by at most `max_diff` (`wrap` makes it a circular
+            # distance, for the 16 bit time of day)
+            sides = []
+            for side in (a["a"], a["b"]):
+                lg = logs.get(side["role"])
+                ob = find_obs(lg, side["obs"]) if lg else None
+                sides.append(dig(ob, side["path"]) if ob else None)
+            va, vb = sides
+            if va is None or vb is None:
+                ok, diff = False, None
+            else:
+                diff = abs(vb - va)
+                if a.get("wrap"):
+                    diff = min(diff, a["wrap"] - diff)
+                ok = diff <= a["max_diff"]
+            results.append((ok, "%s: a=%r b=%r diff=%r, want <= %r" % (label, va, vb, diff, a["max_diff"])))
+        elif kind == "actor_match":
+            # the `actors` lists of two observations (A's and B's) describe the same actors: same count (at least
+            # `min_count`) and every actor of one has a partner of the other within `tolerance` units
+            oa = find_obs(logs.get("A"), a["obs"]) if logs.get("A") else None
+            ob = find_obs(logs.get("B"), a["obs"]) if logs.get("B") else None
+            la = (oa or {}).get("actors")
+            lb = (ob or {}).get("actors")
+            if la is None or lb is None:
+                results.append((False, "%s: missing actor lists" % label))
+            else:
+                tol = a.get("tolerance", 60.0)
+
+                def has_partner(act, others):
+                    return any(abs(act["x"] - o["x"]) <= tol and abs(act["z"] - o["z"]) <= tol for o in others)
+                missing_b = sum(1 for x in la if not has_partner(x, lb))
+                missing_a = sum(1 for x in lb if not has_partner(x, la))
+                ok = len(la) >= a.get("min_count", 1) and len(lb) >= a.get("min_count", 1) and missing_a == 0 and missing_b == 0
+                results.append((ok, "%s: A sees %d, B sees %d, unmatched A=%d B=%d (tolerance %s)" % (
+                    label, len(la), len(lb), missing_b, missing_a, tol)))
         elif kind == "cross_equal":
             # path_a in role A's observation must equal path_b in role B's observation
             oa = find_obs(logs.get("A"), a["obs"]) if logs.get("A") else None
@@ -322,7 +369,7 @@ def check_server(stage, sdir, log_text, stopped):
     return results
 
 
-def run_clients(args, scenario_path, roles, folders, out, width, height, build_dir, extra):
+def run_clients(args, scenario_path, roles, folders, out, width, height, build_dir, extra, on_tick=None):
     """Launch the clients of one stage, wait with a hard timeout, kill them. Returns the Popen objects."""
     for r in roles:
         # Fresh saves/config/logs each stage, keep the hardlinked binaries.
@@ -354,7 +401,9 @@ def run_clients(args, scenario_path, roles, folders, out, width, height, build_d
                 time.sleep(args.stagger)
         deadline = time.time() + args.timeout
         while time.time() < deadline and any(p.poll() is None for p in procs.values()):
-            time.sleep(0.5)
+            if on_tick is not None:
+                on_tick(procs)
+            time.sleep(0.1 if on_tick is not None else 0.5)
         timed_out = [r for r, p in procs.items() if p.poll() is None]
         if timed_out:
             print("[run] HARD TIMEOUT, killing clients:", ",".join(timed_out))
@@ -484,7 +533,23 @@ def main():
 
             folders = {r: os.path.join(args.work, "inst_" + r) for r in roles}
             out = {r: os.path.join(args.work, "log_%s%s.json" % (r, "_s%d" % si if multi else "")) for r in roles}
-            procs = run_clients(args, stage_path, roles, folders, out, width, height, build_dir, extra)
+            on_tick = None
+            kill_cfg = stage.get("kill_server_after_exit")
+            if kill_cfg and server is not None:
+                # a crash of the server shortly after one client died: kill it `seconds` after that client exited
+                state = {"since": None, "done": False}
+
+                def on_tick(procs, kill_cfg=kill_cfg, state=state):
+                    p = procs.get(kill_cfg["role"])
+                    if state["done"] or p is None or p.poll() is None:
+                        return
+                    if state["since"] is None:
+                        state["since"] = time.time()
+                    if time.time() - state["since"] >= kill_cfg["seconds"]:
+                        kill_tree(server)
+                        state["done"] = True
+                        print("[run] server killed %.1fs after client %s exited" % (kill_cfg["seconds"], kill_cfg["role"]))
+            procs = run_clients(args, stage_path, roles, folders, out, width, height, build_dir, extra, on_tick)
 
             logs = {}
             for r in roles:
@@ -497,7 +562,12 @@ def main():
 
             if not args.no_server:
                 stopped["alive_at_end"] = server is not None and server.poll() is None
-                if stage.get("stop_server", False):
+                if stage.get("stop_server") == "kill":
+                    # a crash: no flush on exit, only what the server already wrote survives
+                    kill_tree(server)
+                    stopped.update(exited=True, code=None)
+                    server = None
+                elif stage.get("stop_server", False):
                     exited, code = stop_server_clean(server)
                     stopped.update(exited=exited, code=code)
                     server = None

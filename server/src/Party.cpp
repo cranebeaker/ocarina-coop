@@ -238,8 +238,9 @@ namespace ZeldaOnline
 {
 	// A travel that has not finished by then (Chamber of Sages included) is considered done
 	static const int STORY_TRAVEL_TIMEOUT_SECONDS = 180;
-	// Unsaved team save changes are written this long after the first change
-	static const int STORY_SAVE_DEBOUNCE_SECONDS = 3;
+	// Unsaved team save changes are written this long after the first change. Short, so a crash of the server or of
+	// a client mid-dungeon loses at most a second of progress.
+	static const int STORY_SAVE_DEBOUNCE_SECONDS = 1;
 	static const int STORY_BACKUP_COUNT = 3;
 	static const int STORY_BACKUP_INTERVAL_MINUTES = 10;
 
@@ -451,6 +452,10 @@ namespace ZeldaOnline
 	{
 		if (!m_storyCoop)
 			return;
+
+		// a member dropping out (crash, closed game, left the party) is the moment progress is most at risk
+		if (m_storyDirty)
+			WriteStorySave();
 
 		// the leaver never stays on hold (their client also clears it when the party goes away)
 		SendVoteStatusTo(player, false);
