@@ -1,5 +1,5 @@
 name: 'Verify compiler version meets the project minimum'
-description: 'Compares the installed compiler against the version in linux-build-deps/minimum-${compiler}-version.txt and reports whether we need to install a newer version and whether that version is available in the distro repos.'
+description: 'Compares the installed compiler against the version in scripts/linux-build-deps/minimum-${compiler}-version.txt and reports whether we need to install a newer version and whether that version is available in the distro repos.'
 inputs:
   compiler:
     description: 'gcc or clang'
@@ -21,7 +21,7 @@ outputs:
     description: 'resolved C++ compiler binary name to use downstream'
     value: ${{ steps.check.outputs.cxx }}
   version:
-    description: 'the minimum version read from linux-build-deps/minimum-${compiler}-version.txt'
+    description: 'the minimum version read from scripts/linux-build-deps/minimum-${compiler}-version.txt'
     value: ${{ steps.check.outputs.version }}
 runs:
   using: composite
@@ -29,7 +29,7 @@ runs:
     - id: check
       shell: bash
       run: |
-        get_min()           { cat "linux-build-deps/minimum-$1-version.txt"; }
+        get_min()           { cat "scripts/linux-build-deps/minimum-$1-version.txt"; }
         get_default_major() { "$1" --version 2>/dev/null | head -1 | grep -oE '[0-9]+' | head -1; }
         cxx_for()           { case "$1" in gcc) echo g++ ;; clang) echo clang++ ;; esac; }
 

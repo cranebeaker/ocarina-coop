@@ -85,23 +85,23 @@ jobs:
       if: ${{ matrix.distro.packageManager == 'pacman' }}
       run: |
         pacman -Syu --noconfirm
-        pacman -S --noconfirm ${{ matrix.cc }} $(cat linux-build-deps/pacman.txt)
+        pacman -S --noconfirm ${{ matrix.cc }} $(cat scripts/linux-build-deps/pacman.txt)
     - name: Install dependencies (dnf)
       if: ${{ matrix.distro.packageManager == 'dnf' }}
       run: |
         dnf -y upgrade
-        dnf -y install ${{ matrix.cc }} ${{ (matrix.cxx == 'g++' && 'gcc-c++') || '' }} $(cat linux-build-deps/dnf.txt)
+        dnf -y install ${{ matrix.cc }} ${{ (matrix.cxx == 'g++' && 'gcc-c++') || '' }} $(cat scripts/linux-build-deps/dnf.txt)
     - name: Install dependencies (apt)
       if: ${{ matrix.distro.packageManager == 'apt' }}
       run: |
         apt-get update
         apt-get -y full-upgrade
-        apt-get -y install ${{ matrix.cc }} ${{ (matrix.cxx == 'g++' && 'g++') || '' }} $(cat linux-build-deps/apt.txt)
+        apt-get -y install ${{ matrix.cc }} ${{ (matrix.cxx == 'g++' && 'g++') || '' }} $(cat scripts/linux-build-deps/apt.txt)
     - name: Install dependencies (zypper)
       if: ${{ matrix.distro.packageManager == 'zypper' }}
       run: |
         zypper --non-interactive dup
-        zypper --non-interactive in ${{ matrix.cc }} ${{ (matrix.cxx == 'g++' && 'gcc-c++') || '' }} ${{ matrix.cc == 'clang' && 'libstdc++-devel' || '' }} $(cat linux-build-deps/zypper.txt)
+        zypper --non-interactive in ${{ matrix.cc }} ${{ (matrix.cxx == 'g++' && 'gcc-c++') || '' }} ${{ matrix.cc == 'clang' && 'libstdc++-devel' || '' }} $(cat scripts/linux-build-deps/zypper.txt)
     - name: Verify compiler version
       id: verify-compiler
       uses: ./.github/actions/verify-compiler
@@ -198,7 +198,7 @@ jobs:
     - uses: cachix/install-nix-action@v31
     - name: Build SoH in nix dev shell
       run: |
-        nix develop ./linux-build-deps -c bash -c '
+        nix develop ./scripts/linux-build-deps -c bash -c '
           cmake --no-warn-unused-cli -H. -Bbuild-cmake -GNinja -DCMAKE_BUILD_TYPE:STRING=Release -DBUILD_REMOTE_CONTROL=1
           cmake --build build-cmake --config Release -j3
         '

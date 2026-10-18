@@ -10,7 +10,7 @@ CI. Patch version (14.0.0 vs 14.0.6) does not matter.
 ## Format the tree
 
 ```bash
-./run-clang-format.sh
+./scripts/format/run-clang-format.sh
 ```
 
 This formats every C/C++ file in `soh/` in place, skipping the decompiled
@@ -21,19 +21,19 @@ The script calls `clang-format-14` by default. If your clang-format 14 is named
 or located differently, point `CLANG_FORMAT` at it:
 
 ```bash
-CLANG_FORMAT=clang-format              ./run-clang-format.sh   # already 14.x
-CLANG_FORMAT=/path/to/clang-format     ./run-clang-format.sh   # static binary
-CLANG_FORMAT="uvx clang-format@14"     ./run-clang-format.sh   # uv wheel
-CLANG_FORMAT='"/path with spaces/cf"'  ./run-clang-format.sh   # quote a spaced path
+CLANG_FORMAT=clang-format              ./scripts/format/run-clang-format.sh   # already 14.x
+CLANG_FORMAT=/path/to/clang-format     ./scripts/format/run-clang-format.sh   # static binary
+CLANG_FORMAT="uvx clang-format@14"     ./scripts/format/run-clang-format.sh   # uv wheel
+CLANG_FORMAT='"/path with spaces/cf"'  ./scripts/format/run-clang-format.sh   # quote a spaced path
 ```
 
 `CLANG_FORMAT` is treated as a command line, so it can carry arguments (the `uvx`
 case) or a quoted path containing spaces.
 
-On Windows you have two options. Run `run-clang-format.ps1` from PowerShell: it
+On Windows you have two options. Run `scripts/format/run-clang-format.ps1` from PowerShell: it
 downloads clang-format 14.0.6 itself (needs [7-Zip](https://www.7-zip.org/)
 installed) and formats the same fileset, so you don't have to install
-clang-format or pass `CLANG_FORMAT`. Or run `run-clang-format.sh` from Git Bash
+clang-format or pass `CLANG_FORMAT`. Or run `scripts/format/run-clang-format.sh` from Git Bash
 (ships with Git for Windows) or WSL, since it needs a Unix shell for
 `find`/`xargs`; get the binary from the `uvx` wheel or the Windows static binary
 below.

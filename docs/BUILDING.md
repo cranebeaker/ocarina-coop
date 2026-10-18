@@ -95,48 +95,48 @@ cd Shipwright
 
 > [!IMPORTANT]
 > Minimum compiler versions:
-> - GCC: see [`linux-build-deps/minimum-gcc-version.txt`](../linux-build-deps/minimum-gcc-version.txt)
-> - Clang: see [`linux-build-deps/minimum-clang-version.txt`](../linux-build-deps/minimum-clang-version.txt)
+> - GCC: see [`scripts/linux-build-deps/minimum-gcc-version.txt`](../scripts/linux-build-deps/minimum-gcc-version.txt)
+> - Clang: see [`scripts/linux-build-deps/minimum-clang-version.txt`](../scripts/linux-build-deps/minimum-clang-version.txt)
 
 #### Debian/Ubuntu
 ```sh
 # using gcc
-apt-get install gcc g++ $(cat linux-build-deps/apt.txt)
+apt-get install gcc g++ $(cat scripts/linux-build-deps/apt.txt)
 
 # or using clang
-apt-get install clang $(cat linux-build-deps/apt.txt)
+apt-get install clang $(cat scripts/linux-build-deps/apt.txt)
 ```
 #### Arch
 ```sh
 # using gcc
-pacman -S gcc $(cat linux-build-deps/pacman.txt)
+pacman -S gcc $(cat scripts/linux-build-deps/pacman.txt)
 
 # or using clang
-pacman -S clang $(cat linux-build-deps/pacman.txt)
+pacman -S clang $(cat scripts/linux-build-deps/pacman.txt)
 ```
 #### Fedora
 ```sh
 # using gcc
-dnf install gcc gcc-c++ $(cat linux-build-deps/dnf.txt)
+dnf install gcc gcc-c++ $(cat scripts/linux-build-deps/dnf.txt)
 
 # or using clang
-dnf install clang $(cat linux-build-deps/dnf.txt)
+dnf install clang $(cat scripts/linux-build-deps/dnf.txt)
 ```
 #### openSUSE
 ```sh
 # using gcc
-zypper in gcc gcc-c++ $(cat linux-build-deps/zypper.txt)
+zypper in gcc gcc-c++ $(cat scripts/linux-build-deps/zypper.txt)
 
 # or using clang
-zypper in clang libstdc++-devel $(cat linux-build-deps/zypper.txt)
+zypper in clang libstdc++-devel $(cat scripts/linux-build-deps/zypper.txt)
 ```
 #### Nix
-This repository provides a [`linux-build-deps/flake.nix`](../linux-build-deps/flake.nix) for setting up a development environment using [Nix](https://nixos.org/).
+This repository provides a [`scripts/linux-build-deps/flake.nix`](../scripts/linux-build-deps/flake.nix) for setting up a development environment using [Nix](https://nixos.org/).
 
 Run
 
 ```sh
-nix develop ./linux-build-deps
+nix develop ./scripts/linux-build-deps
 ```
 
 from the repo root and you'll be dropped into a shell with all dependencies, ensuring that all build commands work.
