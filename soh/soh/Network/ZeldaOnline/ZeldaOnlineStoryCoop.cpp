@@ -80,6 +80,10 @@ void StoryRestorePlayer() {
     }
 }
 
+// Frames between two progress uploads. Short on purpose: progress made right before a crash (a chest, a switch, a key)
+// has to reach the server, and a longer gap leaves the changes of the last half second only on this machine.
+const int STORY_SEND_COOLDOWN_FRAMES = 3;
+
 const int STORY_SLOT_BEAN = SLOT_BEAN;
 
 bool StoryIsPartyScene(int sceneNum) {
@@ -109,6 +113,24 @@ bool StoryIsPartyScene(int sceneNum) {
             return true;
         default:
             return false;
+    }
+}
+
+// A collectible (floor key, heart piece, rupee with a collect flag) that another member just picked up is still lying
+// in this client's room. Take it away, otherwise the same pickup could be collected twice (a floor key would give two
+// small keys of the shared count).
+void StoryRemoveCollected(PlayState* play, u32 newBits) {
+    if (play == nullptr || newBits == 0)
+        return;
+
+    for (Actor* actor = play->actorCtx.actorLists[ACTORCAT_MISC].head; actor != nullptr;) {
+        Actor* next = actor->next;
+        if (actor->id == ACTOR_EN_ITEM00) {
+            s16 flag = ((EnItem00*)actor)->collectibleFlag;
+            if (flag > 0 && flag < 32 && (newBits & (1u << flag)) != 0)
+                Actor_Kill(actor);
+        }
+        actor = next;
     }
 }
 
@@ -709,6 +731,7 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
         saved.clear |= clear;
 
         if (play->sceneNum == scene.sceneNum) {
+            StoryRemoveCollected(play, collect & ~play->actorCtx.flags.collect);
             play->actorCtx.flags.chest |= chest;
             play->actorCtx.flags.collect |= collect;
             play->actorCtx.flags.swch |= swch;
@@ -763,11 +786,11 @@ void ZeldaOnlineClient::StoryUpdate() {
             StorySendProgress(now, true);
             m_storySeedPending = false;
             m_storyLastSent = now;
-            m_storySendCooldown = 10;
+            m_storySendCooldown = STORY_SEND_COOLDOWN_FRAMES;
         } else if (now != m_storyLastSent) {
             StorySendProgress(now, false);
             m_storyLastSent = now;
-            m_storySendCooldown = 10;
+            m_storySendCooldown = STORY_SEND_COOLDOWN_FRAMES;
         }
         m_storyDirty = false;
     }
