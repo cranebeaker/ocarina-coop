@@ -50,7 +50,9 @@ namespace ZeldaOnline {
 
         CLIENT_PACKET_STORY_PROGRESS = 38,
         CLIENT_PACKET_STORY_TIME_VOTE = 39,
-        CLIENT_PACKET_STORY_SHARE_ITEM = 40
+        CLIENT_PACKET_STORY_SHARE_ITEM = 40,
+        // u1 counter id (STORY_COUNTER_*), u2 amount to add; the server adds it to the team save and answers everybody
+        CLIENT_PACKET_STORY_ADD_COUNTER = 41
 
     };
 

@@ -13,7 +13,7 @@
 namespace ZeldaOnline
 {
 	static const int STORY_SCENE_COUNT = 124;
-	static const uint8_t STORY_PROGRESS_VERSION = 1;
+	static const uint8_t STORY_PROGRESS_VERSION = 2; // 1 = original layout, still read
 	static const uint8_t STORY_FLAG_CATCH_UP = (1 << 0); // server -> client: sent to a member who just joined
 	static const uint8_t STORY_FLAG_SEED = (1 << 0);     // client -> server: snapshot uploaded to seed or re-seed the team save
 
@@ -25,10 +25,39 @@ namespace ZeldaOnline
 	static const uint32_t STORY_FOREST_TEMPLE_SWCH_EXCLUDE = 0x08000000u;   // swch 0x1B
 	static const int STORY_SCENE_FOREST_TEMPLE = 0x03;
 	static const int STORY_SCENE_WATER_TEMPLE = 0x05;
+	static const int STORY_WATER_LEVEL_FIRST_SWITCH = 0x1C; // level n (1..3) is switch 0x1B + n
+	static const int STORY_FOREST_ELEVATOR_SWITCH = 0x1B;
 
-	// Switch flags of a scene that are never shared. They describe the state of an actor that always starts in its
-	// default place when the scene loads (the Water Temple water level, the Forest Temple elevator), so a persisted
-	// bit would leave the flag and the actor disagreeing.
+	// Last writer wins slots: small blobs of state that is not a flag (a position, a recorded song, which of several
+	// switches is the live one). The higher stamp wins, an equal stamp falls back to the larger bytes so every side
+	// ends up with the same value. A stamp of 0 means "seeded from a save, never changed in this party".
+	static const uint8_t STORY_LWW_HORSE = 1;            // s16 scene, s16 x, y, z, s16 angle (horseData, where Epona waits)
+	static const uint8_t STORY_LWW_SCARECROW_SPAWN = 2; // u8 set flag, 16 ocarina notes of 8 bytes
+	static const uint8_t STORY_LWW_SCARECROW_LONG = 3;  // u8 set flag, 108 ocarina notes of 8 bytes
+	static const uint8_t STORY_LWW_WATER_LEVEL = 4;     // u8: 1, 2 or 3 = switch 0x1C, 0x1D or 0x1E is the live level
+	static const uint8_t STORY_LWW_FOREST_ELEVATOR = 5; // u8: 1 when switch 0x1B is on
+	static const int STORY_LWW_MAX_SLOTS = 16;
+	static const unsigned int STORY_LWW_MAX_BYTES = 1024;
+
+	// highScores indices (z64save.h) and how each one merges between members
+	static const int STORY_HS_COUNT = 7;
+	static const int STORY_HS_HBA = 0;        // horseback archery best score: highest
+	static const int STORY_HS_POE_POINTS = 1; // Big Poe points: a sum of deliveries, see STORY_COUNTER_POE_POINTS
+	static const int STORY_HS_FISHING = 2;    // bit field, see StoryMergeFishing
+	static const int STORY_HS_HORSE_RACE = 3; // Lon Lon Ranch race best time: lowest, 0 means none
+	static const int STORY_HS_MARATHON = 4;   // not shared: the Running Man also uses it as scratch state during the race
+	static const int STORY_HS_UNK_05 = 5;     // unused by the game
+	static const int STORY_HS_DAMPE_RACE = 6; // Dampe race best time: lowest, 0 means none
+	static const int STORY_POE_POINTS_MAX = 1100;
+
+	// client -> server counter additions (CLIENT_PACKET_STORY_ADD_COUNTER)
+	static const uint8_t STORY_COUNTER_POE_POINTS = 1;
+
+	// Switch flags of a scene that are not merged as plain bits. The game keeps them on purpose (the Water Temple water
+	// level and the Forest Temple elevator are rebuilt from these switches whenever the scene loads, so a single player
+	// save restores them), but they are one-of-N or toggling states, which a union merge would corrupt: an old level
+	// would stay set next to the new one. They travel as last writer wins slots instead (STORY_LWW_WATER_LEVEL and
+	// STORY_LWW_FOREST_ELEVATOR) and the server puts them back into a fresh dungeon instance.
 	static inline uint32_t StorySceneSwchExclude(int sceneNum)
 	{
 		if (sceneNum == STORY_SCENE_WATER_TEMPLE)
@@ -74,8 +103,62 @@ namespace ZeldaOnline
 		}
 	}
 
-	// eventInf bits that are safe to share between party members. eventInf holds per player run state (Lon Lon Ranch race,
-	// horse state, minigame state), so the mask starts empty and a bit is added only after its writers have been reviewed.
+	// Fishing pond record word (highScores[HS_FISHING]). Record lengths and the play counter keep the larger value, the
+	// "talked to the owner", "won the prize" and "used the sinking lure" bits are or-ed. The owner losing his hat
+	// (0x1000) goes back and forth with the age of the player who is fishing, so it stays whatever the local save has.
+	static inline uint32_t StoryMergeFishing(uint32_t mine, uint32_t other)
+	{
+		static const uint32_t kLengthChild = 0x0000007F;
+		static const uint32_t kLengthAdult = 0x7F000000;
+		static const uint32_t kPlayCount = 0x00FF0000;
+		static const uint32_t kOrBits = 0x80000000u | 0x00000800u | 0x00000400u | 0x00000200u | 0x00000100u | 0x00000080u;
+		static const uint32_t kKeep = 0x00001000u | 0x0000E000u;
+
+		uint32_t out = mine & kKeep;
+		out |= (mine & kLengthChild) > (other & kLengthChild) ? (mine & kLengthChild) : (other & kLengthChild);
+		out |= (mine & kLengthAdult) > (other & kLengthAdult) ? (mine & kLengthAdult) : (other & kLengthAdult);
+		out |= (mine & kPlayCount) > (other & kPlayCount) ? (mine & kPlayCount) : (other & kPlayCount);
+		out |= (mine | other) & kOrBits;
+		return out;
+	}
+
+	// Value of one highScores entry after combining two. Entries that are not listed here are never shared.
+	static inline int32_t StoryMergeHighScore(int index, int32_t mine, int32_t other)
+	{
+		switch (index)
+		{
+		case STORY_HS_HBA:
+			return other > mine ? other : mine;
+		case STORY_HS_POE_POINTS:
+		{
+			int32_t best = other > mine ? other : mine;
+			return best > STORY_POE_POINTS_MAX ? STORY_POE_POINTS_MAX : best;
+		}
+		case STORY_HS_FISHING:
+			return (int32_t)StoryMergeFishing((uint32_t)mine, (uint32_t)other);
+		case STORY_HS_HORSE_RACE:
+		case STORY_HS_DAMPE_RACE:
+			if (other <= 0)
+				return mine;
+			if (mine <= 0)
+				return other;
+			return other < mine ? other : mine;
+		default:
+			return mine;
+		}
+	}
+
+	static inline bool StoryHighScoreShared(int index)
+	{
+		return index == STORY_HS_HBA || index == STORY_HS_POE_POINTS || index == STORY_HS_FISHING ||
+		       index == STORY_HS_HORSE_RACE || index == STORY_HS_DAMPE_RACE;
+	}
+
+	// eventInf bits that are safe to share between party members. eventInf is the run state of the minigame or race a
+	// player is in right now (Lon Lon Ranch race, horse state, cucco game, shooting gallery); the game never writes it
+	// to the save file and clears it when a save loads. Forcing a bit on another player would start or end a race for
+	// them, so no bit is shared. What those events leave behind permanently is in eventChkInf, itemGetInf, infTable
+	// and horseData, which are shared. See STORY_COOP_SYNC_AUDIT.md for the reading of every bit.
 	static const uint16_t STORY_EVENTINF_SHARE_MASK[4] = { 0, 0, 0, 0 };
 
 	// upgrades are packed into a u32 as 3 bit fields, except the wallet which uses 2 bits
@@ -91,6 +174,15 @@ namespace ZeldaOnline
 		uint32_t swch = 0;
 		uint32_t clear = 0;
 		uint32_t collect = 0;
+		uint32_t rooms = 0;  // map rooms visited
+		uint32_t floors = 0; // map floors visited
+	};
+
+	struct StoryLwwSlot
+	{
+		uint8_t id = 0;
+		uint32_t stamp = 0;
+		std::vector<uint8_t> data;
 	};
 
 	struct StoryProgress
@@ -122,6 +214,12 @@ namespace ZeldaOnline
 		int32_t gsFlags[6];
 		std::vector<uint16_t> randomizerInf;
 
+		uint32_t worldMapAreaData = 0;      // map areas visited
+		int32_t highScores[STORY_HS_COUNT]; // only the entries StoryHighScoreShared lists are used
+		uint8_t randoTriforcePieces = 0;
+		uint8_t randoBombchuLevel = 0;
+
+		std::vector<StoryLwwSlot> lww;       // sorted by id
 		std::vector<StorySceneFlags> scenes; // sorted by sceneNum, only entries with a non-zero bit
 
 		StoryProgress()
@@ -134,6 +232,67 @@ namespace ZeldaOnline
 			std::memset(infTable, 0, sizeof(infTable));
 			std::memset(eventInf, 0, sizeof(eventInf));
 			std::memset(gsFlags, 0, sizeof(gsFlags));
+			std::memset(highScores, 0, sizeof(highScores));
+		}
+
+		const StoryLwwSlot* FindLww(uint8_t id) const
+		{
+			for (const StoryLwwSlot& slot : lww)
+			{
+				if (slot.id == id)
+					return &slot;
+			}
+			return nullptr;
+		}
+
+		// True when other's slot should replace this one: a higher stamp, or the same stamp with larger bytes
+		static bool LwwWins(const StoryLwwSlot& other, const StoryLwwSlot& mine)
+		{
+			if (other.stamp != mine.stamp)
+				return other.stamp > mine.stamp;
+			return other.data > mine.data;
+		}
+
+		// Sets a slot unconditionally (a side adopting its own change)
+		void SetLww(uint8_t id, uint32_t stamp, const std::vector<uint8_t>& data)
+		{
+			size_t pos = 0;
+			while (pos < lww.size() && lww[pos].id < id)
+				pos++;
+			if (pos == lww.size() || lww[pos].id != id)
+			{
+				StoryLwwSlot fresh;
+				fresh.id = id;
+				lww.insert(lww.begin() + pos, fresh);
+			}
+			lww[pos].stamp = stamp;
+			lww[pos].data = data;
+		}
+
+		bool MergeLww(const StoryLwwSlot& other)
+		{
+			if (other.data.empty() || other.data.size() > STORY_LWW_MAX_BYTES)
+				return false;
+			const StoryLwwSlot* mine = FindLww(other.id);
+			if (mine != nullptr && !LwwWins(other, *mine))
+				return false;
+			SetLww(other.id, other.stamp, other.data);
+			return true;
+		}
+
+		// Adds delta to a shared counter (Big Poe points). The server is the only place that adds, clients only
+		// ever take the maximum, so the same delivery can never be counted twice.
+		bool AddPoePoints(int delta)
+		{
+			if (delta <= 0)
+				return false;
+			int32_t next = highScores[STORY_HS_POE_POINTS] + delta;
+			if (next > STORY_POE_POINTS_MAX)
+				next = STORY_POE_POINTS_MAX;
+			if (next == highScores[STORY_HS_POE_POINTS])
+				return false;
+			highScores[STORY_HS_POE_POINTS] = next;
+			return true;
 		}
 
 		void Serialize(ByteStream& out) const
@@ -174,6 +333,23 @@ namespace ZeldaOnline
 				out.Write(scene.swch);
 				out.Write(scene.clear);
 				out.Write(scene.collect);
+				out.Write(scene.rooms);
+				out.Write(scene.floors);
+			}
+
+			out.Write(worldMapAreaData);
+			for (int i = 0; i < STORY_HS_COUNT; i++)
+				out.Write(highScores[i]);
+			out.Write(randoTriforcePieces);
+			out.Write(randoBombchuLevel);
+			out.WriteVarUInt((unsigned int)lww.size());
+			for (const StoryLwwSlot& slot : lww)
+			{
+				out.Write(slot.id);
+				out.Write(slot.stamp);
+				out.WriteVarUInt((unsigned int)slot.data.size());
+				if (!slot.data.empty())
+					out.Write((const char*)slot.data.data(), (unsigned int)slot.data.size());
 			}
 		}
 
@@ -187,7 +363,7 @@ namespace ZeldaOnline
 				return false;
 
 			uint8_t version = in.Read<uint8_t>();
-			if (version != STORY_PROGRESS_VERSION)
+			if (version != 1 && version != STORY_PROGRESS_VERSION)
 				return false;
 
 			in.Read((char*)items, sizeof(items));
@@ -222,7 +398,8 @@ namespace ZeldaOnline
 				randomizerInf[i] = in.Read<uint16_t>();
 
 			unsigned int sceneCount = in.ReadVarUInt();
-			if (sceneCount > (unsigned int)STORY_SCENE_COUNT || in.BytesLeft() < sceneCount * 17)
+			const unsigned int sceneSize = version >= 2 ? 25 : 17;
+			if (sceneCount > (unsigned int)STORY_SCENE_COUNT || in.BytesLeft() < sceneCount * sceneSize)
 				return false;
 
 			scenes.clear();
@@ -234,11 +411,51 @@ namespace ZeldaOnline
 				scene.swch = in.Read<uint32_t>();
 				scene.clear = in.Read<uint32_t>();
 				scene.collect = in.Read<uint32_t>();
+				if (version >= 2)
+				{
+					scene.rooms = in.Read<uint32_t>();
+					scene.floors = in.Read<uint32_t>();
+				}
 
 				if (scene.sceneNum >= STORY_SCENE_COUNT)
 					return false;
 
 				MergeScene(scene);
+			}
+
+			if (version < 2)
+				return true;
+
+			// 4 + 7 * 4 + 1 + 1 + 1 bytes before the slot data
+			if (in.BytesLeft() < 35)
+				return false;
+
+			worldMapAreaData = in.Read<uint32_t>();
+			for (int i = 0; i < STORY_HS_COUNT; i++)
+				highScores[i] = in.Read<int32_t>();
+			randoTriforcePieces = in.Read<uint8_t>();
+			randoBombchuLevel = in.Read<uint8_t>();
+
+			unsigned int slotCount = in.ReadVarUInt();
+			if (slotCount > (unsigned int)STORY_LWW_MAX_SLOTS)
+				return false;
+
+			lww.clear();
+			for (unsigned int i = 0; i < slotCount; i++)
+			{
+				if (in.BytesLeft() < 6)
+					return false;
+
+				StoryLwwSlot slot;
+				slot.id = in.Read<uint8_t>();
+				slot.stamp = in.Read<uint32_t>();
+				unsigned int len = in.ReadVarUInt();
+				if (len > STORY_LWW_MAX_BYTES || in.BytesLeft() < len)
+					return false;
+				slot.data.resize(len);
+				if (len > 0)
+					in.Read((char*)slot.data.data(), len);
+				MergeLww(slot);
 			}
 			return true;
 		}
@@ -337,6 +554,23 @@ namespace ZeldaOnline
 			for (const StorySceneFlags& scene : other.scenes)
 				changed |= MergeScene(scene);
 
+			changed |= OrInto(worldMapAreaData, other.worldMapAreaData);
+			for (int i = 0; i < STORY_HS_COUNT; i++)
+			{
+				if (!StoryHighScoreShared(i))
+					continue;
+				int32_t merged = StoryMergeHighScore(i, highScores[i], other.highScores[i]);
+				if (merged != highScores[i])
+				{
+					highScores[i] = merged;
+					changed = true;
+				}
+			}
+			changed |= MaxInto(randoTriforcePieces, other.randoTriforcePieces);
+			changed |= MaxInto(randoBombchuLevel, other.randoBombchuLevel);
+			for (const StoryLwwSlot& slot : other.lww)
+				changed |= MergeLww(slot);
+
 			return changed;
 		}
 
@@ -377,7 +611,8 @@ namespace ZeldaOnline
 			StorySceneFlags scene = incoming;
 			scene.swch &= ~StorySceneSwchExclude(scene.sceneNum);
 
-			if (scene.chest == 0 && scene.swch == 0 && scene.clear == 0 && scene.collect == 0)
+			if (scene.chest == 0 && scene.swch == 0 && scene.clear == 0 && scene.collect == 0 && scene.rooms == 0 &&
+			    scene.floors == 0)
 				return false;
 
 			size_t pos = 0;
@@ -397,6 +632,8 @@ namespace ZeldaOnline
 			changed |= OrInto(mine.swch, scene.swch);
 			changed |= OrInto(mine.clear, scene.clear);
 			changed |= OrInto(mine.collect, scene.collect);
+			changed |= OrInto(mine.rooms, scene.rooms);
+			changed |= OrInto(mine.floors, scene.floors);
 			return changed;
 		}
 

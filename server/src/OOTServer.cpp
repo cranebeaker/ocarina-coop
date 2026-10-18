@@ -1979,6 +1979,21 @@ namespace ZeldaOnline
 		}
 		break;
 
+		case CLIENT_PACKET_STORY_ADD_COUNTER:
+		{
+			auto party = player->GetParty();
+			if (!party || !party->StoryCoop() || data.BytesLeft() < 3)
+				break;
+
+			auto counterId = (uint8_t)data.Read<PackedUInt1>().value();
+			auto amount = (int)data.Read<PackedUInt2>().value();
+
+			// the sender is answered too: its own local value may be behind the sum
+			if (amount > 0 && amount <= 1100 && party->StoryAddCounter(counterId, amount))
+				party->SendToAll(MakeStoryStatePacket(party->Story(), 0));
+		}
+		break;
+
 		case CLIENT_PACKET_STORY_SHARE_ITEM:
 		{
 			auto party = player->GetParty();

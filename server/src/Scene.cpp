@@ -29,7 +29,16 @@ void ZeldaOnline::Scene::AddPlayer(Player* player, bool isRefresh)
 		old->RemovePlayer(player);
 
 	if (!isRefresh && m_players.size() == 0)
+	{
 		OnFirstPlayerEnters();
+
+		// Story Co-op: the first member into an empty dungeon instance (new, reset, or left by another party) sets the
+		// Water Temple level and the Forest Temple elevator to where the party last left them, like a single player
+		// save would. Once someone is inside, the live instance flags are the truth.
+		auto party = player->GetParty();
+		if (party && party->StoryCoop() && party->StorySeeded() && IsDungeon())
+			ApplyStoryState(party->Story());
+	}
 
 	for (auto& entry : m_players)
 	{

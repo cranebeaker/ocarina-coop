@@ -198,6 +198,20 @@ namespace ZeldaOnline
 		return true;
 	}
 
+	bool Party::StoryAddCounter(uint8_t counterId, int amount)
+	{
+		if (!m_storyCoop || !m_storySeeded)
+			return false;
+
+		bool changed = false;
+		if (counterId == STORY_COUNTER_POE_POINTS)
+			changed = m_story.AddPoePoints(amount);
+
+		if (changed)
+			MarkStoryDirty();
+		return changed;
+	}
+
 	void Party::SendToAll(const ByteStream& payload, Player* except)
 	{
 		for (auto& other : m_members)

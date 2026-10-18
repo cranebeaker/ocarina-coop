@@ -13,6 +13,7 @@
 #include "ActorListHelper.hpp"
 #include "ActorRegistry.hpp"
 #include "ByteStream.hpp"
+#include "StoryProgress.hpp"
 #include "Packet.hpp"
 #include "PacketTypes.hpp"
 #include "Flags.hpp"
@@ -308,6 +309,31 @@ namespace ZeldaOnline
 
 		virtual void InitializeSceneFlags() {
 
+		}
+
+		// Story Co-op: puts the party's saved state of switches that cannot be merged as plain bits into a dungeon
+		// instance that was just created. The game rebuilds the Water Temple water level and the Forest Temple elevator
+		// from these switches when the scene loads, which is how a single player save restores them.
+		void ApplyStoryState(const StoryProgress& story)
+		{
+			if (m_sceneNum == STORY_SCENE_WATER_TEMPLE)
+			{
+				const StoryLwwSlot* level = story.FindLww(STORY_LWW_WATER_LEVEL);
+				if (level != nullptr && level->data.size() == 1 && level->data[0] >= 1 && level->data[0] <= 3)
+				{
+					const uint32_t levelBits = 0x70000000u; // switches 0x1C-0x1E
+					m_sceneFlags = (m_sceneFlags & ~levelBits) | (1u << (STORY_WATER_LEVEL_FIRST_SWITCH - 1 + level->data[0]));
+				}
+			}
+			else if (m_sceneNum == STORY_SCENE_FOREST_TEMPLE)
+			{
+				const StoryLwwSlot* elevator = story.FindLww(STORY_LWW_FOREST_ELEVATOR);
+				if (elevator != nullptr && elevator->data.size() == 1)
+				{
+					const uint32_t bit = 1u << STORY_FOREST_ELEVATOR_SWITCH;
+					m_sceneFlags = (m_sceneFlags & ~bit) | (elevator->data[0] != 0 ? bit : 0u);
+				}
+			}
 		}
 
 		virtual void OnAllPlayersLeave() {

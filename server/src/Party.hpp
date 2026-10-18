@@ -158,6 +158,9 @@ namespace ZeldaOnline
 		// A member switched a permanent dungeon switch or clear flag off again: the team save forgets it too.
 		bool StoryClearSceneBits(int sceneNum, uint32_t swchMask, uint32_t clearMask);
 
+		// A member added to a counter that is a sum over all members (Big Poe points). Returns true when it changed.
+		bool StoryAddCounter(uint8_t counterId, int amount);
+
 		void SetDungeonKeys(int mapIndex, uint8_t count) {
 			if (mapIndex >= 0 && mapIndex < 19)
 			{
