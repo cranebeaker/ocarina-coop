@@ -124,7 +124,9 @@ is carried out of the temple about 30 frames after spawning (also offline, so un
 floors, the high scores and records (including the Big Poe sum with a simultaneous delivery from both clients), the fishing
 record with the per player hat bit, Epona's parking spot (the last writer wins), the scarecrow songs, the Water Temple
 level walked through four changes and the Forest Temple elevator toggled twice, and the per player parts that must stay
-apart (the Running Man score, the pond owner's hat, `eventInf`). The second stage restarts the server and checks that a
+apart (the Running Man score, the pond owner's hat, `eventInf`, which item is on the B button). It also checks that
+Gold Skulltula tokens, the Biggoron's Sword flag, owned sword and shield bits, magic and double defense reach the other
+client and come back after a restart. The second stage restarts the server and checks that a
 fresh Water Temple and Forest Temple instance start with the party's level and elevator position.
 
 ## Offline unit test

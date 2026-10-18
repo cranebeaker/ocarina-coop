@@ -167,7 +167,7 @@ How it behaves:
 
 - Two players in the Water Temple at the same time share one server dungeon instance, so they always see the same level. A level change by one is a set and clear of switches on the instance, which the server relays to the other player live. Their water actors react the same way as in single player (`WaitForAction` notices the other switch and changes the level, with the one point cutscene).
 - When a member changes the level (or the elevator), the client publishes the new value with the next stamp. The server keeps the highest stamp, so the last change wins on every member and in the saved team file.
-- When a dungeon instance is created on the server (new party, server restart), `Scene::ApplyStoryState` sets the Water Temple level switch and the Forest Temple elevator switch from the team save before anyone enters, so the game rebuilds the temple exactly as a single player save would.
+- When the first member enters an empty dungeon instance on the server (a new instance after a server restart, an instance that was reset after everyone left, or one that another party used), `Scene::ApplyStoryState` sets the Water Temple level switch and the Forest Temple elevator switch from that member's team save before the scene loads, so the game rebuilds the temple exactly as a single player save would. Once someone is inside, the live instance switches are the truth and are not overwritten.
 - A save that was played alone and already has a lowered temple seeds the slot with stamp 0 when it joins, so any change made in the party replaces it.
 
 ## 11. Gaps closed in this audit

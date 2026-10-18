@@ -328,6 +328,7 @@ bool SaveField(const std::string& full, bool write, int64_t& value) {
     if (name == "equipment") return scalar(gSaveContext.inventory.equipment);
     if (name == "magic_acquired") return scalar(gSaveContext.isMagicAcquired);
     if (name == "double_defense") return scalar(gSaveContext.isDoubleDefenseAcquired);
+    if (name == "bgs_flag") return scalar(gSaveContext.bgsFlag);
     if (name == "deaths") return scalar(gSaveContext.deaths);
     if (name == "bgs_day_count") return scalar(gSaveContext.bgsDayCount);
     return false;

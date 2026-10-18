@@ -183,6 +183,31 @@
               "value": 3
             },
             {
+              "op": "set_field",
+              "field": "gs_flags:0",
+              "value": 21
+            },
+            {
+              "op": "set_field",
+              "field": "equipment",
+              "value": 21
+            },
+            {
+              "op": "set_field",
+              "field": "bgs_flag",
+              "value": 1
+            },
+            {
+              "op": "set_field",
+              "field": "magic_acquired",
+              "value": 1
+            },
+            {
+              "op": "set_field",
+              "field": "double_defense",
+              "value": 1
+            },
+            {
               "op": "wait_frames",
               "n": 60
             },
@@ -224,7 +249,13 @@
                 "scarecrow_long_note:107",
                 "scene_rooms:8",
                 "scene_floors:8",
-                "scene_rooms:99"
+                "scene_rooms:99",
+                "gs_tokens",
+                "bgs_flag",
+                "equipment",
+                "magic_acquired",
+                "double_defense",
+                "b_button"
               ]
             },
             {
@@ -560,6 +591,15 @@
               "value": 400
             },
             {
+              "op": "observe",
+              "name": "b_pre",
+              "fields": [
+                "b_button",
+                "equipment",
+                "gs_tokens"
+              ]
+            },
+            {
               "op": "wait_until",
               "cond": "flag",
               "type": "inf_table",
@@ -671,6 +711,46 @@
               "timeout_frames": 3600
             },
             {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "gs_tokens",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "bgs_flag",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "equipment",
+              "value": 21,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "magic_acquired",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "double_defense",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
               "op": "wait_frames",
               "n": 30
             },
@@ -700,7 +780,13 @@
                 "scarecrow_long_note:107",
                 "scene_rooms:8",
                 "scene_floors:8",
-                "scene_rooms:99"
+                "scene_rooms:99",
+                "gs_tokens",
+                "bgs_flag",
+                "equipment",
+                "magic_acquired",
+                "double_defense",
+                "b_button"
               ]
             },
             {
@@ -1178,6 +1264,76 @@
         },
         {
           "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.gs_tokens",
+          "op": "eq",
+          "value": 3,
+          "label": "Gold Skulltula tokens collected by A reach B (flags and count)",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.bgs_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "Biggoron's Sword flag reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.equipment",
+          "op": "eq",
+          "value": 21,
+          "label": "owned Kokiri Sword, Biggoron's Sword and Deku Shield reach B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.magic_acquired",
+          "op": "eq",
+          "value": 1,
+          "label": "Great Fairy magic reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b_phase1",
+          "path": "fields.double_defense",
+          "op": "eq",
+          "value": 1,
+          "label": "Great Fairy double defense reaches B",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "rel",
+          "label": "B's equipped B button item is not changed by the shared sword ownership",
+          "a": {
+            "role": "B",
+            "obs": "b_pre",
+            "path": "fields.b_button"
+          },
+          "b": {
+            "role": "B",
+            "obs": "b_phase1",
+            "path": "fields.b_button"
+          },
+          "op": "eq"
+        },
+        {
+          "type": "each",
           "obs": "a_poe",
           "path": "fields.high_score:1",
           "op": "eq",
@@ -1556,6 +1712,46 @@
               "timeout_frames": 3600
             },
             {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "gs_tokens",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "bgs_flag",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "equipment",
+              "value": 21,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "magic_acquired",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "double_defense",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
               "op": "wait_frames",
               "n": 30
             },
@@ -1585,7 +1781,13 @@
                 "scarecrow_long_note:107",
                 "scene_rooms:8",
                 "scene_floors:8",
-                "scene_rooms:99"
+                "scene_rooms:99",
+                "gs_tokens",
+                "bgs_flag",
+                "equipment",
+                "magic_acquired",
+                "double_defense",
+                "b_button"
               ]
             },
             {
@@ -1854,6 +2056,46 @@
               "timeout_frames": 3600
             },
             {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "gs_tokens",
+              "value": 3,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "bgs_flag",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "equipment",
+              "value": 21,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "magic_acquired",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "field": "double_defense",
+              "value": 1,
+              "cmp": "eq",
+              "timeout_frames": 3600
+            },
+            {
               "op": "wait_frames",
               "n": 30
             },
@@ -1883,7 +2125,13 @@
                 "scarecrow_long_note:107",
                 "scene_rooms:8",
                 "scene_floors:8",
-                "scene_rooms:99"
+                "scene_rooms:99",
+                "gs_tokens",
+                "bgs_flag",
+                "equipment",
+                "magic_acquired",
+                "double_defense",
+                "b_button"
               ]
             },
             {
@@ -2132,6 +2380,61 @@
         },
         {
           "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.gs_tokens",
+          "op": "eq",
+          "value": 3,
+          "label": "after restart: Gold Skulltula tokens restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.bgs_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "after restart: Biggoron's Sword flag restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.equipment",
+          "op": "eq",
+          "value": 21,
+          "label": "after restart: owned sword and shield restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.magic_acquired",
+          "op": "eq",
+          "value": 1,
+          "label": "after restart: magic restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "a2_fields",
+          "path": "fields.double_defense",
+          "op": "eq",
+          "value": 1,
+          "label": "after restart: double defense restored",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
           "obs": "b2_fields",
           "path": "fields.world_map",
           "op": "eq",
@@ -2302,6 +2605,61 @@
           "op": "eq",
           "value": 3,
           "label": "after restart: Bottom of the Well floors visited",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.gs_tokens",
+          "op": "eq",
+          "value": 3,
+          "label": "after restart: Gold Skulltula tokens restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.bgs_flag",
+          "op": "eq",
+          "value": 1,
+          "label": "after restart: Biggoron's Sword flag restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.equipment",
+          "op": "eq",
+          "value": 21,
+          "label": "after restart: owned sword and shield restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.magic_acquired",
+          "op": "eq",
+          "value": 1,
+          "label": "after restart: magic restored",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "b2_fields",
+          "path": "fields.double_defense",
+          "op": "eq",
+          "value": 1,
+          "label": "after restart: double defense restored",
           "roles": [
             "B"
           ]
