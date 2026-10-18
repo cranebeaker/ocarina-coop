@@ -158,6 +158,7 @@ def main():
     ap.add_argument("--work", required=True)
     ap.add_argument("--quick", action="store_true")
     a = ap.parse_args()
+    a.work = os.path.abspath(a.work)
     H, J = os.path.join(a.work, "H"), os.path.join(a.work, "J")
     echo = Echo(ECHO_PORT)
     echo.start()
