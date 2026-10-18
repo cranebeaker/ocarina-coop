@@ -14,7 +14,10 @@ extern "C" {
 #include "global.h"
 #include "macros.h"
 void Sram_InitDebugSave(void);
+// z_player.c: the action Link waits in after taking the sword off the pedestal
+void Player_Action_8084F608(Player* player, PlayState* play);
 }
+#include "soh/Enhancements/SwitchAge.h"
 extern "C" void GameInteractor_ExecuteOnLoadGame(int32_t fileNum);
 extern "C" void GameInteractor_ExecuteOnExitGame(int32_t fileNum);
 
@@ -92,6 +95,20 @@ struct AutoTestAccess {
     }
     static int MoveEra() {
         return C()->m_storyMoveEra;
+    }
+    // Test only: act as if the client were waiting at the pedestal (without having taken the sword), so an era
+    // change the server asks for is not applied yet, the way it is not while a cutscene or message is up.
+    static void FakeHold() {
+        C()->m_storyHold = true;
+    }
+    static void SendVote(bool vote) {
+        C()->StorySendVote(vote);
+    }
+    // Test only: change age the way the client itself does when it moves to the party's era (bypassing the refusal)
+    static void ForceAge() {
+        C()->m_storyAllowAgeChange = true;
+        SwitchAge();
+        C()->m_storyAllowAgeChange = false;
     }
     static const std::string& Nick() {
         return C()->m_nickName;
@@ -210,6 +227,14 @@ struct State {
     int warpTargetScene = -1;
     bool bootReset = false;
     json bootOverride = json::object();
+    // scripted controller input (applied just before the game reads it)
+    uint16_t padMask = 0;
+    int padFrames = 0;
+    int padTotal = 0;
+    int padEvery = 0;
+    int padStickX = 0;
+    int padStickY = 0;
+    double padStartPos[3] = { 0, 0, 0 };
 };
 
 State sState;
@@ -295,6 +320,7 @@ bool WriteFlag(const std::string& type, int flag) {
     else if (type == "event_chk_inf") Flags_SetEventChkInf(flag);
     else if (type == "inf_table") Flags_SetInfTable(flag);
     else if (type == "item_get_inf") Flags_SetItemGetInf(flag);
+    else if (type == "quest_item") gSaveContext.inventory.questItems |= (1u << flag);
     else return false;
     return true;
 }
@@ -436,6 +462,13 @@ json Observe(const json& step) {
             o["bgs_flag"] = gSaveContext.bgsFlag;
         }
         if (p != nullptr) {
+            o["player_wait_action"] = (p->actionFunc == Player_Action_8084F608);
+            o["state1"] = p->stateFlags1;
+            o["state2"] = p->stateFlags2;
+            o["cs_state"] = gPlayState->csCtx.state;
+            o["msg_mode"] = gPlayState->msgCtx.msgMode;
+            o["carrying"] = (p->stateFlags1 & PLAYER_STATE1_CARRYING_ACTOR) != 0;
+            o["held_actor"] = p->heldActor != nullptr;
             o["link_pos"] = { p->actor.world.pos.x, p->actor.world.pos.y, p->actor.world.pos.z };
         }
         if (step.contains("chests")) {
@@ -553,6 +586,60 @@ void ResetInventory() {
 
 void BootNow();
 
+uint16_t ButtonMask(const std::string& name) {
+    if (name == "A") return BTN_A;
+    if (name == "B") return BTN_B;
+    if (name == "START") return BTN_START;
+    if (name == "R") return BTN_R;
+    return 0;
+}
+
+// Starts scripted input for n frames; `every` > 0 presses for one frame out of every `every` (for text boxes).
+void StartInput(uint16_t mask, int x, int y, int n, int every) {
+    sState.padMask = mask;
+    sState.padStickX = x;
+    sState.padStickY = y;
+    sState.padFrames = n;
+    sState.padTotal = n;
+    sState.padEvery = every;
+    if (gPlayState != nullptr) {
+        Player* p = GET_PLAYER(gPlayState);
+        if (p != nullptr) {
+            sState.padStartPos[0] = p->actor.world.pos.x;
+            sState.padStartPos[1] = p->actor.world.pos.y;
+            sState.padStartPos[2] = p->actor.world.pos.z;
+        }
+    }
+}
+
+// Runs just before the game state's main function, after the pad data for this frame was read.
+void OnMainStart() {
+    if (!sState.enabled || sState.scenario.empty() || sState.padFrames <= 0 || gPlayState == nullptr) {
+        return;
+    }
+    Input* in = &gPlayState->state.input[0];
+    const int idx = sState.padTotal - sState.padFrames;
+    sState.padFrames--;
+    if (sState.padEvery > 0 && (idx % sState.padEvery) != 0) {
+        return;
+    }
+    if (sState.padMask != 0) {
+        in->cur.button |= sState.padMask;
+        in->press.button |= sState.padMask;
+    }
+    if (sState.padStickX != 0 || sState.padStickY != 0) {
+        in->cur.stick_x = (s8)sState.padStickX;
+        in->cur.stick_y = (s8)sState.padStickY;
+        in->rel.stick_x = (s8)sState.padStickX;
+        in->rel.stick_y = (s8)sState.padStickY;
+    }
+}
+
+Actor* FindPedestal() {
+    if (gPlayState == nullptr) return nullptr;
+    return Actor_Find(&gPlayState->actorCtx, ACTOR_BG_TOKI_SWD, ACTORCAT_PROP);
+}
+
 // Returns true when the step is complete.
 bool RunStep(const json& step) {
     const std::string op = step.value("op", "");
@@ -611,6 +698,16 @@ bool RunStep(const json& step) {
         const std::string cond = step.value("cond", "");
         const int n = step.value("n", 1);
         bool ok = false;
+        if (sState.stepFrames % 300 == 299 && gPlayState != nullptr) {
+            Event("wait diag: step " + std::to_string(sState.stepIdx) + " cond " + cond + " scene " + std::to_string(gPlayState->sceneNum) + " age " +
+                  std::to_string(gSaveContext.linkAge) + " cs " + std::to_string(gPlayState->csCtx.state) +
+                  " msg " + std::to_string(gPlayState->msgCtx.msgMode) + " transition " +
+                  std::to_string(gPlayState->transitionTrigger));
+        }
+        if (step.value("mash", false) && sState.padFrames <= 0 && gPlayState != nullptr) {
+            // tap A through cutscene text while waiting
+            StartInput(BTN_A, 0, 0, 60, 8);
+        }
         if (cond == "connected") {
             ok = AutoTestAccess::Connected();
         } else if (cond == "net_id") {
@@ -633,11 +730,26 @@ bool RunStep(const json& step) {
             ok = !AutoTestAccess::Settings().storyCode.empty();
         } else if (cond == "disconnected") {
             ok = !AutoTestAccess::Connected();
+        } else if (cond == "hold") {
+            ok = AutoTestAccess::HoldingAtPedestal() == step.value("value", true);
+        } else if (cond == "vote_count") {
+            ok = AutoTestAccess::VoteCount() >= n;
         } else if (cond == "party_admin") {
             ok = AutoTestAccess::IsAdmin() == step.value("value", true);
         } else if (PlayReady()) {
             if (cond == "peers_in_scene") {
                 ok = AutoTestAccess::PeersInScene(gPlayState->sceneNum) >= n;
+            } else if (cond == "link_age") {
+                ok = gSaveContext.linkAge == step.value("value", 0);
+            } else if (cond == "scene_age") {
+                // arrived in `scene` as `value` (0 adult, 1 child) with the play state quiet
+                ok = gPlayState->sceneNum == step.value("scene", 0) && gSaveContext.linkAge == step.value("value", 0) &&
+                     gPlayState->csCtx.state == CS_STATE_IDLE && sState.stepFrames > 30;
+            } else if (cond == "player_free") {
+                Player* p = GET_PLAYER(gPlayState);
+                ok = p->actionFunc != Player_Action_8084F608 && gPlayState->csCtx.state == CS_STATE_IDLE &&
+                     !(p->stateFlags1 & (PLAYER_STATE1_CARRYING_ACTOR | PLAYER_STATE1_IN_CUTSCENE |
+                                         PLAYER_STATE1_GETTING_ITEM | PLAYER_STATE1_IN_ITEM_CS));
             } else if (cond == "peer_puppets") {
                 ok = AutoTestAccess::PlayerPuppets() >= n;
             } else if (cond == "item") {
@@ -733,6 +845,87 @@ bool RunStep(const json& step) {
         }
         if (sState.booted && PlayReady()) return true;
         return timedOut("boot after title");
+    }
+    if (op == "input") {
+        // buttons held for n frames (press edge on the first), optionally with the stick; `every` for tapping
+        if (first) {
+            uint16_t mask = 0;
+            for (auto& b : step.value("buttons", json::array())) mask |= ButtonMask(b.get<std::string>());
+            StartInput(mask, step.value("x", 0), step.value("y", 0), step.value("n", 1), step.value("every", 0));
+            return false;
+        }
+        if (sState.padFrames > 0) return timedOut("input still running");
+        if (step.contains("measure")) {
+            // distance walked while the input ran
+            json o;
+            o["name"] = step["measure"];
+            Player* p = GET_PLAYER(gPlayState);
+            double dx = p->actor.world.pos.x - sState.padStartPos[0];
+            double dz = p->actor.world.pos.z - sState.padStartPos[2];
+            o["moved"] = std::sqrt(dx * dx + dz * dz);
+            sState.observations.push_back(o);
+            WriteLog();
+        }
+        return true;
+    }
+    if (op == "face_pedestal") {
+        // Stand in front of the Master Sword pedestal, looking at it, like Link walking up to it.
+        if (!PlayReady()) return timedOut("face_pedestal: not ready");
+        Actor* ped = FindPedestal();
+        if (ped == nullptr) {
+            std::string ids;
+            for (int c = 0; c < ACTORCAT_MAX; c++) {
+                for (Actor* a = gPlayState->actorCtx.actorLists[c].head; a != nullptr; a = a->next) {
+                    ids += std::to_string(c) + ":" + std::to_string(a->id) + " ";
+                }
+            }
+            Event("actors in scene " + std::to_string(gPlayState->sceneNum) + " setup " +
+                  std::to_string(gSaveContext.sceneSetupIndex) + ": " + ids);
+            return timedOut("face_pedestal: no pedestal actor");
+        }
+        Player* p = GET_PLAYER(gPlayState);
+        const float dist = step.value("dist", 40.0f);
+        const s16 yaw = ped->shape.rot.y;
+        p->actor.world.pos.x = ped->world.pos.x + Math_SinS(yaw) * dist;
+        p->actor.world.pos.z = ped->world.pos.z + Math_CosS(yaw) * dist;
+        p->actor.world.pos.y = ped->world.pos.y;
+        p->actor.prevPos = p->actor.world.pos;
+        p->actor.home.pos = p->actor.world.pos;
+        p->actor.shape.rot.y = p->actor.world.rot.y = p->yaw = (s16)(yaw + 0x8000);
+        Event("facing pedestal at (" + std::to_string(ped->world.pos.x) + ", " + std::to_string(ped->world.pos.y) +
+              ", " + std::to_string(ped->world.pos.z) + ") rot " + std::to_string(yaw));
+        return true;
+    }
+    if (op == "fake_hold") {
+        if (step.value("fresh", false)) {
+            // only right after a scene was entered (a scene change withdraws a hold), as the given age
+            if (gPlayState == nullptr || gPlayState->transitionTrigger != TRANS_TRIGGER_OFF || gPlayState->transitionMode != TRANS_MODE_OFF || sState.stepFrames < 3 ||
+                gSaveContext.linkAge != step.value("value", 0)) {
+                return timedOut("fake_hold: no fresh scene, frames " + std::to_string(gPlayState ? gPlayState->gameplayFrames : -1) + " age " + std::to_string(gSaveContext.linkAge));
+            }
+        }
+        AutoTestAccess::FakeHold();
+        Event("fake hold set");
+        return true;
+    }
+    if (op == "send_vote") {
+        AutoTestAccess::SendVote(step.value("vote", true));
+        Event("vote sent");
+        return true;
+    }
+    if (op == "force_age") {
+        // what the client does to move to the party's era: SwitchAge with the Story Co-op refusal lifted
+        if (!PlayReady()) return timedOut("force_age: not ready");
+        Event("ForceAge() called");
+        AutoTestAccess::ForceAge();
+        return true;
+    }
+    if (op == "switch_age") {
+        // the cheat menu button / Ocarina Time Travel path
+        if (!PlayReady()) return timedOut("switch_age: not ready");
+        Event("SwitchAge() called");
+        SwitchAge();
+        return true;
     }
     if (op == "observe") {
         sState.observations.push_back(Observe(step));
@@ -922,6 +1115,11 @@ void OnFrame() {
 void BootNow() {
     sState.booted = true;
     json boot = sState.scenario.value("boot", json::object());
+    if (sState.roleCfg.contains("boot") && sState.roleCfg["boot"].is_object()) {
+        for (auto it = sState.roleCfg["boot"].begin(); it != sState.roleCfg["boot"].end(); ++it) {
+            boot[it.key()] = it.value();
+        }
+    }
     for (auto it = sState.bootOverride.begin(); it != sState.bootOverride.end(); ++it) {
         boot[it.key()] = it.value();
     }
@@ -1069,6 +1267,7 @@ void RegisterHooks() {
         return;
     }
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnZTitleUpdate>(OnTitleUpdate);
+    GameInteractor::Instance->RegisterGameHook<GameInteractor::OnGameStateMainStart>(OnMainStart);
     GameInteractor::Instance->RegisterGameHook<GameInteractor::OnGameFrameUpdate>(OnFrame);
 }
 

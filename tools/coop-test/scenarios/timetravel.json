@@ -1,0 +1,1758 @@
+{
+  "name": "timetravel",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "roles": {
+    "A": {
+      "name": "TestA",
+      "steps": [
+        {
+          "op": "wait_play",
+          "timeout_frames": 1800
+        },
+        {
+          "op": "connect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "connected",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "net_id",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "warp",
+          "entrance": 238,
+          "scene": 85,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_until",
+          "cond": "other_players",
+          "timeout_frames": 3600,
+          "n": 1
+        },
+        {
+          "op": "create_party",
+          "story_coop": true,
+          "story_code": "tt-qa-code"
+        },
+        {
+          "op": "wait_until",
+          "cond": "has_party",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_active",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "party_size",
+          "timeout_frames": 3600,
+          "n": 2
+        },
+        {
+          "op": "set_flag",
+          "type": "quest_item",
+          "flag": 16
+        },
+        {
+          "op": "set_flag",
+          "type": "quest_item",
+          "flag": 18
+        },
+        {
+          "op": "set_flag",
+          "type": "quest_item",
+          "flag": 19
+        },
+        {
+          "op": "set_flag",
+          "type": "quest_item",
+          "flag": 20
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 67
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 75
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 79
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 85
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 197
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 441
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 442
+        },
+        {
+          "op": "warp",
+          "entrance": 714,
+          "scene": 67,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_frames",
+          "n": 90
+        },
+        {
+          "op": "observe",
+          "name": "a_tot_child"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 443
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 444
+        },
+        {
+          "op": "switch_age"
+        },
+        {
+          "op": "wait_frames",
+          "n": 150
+        },
+        {
+          "op": "observe",
+          "name": "a_cheat_on"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 445
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 446
+        },
+        {
+          "op": "face_pedestal"
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "input",
+          "buttons": [
+            "A"
+          ],
+          "n": 45,
+          "every": 3
+        },
+        {
+          "op": "wait_until",
+          "cond": "hold",
+          "timeout_frames": 600,
+          "value": true
+        },
+        {
+          "op": "wait_frames",
+          "n": 40
+        },
+        {
+          "op": "observe",
+          "name": "a_held"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 447
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 448
+        },
+        {
+          "op": "wait_until",
+          "cond": "scene_age",
+          "timeout_frames": 18000,
+          "scene": 67,
+          "value": 0,
+          "mash": true,
+          "diag": true
+        },
+        {
+          "op": "wait_until",
+          "cond": "player_free",
+          "timeout_frames": 900
+        },
+        {
+          "op": "observe",
+          "name": "a_adult"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 451
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 452
+        },
+        {
+          "op": "face_pedestal"
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "input",
+          "buttons": [
+            "A"
+          ],
+          "n": 45,
+          "every": 3
+        },
+        {
+          "op": "wait_until",
+          "cond": "hold",
+          "timeout_frames": 600,
+          "value": true
+        },
+        {
+          "op": "wait_frames",
+          "n": 30
+        },
+        {
+          "op": "observe",
+          "name": "a_held_adult"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 453
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 454
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 455
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 456
+        },
+        {
+          "op": "wait_until",
+          "cond": "scene_age",
+          "timeout_frames": 18000,
+          "scene": 67,
+          "value": 1,
+          "mash": true,
+          "diag": true
+        },
+        {
+          "op": "wait_until",
+          "cond": "player_free",
+          "timeout_frames": 900
+        },
+        {
+          "op": "observe",
+          "name": "a_child_again"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 457
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 458
+        },
+        {
+          "op": "face_pedestal"
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "input",
+          "buttons": [
+            "A"
+          ],
+          "n": 45,
+          "every": 3
+        },
+        {
+          "op": "wait_until",
+          "cond": "hold",
+          "timeout_frames": 600,
+          "value": true
+        },
+        {
+          "op": "wait_frames",
+          "n": 40
+        },
+        {
+          "op": "observe",
+          "name": "a_hold_cancel"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 459
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 460
+        },
+        {
+          "op": "wait_frames",
+          "n": 150
+        },
+        {
+          "op": "input",
+          "buttons": [
+            "B"
+          ],
+          "n": 3
+        },
+        {
+          "op": "wait_until",
+          "cond": "hold",
+          "timeout_frames": 300,
+          "value": false
+        },
+        {
+          "op": "wait_frames",
+          "n": 20
+        },
+        {
+          "op": "wait_until",
+          "cond": "player_free",
+          "timeout_frames": 900
+        },
+        {
+          "op": "observe",
+          "name": "a_after_cancel"
+        },
+        {
+          "op": "input",
+          "x": 0,
+          "y": 70,
+          "n": 30,
+          "measure": "a_move_after_cancel"
+        },
+        {
+          "op": "wait_frames",
+          "n": 5
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 463
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 384
+        },
+        {
+          "op": "wait_frames",
+          "n": 240
+        },
+        {
+          "op": "observe",
+          "name": "a_during_mixed"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 385
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 386
+        },
+        {
+          "op": "face_pedestal"
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "input",
+          "buttons": [
+            "A"
+          ],
+          "n": 45,
+          "every": 3
+        },
+        {
+          "op": "wait_until",
+          "cond": "hold",
+          "timeout_frames": 600,
+          "value": true
+        },
+        {
+          "op": "wait_frames",
+          "n": 30
+        },
+        {
+          "op": "observe",
+          "name": "a_hold_dc"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 387
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 388
+        },
+        {
+          "op": "wait_until",
+          "cond": "scene_age",
+          "timeout_frames": 18000,
+          "scene": 67,
+          "value": 0,
+          "mash": true,
+          "diag": true
+        },
+        {
+          "op": "wait_until",
+          "cond": "player_free",
+          "timeout_frames": 900
+        },
+        {
+          "op": "observe",
+          "name": "a_after_dc"
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "observe",
+          "name": "a_after_dc2"
+        },
+        {
+          "op": "invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "party_size",
+          "timeout_frames": 3600,
+          "n": 2
+        },
+        {
+          "op": "wait_frames",
+          "n": 300
+        },
+        {
+          "op": "observe",
+          "name": "a_after_late"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 391
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 392
+        },
+        {
+          "op": "switch_age"
+        },
+        {
+          "op": "wait_frames",
+          "n": 150
+        },
+        {
+          "op": "observe",
+          "name": "a_cheat_on_adult"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 393
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 394
+        },
+        {
+          "op": "set_party_settings",
+          "story_coop": false
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_coop_setting",
+          "timeout_frames": 1200,
+          "value": false
+        },
+        {
+          "op": "wait_frames",
+          "n": 30
+        },
+        {
+          "op": "switch_age"
+        },
+        {
+          "op": "wait_until",
+          "cond": "scene_age",
+          "timeout_frames": 3000,
+          "scene": 67,
+          "value": 1
+        },
+        {
+          "op": "wait_until",
+          "cond": "player_free",
+          "timeout_frames": 900
+        },
+        {
+          "op": "observe",
+          "name": "a_cheat_off"
+        },
+        {
+          "op": "wait_frames",
+          "n": 600
+        },
+        {
+          "op": "quit",
+          "pass": true
+        }
+      ]
+    },
+    "B": {
+      "name": "TestB",
+      "steps": [
+        {
+          "op": "wait_play",
+          "timeout_frames": 1800
+        },
+        {
+          "op": "connect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "connected",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "net_id",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "warp",
+          "entrance": 238,
+          "scene": 85,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_until",
+          "cond": "other_players",
+          "timeout_frames": 3600,
+          "n": 1
+        },
+        {
+          "op": "wait_until",
+          "cond": "invite_pending",
+          "timeout_frames": 7200
+        },
+        {
+          "op": "accept_invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "has_party",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_active",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "party_size",
+          "timeout_frames": 3600,
+          "n": 2
+        },
+        {
+          "op": "set_flag",
+          "type": "quest_item",
+          "flag": 16
+        },
+        {
+          "op": "set_flag",
+          "type": "quest_item",
+          "flag": 18
+        },
+        {
+          "op": "set_flag",
+          "type": "quest_item",
+          "flag": 19
+        },
+        {
+          "op": "set_flag",
+          "type": "quest_item",
+          "flag": 20
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 67
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 75
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 79
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 85
+        },
+        {
+          "op": "set_flag",
+          "type": "event_chk_inf",
+          "flag": 197
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 442
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 441
+        },
+        {
+          "op": "warp",
+          "entrance": 714,
+          "scene": 67,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "wait_frames",
+          "n": 90
+        },
+        {
+          "op": "observe",
+          "name": "b_tot_child"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 444
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 443
+        },
+        {
+          "op": "switch_age"
+        },
+        {
+          "op": "wait_frames",
+          "n": 150
+        },
+        {
+          "op": "observe",
+          "name": "b_cheat_on"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 446
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 445
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 448
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 447
+        },
+        {
+          "op": "wait_frames",
+          "n": 40
+        },
+        {
+          "op": "observe",
+          "name": "b_while_a_held"
+        },
+        {
+          "op": "input",
+          "x": 0,
+          "y": 70,
+          "n": 30,
+          "measure": "b_move_while_a_held"
+        },
+        {
+          "op": "wait_frames",
+          "n": 5
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "face_pedestal"
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "input",
+          "buttons": [
+            "A"
+          ],
+          "n": 45,
+          "every": 3
+        },
+        {
+          "op": "wait_until",
+          "cond": "scene_age",
+          "timeout_frames": 18000,
+          "scene": 67,
+          "value": 0,
+          "mash": true,
+          "diag": true
+        },
+        {
+          "op": "wait_until",
+          "cond": "player_free",
+          "timeout_frames": 900
+        },
+        {
+          "op": "observe",
+          "name": "b_adult"
+        },
+        {
+          "op": "input",
+          "x": 0,
+          "y": 70,
+          "n": 30,
+          "measure": "b_move_adult"
+        },
+        {
+          "op": "wait_frames",
+          "n": 5
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 452
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 451
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 454
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 453
+        },
+        {
+          "op": "wait_frames",
+          "n": 30
+        },
+        {
+          "op": "observe",
+          "name": "b_while_a_held_adult"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 456
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 455
+        },
+        {
+          "op": "face_pedestal"
+        },
+        {
+          "op": "wait_frames",
+          "n": 10
+        },
+        {
+          "op": "input",
+          "buttons": [
+            "A"
+          ],
+          "n": 45,
+          "every": 3
+        },
+        {
+          "op": "wait_until",
+          "cond": "scene_age",
+          "timeout_frames": 18000,
+          "scene": 67,
+          "value": 1,
+          "mash": true,
+          "diag": true
+        },
+        {
+          "op": "wait_until",
+          "cond": "player_free",
+          "timeout_frames": 900
+        },
+        {
+          "op": "observe",
+          "name": "b_child_again"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 458
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 457
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 460
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 459
+        },
+        {
+          "op": "wait_frames",
+          "n": 40
+        },
+        {
+          "op": "observe",
+          "name": "b_during_cancel_vote"
+        },
+        {
+          "op": "wait_frames",
+          "n": 260
+        },
+        {
+          "op": "wait_frames",
+          "n": 60
+        },
+        {
+          "op": "observe",
+          "name": "b_after_cancel"
+        },
+        {
+          "op": "input",
+          "x": 0,
+          "y": 70,
+          "n": 30,
+          "measure": "b_move_after_cancel"
+        },
+        {
+          "op": "wait_frames",
+          "n": 5
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 384
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 463
+        },
+        {
+          "op": "force_age"
+        },
+        {
+          "op": "fake_hold",
+          "fresh": true,
+          "value": 0,
+          "timeout_frames": 600
+        },
+        {
+          "op": "observe",
+          "name": "b_mixed_before"
+        },
+        {
+          "op": "send_vote",
+          "vote": true
+        },
+        {
+          "op": "wait_until",
+          "cond": "hold",
+          "timeout_frames": 600,
+          "value": false
+        },
+        {
+          "op": "observe",
+          "name": "b_mixed_released"
+        },
+        {
+          "op": "wait_until",
+          "cond": "scene_age",
+          "timeout_frames": 18000,
+          "scene": 67,
+          "value": 1
+        },
+        {
+          "op": "wait_until",
+          "cond": "player_free",
+          "timeout_frames": 900
+        },
+        {
+          "op": "observe",
+          "name": "b_mixed_back"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 386
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 385
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 388
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 387
+        },
+        {
+          "op": "wait_frames",
+          "n": 20
+        },
+        {
+          "op": "disconnect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "disconnected",
+          "timeout_frames": 600
+        },
+        {
+          "op": "observe",
+          "name": "b_disconnected"
+        },
+        {
+          "op": "wait_frames",
+          "n": 600
+        },
+        {
+          "op": "connect"
+        },
+        {
+          "op": "wait_until",
+          "cond": "connected",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "net_id",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "other_players",
+          "timeout_frames": 3600,
+          "n": 1
+        },
+        {
+          "op": "observe",
+          "name": "b_before_rejoin"
+        },
+        {
+          "op": "wait_until",
+          "cond": "invite_pending",
+          "timeout_frames": 7200
+        },
+        {
+          "op": "accept_invite"
+        },
+        {
+          "op": "wait_until",
+          "cond": "has_party",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_active",
+          "timeout_frames": 1200
+        },
+        {
+          "op": "wait_until",
+          "cond": "link_age",
+          "timeout_frames": 6000,
+          "value": 0
+        },
+        {
+          "op": "wait_until",
+          "cond": "scene_age",
+          "timeout_frames": 18000,
+          "scene": 67,
+          "value": 0
+        },
+        {
+          "op": "wait_until",
+          "cond": "player_free",
+          "timeout_frames": 900
+        },
+        {
+          "op": "observe",
+          "name": "b_late_joined"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 392
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 391
+        },
+        {
+          "op": "switch_age"
+        },
+        {
+          "op": "wait_frames",
+          "n": 150
+        },
+        {
+          "op": "observe",
+          "name": "b_cheat_on_adult"
+        },
+        {
+          "op": "set_flag",
+          "type": "inf_table",
+          "flag": 394
+        },
+        {
+          "op": "wait_until",
+          "cond": "flag",
+          "timeout_frames": 24000,
+          "type": "inf_table",
+          "flag": 393
+        },
+        {
+          "op": "wait_until",
+          "cond": "story_coop_setting",
+          "timeout_frames": 1200,
+          "value": false
+        },
+        {
+          "op": "wait_frames",
+          "n": 400
+        },
+        {
+          "op": "observe",
+          "name": "b_story_off"
+        },
+        {
+          "op": "quit",
+          "pass": true
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "type": "each",
+      "obs": "a_tot_child",
+      "path": "scene",
+      "op": "eq",
+      "value": 67,
+      "label": "A is in the Temple of Time",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_tot_child",
+      "path": "scene",
+      "op": "eq",
+      "value": 67,
+      "label": "B is in the Temple of Time",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_tot_child",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "A starts as child",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_tot_child",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "B starts as child",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_cheat_on",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "A: SwitchAge cheat refused while Story Co-op on (child)",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_cheat_on",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "B: SwitchAge cheat refused while Story Co-op on (child)",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_held",
+      "path": "story_hold",
+      "op": "eq",
+      "value": true,
+      "label": "A held after taking the sword",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_held",
+      "path": "player_wait_action",
+      "op": "eq",
+      "value": true,
+      "label": "A in the pedestal wait action",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_held",
+      "path": "vote_count",
+      "op": "eq",
+      "value": 1,
+      "label": "A sees 1 vote",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_held",
+      "path": "vote_total",
+      "op": "eq",
+      "value": 2,
+      "label": "A sees 2 voters",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_while_a_held",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "B not held while A waits",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_while_a_held",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "B still child while A waits",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_while_a_held",
+      "path": "player_wait_action",
+      "op": "eq",
+      "value": false,
+      "label": "B not in wait action while A waits",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_move_while_a_held",
+      "path": "moved",
+      "op": "gt",
+      "value": 5,
+      "label": "B can walk while A waits",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_adult",
+      "path": "link_age",
+      "op": "eq",
+      "value": 0,
+      "label": "A adult after both voted",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_adult",
+      "path": "link_age",
+      "op": "eq",
+      "value": 0,
+      "label": "B adult after both voted",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_adult",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "A hold released after travel",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_adult",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "B hold released after travel",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_move_adult",
+      "path": "moved",
+      "op": "gt",
+      "value": 5,
+      "label": "B can walk after travel",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_held_adult",
+      "path": "story_hold",
+      "op": "eq",
+      "value": true,
+      "label": "A held placing the sword back",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_while_a_held_adult",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "B not held while A waits (adult)",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_while_a_held_adult",
+      "path": "link_age",
+      "op": "eq",
+      "value": 0,
+      "label": "B still adult while A waits",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_child_again",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "A child after sword placed back",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_child_again",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "B child after sword placed back",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_hold_cancel",
+      "path": "story_hold",
+      "op": "eq",
+      "value": true,
+      "label": "A held (cancel path)",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_during_cancel_vote",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "B not held during cancel vote",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_during_cancel_vote",
+      "path": "vote_count",
+      "op": "eq",
+      "value": 1,
+      "label": "B sees A vote",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after_cancel",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "A hold released by B",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after_cancel",
+      "path": "player_wait_action",
+      "op": "eq",
+      "value": false,
+      "label": "A out of wait action after cancel",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after_cancel",
+      "path": "carrying",
+      "op": "eq",
+      "value": false,
+      "label": "A not carrying anything after cancel",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after_cancel",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "A still child after cancel",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after_cancel",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "B still child after cancel",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_after_cancel",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "B never held in cancel path",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_move_after_cancel",
+      "path": "moved",
+      "op": "gt",
+      "value": 5,
+      "label": "A can walk after cancel",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_mixed_before",
+      "path": "story_hold",
+      "op": "eq",
+      "value": true,
+      "label": "B on (fake) hold with the party in the other era",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_mixed_before",
+      "path": "link_age",
+      "op": "eq",
+      "value": 0,
+      "label": "B is adult while party is child",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_mixed_released",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "mixed era vote rejected, hold released",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_mixed_back",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "B moved back to the party era",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_during_mixed",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "A never held by B mixed vote",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_during_mixed",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "A unaffected by B mixed vote",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_hold_dc",
+      "path": "story_hold",
+      "op": "eq",
+      "value": true,
+      "label": "A held before B drops",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_disconnected",
+      "path": "connected",
+      "op": "eq",
+      "value": false,
+      "label": "B disconnected",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after_dc",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "A not stuck on hold after B disconnect",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after_dc",
+      "path": "link_age",
+      "op": "eq",
+      "value": 0,
+      "label": "A travelled (sole remaining voter) after B disconnect",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_before_rejoin",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "B still child before rejoining",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_late_joined",
+      "path": "link_age",
+      "op": "eq",
+      "value": 0,
+      "label": "late joiner moved to party era (adult)",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_late_joined",
+      "path": "story_hold",
+      "op": "eq",
+      "value": false,
+      "label": "late joiner not held",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_after_late",
+      "path": "link_age",
+      "op": "eq",
+      "value": 0,
+      "label": "A stays adult when B joins",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_cheat_on_adult",
+      "path": "link_age",
+      "op": "eq",
+      "value": 0,
+      "label": "A: SwitchAge cheat refused (adult)",
+      "roles": [
+        "A"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "b_cheat_on_adult",
+      "path": "link_age",
+      "op": "eq",
+      "value": 0,
+      "label": "B: SwitchAge cheat refused (adult)",
+      "roles": [
+        "B"
+      ]
+    },
+    {
+      "type": "each",
+      "obs": "a_cheat_off",
+      "path": "link_age",
+      "op": "eq",
+      "value": 1,
+      "label": "A: SwitchAge cheat works when Story Co-op off",
+      "roles": [
+        "A"
+      ]
+    }
+  ]
+}
