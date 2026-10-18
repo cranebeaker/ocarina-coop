@@ -38,6 +38,7 @@ Steam link (mock Steam DLL): `python tools/steamlink/test/stream_test.py --work 
 | timetravel | pass | 55/55 with --timeout 1100 (22/55 at 300 s and 48/55 at 400 s, hard timeout) |
 | coop_features (teleport to member, enemy sync, Story Co-op on and off) | pass | 28/28 |
 | single_player (no server) | pass | 7/7 |
+| cutscenes (area intro together, scene cutscene together, member elsewhere keeps the intro, trigger drops mid-cutscene, Story Co-op off) | pass | 39/39 |
 | steamlink stream_test (mock) | pass | 10/10 |
 | steamlink e2e_test (mock, real server, 2 clients) | pass | smoke 32/32 |
 | steamlink launch_test | pass | game started with OOT_SERVER, player authenticated |
