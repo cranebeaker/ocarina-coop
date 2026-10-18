@@ -27,6 +27,9 @@ No IP addresses or port forwarding: the connection goes through Steam's relay ne
 Both players need Steam running. You can also run `OOTServer.exe` yourself and connect by address as in
 ShipwrightOnline.
 
+**Linux:** use `Host over Steam.sh` / `Join over Steam.sh` instead of the `.bat` files, with `soh.elf`, `OOTServer`
+and `OOTSteamLink` (see [tools/steamlink](tools/steamlink/README.md)).
+
 https://github.com/user-attachments/assets/fedb77e0-4b35-44a7-9120-dce0d7005fcd
 
 <img width="1073" height="803" alt="image" src="https://github.com/user-attachments/assets/9d737741-d8ca-4d7c-bf03-0547e75d3ab9" />
