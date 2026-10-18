@@ -39,6 +39,7 @@ Steam link (mock Steam DLL): `python tools/steamlink/test/stream_test.py --work 
 | coop_features (teleport to member, enemy sync, Story Co-op on and off) | pass | 28/28 |
 | single_player (no server) | pass | 7/7 |
 | cutscenes (area intro together, scene cutscene together, member elsewhere keeps the intro, trigger drops mid-cutscene, Story Co-op off) | pass | 39/39 |
+| npc_shield (gear loss per player, key NPC dialogue shown to the party, Story Co-op off) | pass | 37/37 |
 | steamlink stream_test (mock) | pass | 10/10 |
 | steamlink e2e_test (mock, real server, 2 clients) | pass | smoke 32/32 |
 | steamlink launch_test | pass | game started with OOT_SERVER, player authenticated |
