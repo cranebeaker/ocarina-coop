@@ -1,11 +1,81 @@
-This is a multiplayer/online mod for SOH. Time, enemies, bosses, various actors, horses, bombs, arrows, boomerangs etc are all synced.
+# Ocarina of Time Story Co-op
 
-It's built MMO-style. Meaning the client is unaware of anyone outside of their own scene and theres no player cap.
-LATEST RELEASE IS HERE: https://github.com/lukegrahamSydney/ShipwrightOnline/releases/latest
+**Play the whole of Ocarina of Time with a friend: one shared story, one team save, and you time travel together.**
 
-## Story Co-op
+[![Support me on Ko-fi](https://ko-fi.com/img/githubbutton_sm.svg)](https://ko-fi.com/cranebeaker)
 
-An opt-in party setting that shares progression, story flags and time travel across a party while keeping consumables per player. Off by default. See [STORY_COOP.md](STORY_COOP.md). Credits: ShipwrightOnline by lukegrahamSydney, and the Anchor / ocarina-coop ideas it ports.
+Story Co-op is a party mode for [Ship of Harkinian](https://github.com/HarbourMasters/Shipwright) (the PC port of
+Ocarina of Time) built on the online netcode of [ShipwrightOnline](https://github.com/lukegrahamSydney/ShipwrightOnline)
+by lukegrahamSydney. Two or more players go through the adventure together as one playthrough.
+
+## Play in three steps
+
+1. Download the latest zip from [Releases](https://github.com/cranebeaker/ocarina-coop/releases/latest) and extract it.
+   You need your own supported Ocarina of Time ROM (no game files are included; on the first start the game builds
+   its assets from your ROM, see Quick Start below).
+2. **Host:** double-click `Host over Steam.bat`. It starts the server, opens a friends-only Steam lobby and starts
+   your game.
+3. **Join:** your friend double-clicks `Join over Steam.bat`; it finds you on their friends list by itself (with it
+   open, right-click you in Steam and Join Game works too). Then the host creates a party in the online window with **Story Co-op** turned on and invites
+   them.
+
+No IP addresses or port forwarding: the connection goes through Steam's relay network (Valve's free "Spacewar" app).
+Both players need Steam running. You can also run `OOTServer.exe` yourself and connect by address as in
+ShipwrightOnline.
+
+## What is shared
+
+- **Items and progress:** weapons, items, songs, medallions, stones, heart containers and pieces, magic, upgrades,
+  story flags, Gold Skulltulas, Big Poe points, scarecrow songs, map progress. One player finds the Hookshot, everyone
+  has it.
+- **Kept per player:** rupees, ammo and health (a party setting shares them too), bottle contents, one-time NPC gifts.
+- **Dungeons:** keys, switches, chests, cleared rooms and pickups update live for everyone in the dungeon, and are
+  saved for the team. The Water Temple water level and the Forest Temple elevator are shared like in single player.
+- **Story cutscenes together:** when a story cutscene starts for one player, everyone in the same area watches it at
+  the same moment. Area intros still play on your own first visit if you were elsewhere.
+- **Time travel together:** pulling the Master Sword puts you on hold ("Waiting for the others") until every player
+  has pulled it, then the whole party travels. The party is always in the same era.
+- **Team save on the server:** survives server restarts, keeps backups, and recovers from a damaged file. Late
+  joiners and reconnects catch up straight away. Every Story Co-op party has a team code shown in the party window.
+- **Enemies and bosses** are synced by the ShipwrightOnline netcode: everyone fights the same enemy.
+
+Details: [STORY_COOP.md](STORY_COOP.md) and the full list of what is shared in
+[STORY_COOP_SYNC_AUDIT.md](STORY_COOP_SYNC_AUDIT.md).
+
+## Status
+
+Every feature above is covered by automated tests that drive two real game clients against a real server: items,
+flags, catch-up and saves, dungeons, live dungeon progress, crash recovery, time of day and enemies, cutscenes, time
+travel, and the Steam relay. Results are in [QA.md](QA.md); how to run them is in
+[tools/coop-test/README.md](tools/coop-test/README.md).
+
+## How it works
+
+- The client sends a compact progress snapshot; the server merges it into the party's team save and sends the result
+  back. Merges are unions and maximums, so nobody loses progress.
+- Story cutscenes are caught where the game starts them (a cutscene script, or a transition into a scene's cutscene
+  layer) and started for the party members in the same scene.
+- The Master Sword pedestal runs a party vote on the server before anyone changes era.
+- `OOTSteamLink.exe` relays the game's TCP connection through Steam: [tools/steamlink/README.md](tools/steamlink/README.md).
+
+## Part of Co-op Anything
+
+This mod is part of [Co-op Anything](https://github.com/cranebeaker/coop-anything), a playbook for turning
+single-player games into co-op with the help of coding agents.
+
+## Credits
+
+- [ShipwrightOnline](https://github.com/lukegrahamSydney/ShipwrightOnline) by lukegrahamSydney: the online netcode,
+  enemy and boss sync, parties and skins this mod is built on.
+- [Ship of Harkinian](https://github.com/HarbourMasters/Shipwright) by HarbourMasters: the PC port.
+- Steam relay: Steamworks.NET's `steam_api64.dll` (Valve's Steamworks runtime).
+
+---
+
+The rest of this README is the original ShipwrightOnline and Ship of Harkinian readme.
+
+ShipwrightOnline: a multiplayer/online mod for SOH. Time, enemies, bosses, various actors, horses, bombs, arrows,
+boomerangs etc are all synced. Original releases: https://github.com/lukegrahamSydney/ShipwrightOnline/releases/latest
 
 https://youtu.be/BCDZvdghA6A?si=D5fk3nhATs81vnCC
 
