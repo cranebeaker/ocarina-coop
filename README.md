@@ -1,5 +1,7 @@
 # Ocarina of Time co-op: the whole game, synced
 
+[![Discord](https://img.shields.io/badge/Discord-chat%20and%20help-5865F2?logo=discord&logoColor=white)](https://discord.gg/EXGB49R82t)
+
 Play **The Legend of Zelda: Ocarina of Time** together on PC, start to finish, in the same
 world. Enemies, bosses, switches, puzzles, cutscenes and day and night are shared, not just
 items.
