@@ -134,6 +134,16 @@ class ZeldaOnlineClient : public ZNetworking {
     uint32_t m_storyDungeonSwch[STORY_SCENE_COUNT] = {};
     uint32_t m_storyDungeonClear[STORY_SCENE_COUNT] = {};
 
+    // Story Co-op last writer wins state (Epona's parking spot, scarecrow songs, Water Temple level, Forest Temple
+    // elevator). Index = STORY_LWW_* slot id. `data` is what this client last published or adopted at `stamp`.
+    struct StoryLwwLocal {
+        bool has = false;
+        uint32_t stamp = 0;
+        std::vector<uint8_t> data;
+    };
+    StoryLwwLocal m_storyLww[STORY_LWW_MAX_SLOTS];
+    int m_storyPoeSeen = -1; // Big Poe points as last seen (-1 until read); a rise is sent to the server as a delta
+
     // Story Co-op time travel: the pedestal vote
     bool m_storyHold = false;                // waiting at the Master Sword pedestal for the other members
     int m_storyApprovedFrames = 0;           // the server said everybody voted, the pedestal may run its native sequence
@@ -165,6 +175,10 @@ class ZeldaOnlineClient : public ZNetworking {
     void StoryRememberDungeonFlags(int sceneNum, uint32_t swch, uint32_t clear);
     void StoryApplyDungeonFlags(PlayState* play);
     void StoryOnDungeonFlag(int sceneNum, int flagType, int flag, bool set);
+    void StoryLwwPublish(uint8_t id, const std::vector<uint8_t>& data, bool seed = false);
+    void StoryLwwAdopt(const StoryLwwSlot& slot);
+    void StoryTrackLocalState();
+    void StoryResetLocalState();
     void OnStoryDungeonClear(ByteStream& packet);
     StoryProgress StoryCapture();
     bool StoryApply(const StoryProgress& team);

@@ -7,6 +7,7 @@
 #include <fstream>
 #include <cstdlib>
 #include <cstring>
+#include <type_traits>
 
 extern "C" {
 #include "global.h"
@@ -288,6 +289,50 @@ bool UnwriteFlag(const std::string& type, int flag) {
     return true;
 }
 
+// Named save fields a scenario can set, wait for and record. A name may carry an index after a colon ("high_score:3").
+// Returns false for an unknown name or an index out of range.
+bool SaveField(const std::string& full, bool write, int64_t& value) {
+    std::string name = full;
+    int index = 0;
+    const size_t colon = full.find(':');
+    if (colon != std::string::npos) {
+        name = full.substr(0, colon);
+        index = atoi(full.c_str() + colon + 1);
+    }
+
+    auto scalar = [&](auto& ref) {
+        if (write) ref = (std::remove_reference_t<decltype(ref)>)value;
+        else value = (int64_t)ref;
+        return true;
+    };
+
+    if (name == "world_map") return scalar(gSaveContext.worldMapAreaData);
+    if (name == "high_score" && index >= 0 && index < 7) return scalar(gSaveContext.highScores[index]);
+    if (name == "horse_scene") return scalar(gSaveContext.horseData.scene);
+    if (name == "horse_x") return scalar(gSaveContext.horseData.pos.x);
+    if (name == "horse_y") return scalar(gSaveContext.horseData.pos.y);
+    if (name == "horse_z") return scalar(gSaveContext.horseData.pos.z);
+    if (name == "horse_angle") return scalar(gSaveContext.horseData.angle);
+    if (name == "scarecrow_spawn_set") return scalar(gSaveContext.scarecrowSpawnSongSet);
+    if (name == "scarecrow_long_set") return scalar(gSaveContext.scarecrowLongSongSet);
+    if (name == "scarecrow_spawn_note" && index >= 0 && index < 16) return scalar(gSaveContext.scarecrowSpawnSong[index].noteIdx);
+    if (name == "scarecrow_long_note" && index >= 0 && index < 108) return scalar(gSaveContext.scarecrowLongSong[index].noteIdx);
+    if (name == "scene_rooms" && index >= 0 && index < 124) return scalar(gSaveContext.sceneFlags[index].rooms);
+    if (name == "scene_floors" && index >= 0 && index < 124) return scalar(gSaveContext.sceneFlags[index].floors);
+    if (name == "scene_unk" && index >= 0 && index < 124) return scalar(gSaveContext.sceneFlags[index].unk);
+    if (name == "event_inf" && index >= 0 && index < 4) return scalar(gSaveContext.eventInf[index]);
+    if (name == "gs_tokens") return scalar(gSaveContext.inventory.gsTokens);
+    if (name == "gs_flags" && index >= 0 && index < 6) return scalar(gSaveContext.gsFlags[index]);
+    if (name == "sword_health") return scalar(gSaveContext.swordHealth);
+    if (name == "b_button") return scalar(gSaveContext.equips.buttonItems[0]);
+    if (name == "equipment") return scalar(gSaveContext.inventory.equipment);
+    if (name == "magic_acquired") return scalar(gSaveContext.isMagicAcquired);
+    if (name == "double_defense") return scalar(gSaveContext.isDoubleDefenseAcquired);
+    if (name == "deaths") return scalar(gSaveContext.deaths);
+    if (name == "bgs_day_count") return scalar(gSaveContext.bgsDayCount);
+    return false;
+}
+
 json Observe(const json& step) {
     json o;
     o["name"] = step.value("name", "obs");
@@ -355,6 +400,29 @@ json Observe(const json& step) {
         }
         if (p != nullptr) {
             o["link_pos"] = { p->actor.world.pos.x, p->actor.world.pos.y, p->actor.world.pos.z };
+        }
+        if (step.contains("actors")) {
+            // params and position of every loaded actor with one of the listed ids (decimal ids from the actor table)
+            json actors = json::array();
+            for (int cat = 0; cat < ACTORCAT_MAX; cat++) {
+                for (Actor* a = gPlayState->actorCtx.actorLists[cat].head; a != nullptr; a = a->next) {
+                    for (auto& want : step["actors"]) {
+                        if (a->id == want.get<int>()) {
+                            actors.push_back({ { "id", a->id }, { "params", (int)(u16)a->params }, { "room", a->room },
+                                               { "y", a->world.pos.y } });
+                        }
+                    }
+                }
+            }
+            o["actors"] = actors;
+        }
+        if (step.contains("fields")) {
+            json fields = json::object();
+            for (auto& name : step["fields"]) {
+                int64_t v = 0;
+                if (SaveField(name.get<std::string>(), false, v)) fields[name.get<std::string>()] = v;
+            }
+            o["fields"] = fields;
         }
         if (step.contains("flags")) {
             json flags = json::array();
@@ -505,6 +573,15 @@ bool RunStep(const json& step) {
                 ok = ((gSaveContext.inventory.questItems >> step.value("bit", 0)) & 1) == (step.value("value", true) ? 1u : 0u);
             } else if (cond == "flag") {
                 ok = ReadFlag(step.value("type", "switch"), step.value("flag", 0)) == step.value("value", true);
+            } else if (cond == "field") {
+                int64_t v = 0;
+                if (!SaveField(step.value("field", ""), false, v)) {
+                    Finish(false, "unknown save field: " + step.value("field", ""));
+                    return true;
+                }
+                const std::string cmp = step.value("cmp", "eq");
+                const int64_t want = step.value("value", (int64_t)0);
+                ok = cmp == "ge" ? v >= want : (cmp == "le" ? v <= want : (cmp == "ne" ? v != want : v == want));
             } else {
                 Finish(false, "unknown wait_until cond: " + cond);
                 return true;
@@ -601,6 +678,22 @@ bool RunStep(const json& step) {
         if (!PlayReady()) return timedOut("give_item not ready");
         if (step.contains("map_index")) gSaveContext.mapIndex = step["map_index"].get<int>();
         Item_Give(gPlayState, (u8)step.value("item", 0));
+        return true;
+    }
+    if (op == "set_field") {
+        if (!PlayReady()) return timedOut("set_field not ready");
+        int64_t v = step.value("value", (int64_t)0);
+        if (!SaveField(step.value("field", ""), true, v)) Finish(false, "unknown save field: " + step.value("field", ""));
+        return true;
+    }
+    if (op == "add_field") {
+        // a local gain, like a delivery or a pickup would be (set_field would replace what the party has sent since)
+        if (!PlayReady()) return timedOut("add_field not ready");
+        int64_t v = 0;
+        const std::string field = step.value("field", "");
+        if (!SaveField(field, false, v)) { Finish(false, "unknown save field: " + field); return true; }
+        v += step.value("value", (int64_t)0);
+        SaveField(field, true, v);
         return true;
     }
     if (op == "set_ammo") {

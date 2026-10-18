@@ -215,6 +215,90 @@ bool StoryQuestBitToItem(int bit, u8& item) {
     return false;
 }
 
+// Epona's parking spot when no horse has ever been parked (z_horse.c Horse_ResetHorseData)
+const s16 kStoryHorseDefault[5] = { SCENE_HYRULE_FIELD, -1840, 72, 5497, -27353 };
+
+// Current game state of a last writer wins slot, as the bytes that travel. False for slots without a game side.
+bool StoryReadLww(uint8_t id, std::vector<uint8_t>& out) {
+    out.clear();
+    switch (id) {
+        case STORY_LWW_HORSE: {
+            s16 v[5] = { gSaveContext.horseData.scene, gSaveContext.horseData.pos.x, gSaveContext.horseData.pos.y,
+                         gSaveContext.horseData.pos.z, gSaveContext.horseData.angle };
+            out.assign((const uint8_t*)v, (const uint8_t*)v + sizeof(v));
+            return true;
+        }
+        case STORY_LWW_SCARECROW_SPAWN:
+            out.push_back(gSaveContext.scarecrowSpawnSongSet ? 1 : 0);
+            out.insert(out.end(), (const uint8_t*)gSaveContext.scarecrowSpawnSong,
+                       (const uint8_t*)gSaveContext.scarecrowSpawnSong + sizeof(gSaveContext.scarecrowSpawnSong));
+            return true;
+        case STORY_LWW_SCARECROW_LONG:
+            out.push_back(gSaveContext.scarecrowLongSongSet ? 1 : 0);
+            out.insert(out.end(), (const uint8_t*)gSaveContext.scarecrowLongSong,
+                       (const uint8_t*)gSaveContext.scarecrowLongSong + sizeof(gSaveContext.scarecrowLongSong));
+            return true;
+        default:
+            return false;
+    }
+}
+
+// True while a slot still holds what a new save starts with, which is not worth seeding into the team
+bool StoryLwwIsDefault(uint8_t id, const std::vector<uint8_t>& data) {
+    switch (id) {
+        case STORY_LWW_HORSE:
+            return data.size() == sizeof(kStoryHorseDefault) &&
+                   std::memcmp(data.data(), kStoryHorseDefault, sizeof(kStoryHorseDefault)) == 0;
+        case STORY_LWW_SCARECROW_SPAWN:
+        case STORY_LWW_SCARECROW_LONG:
+            return data.empty() || data[0] == 0;
+        default:
+            return false;
+    }
+}
+
+// Puts the team's value of a slot into the game. The Water Temple level and the Forest Temple elevator have no client
+// side: the server sets them in a fresh dungeon instance and the game rebuilds the scene from the instance's switches.
+void StoryWriteLww(uint8_t id, const std::vector<uint8_t>& data) {
+    switch (id) {
+        case STORY_LWW_HORSE: {
+            s16 v[5];
+            if (data.size() != sizeof(v))
+                return;
+            std::memcpy(v, data.data(), sizeof(v));
+            if (v[0] < 0 || v[0] >= STORY_SCENE_COUNT)
+                return;
+            gSaveContext.horseData.scene = v[0];
+            gSaveContext.horseData.pos.x = v[1];
+            gSaveContext.horseData.pos.y = v[2];
+            gSaveContext.horseData.pos.z = v[3];
+            gSaveContext.horseData.angle = v[4];
+            break;
+        }
+        case STORY_LWW_SCARECROW_SPAWN:
+            if (data.size() != 1 + sizeof(gSaveContext.scarecrowSpawnSong))
+                return;
+            gSaveContext.scarecrowSpawnSongSet = data[0] != 0;
+            std::memcpy(gSaveContext.scarecrowSpawnSong, data.data() + 1, sizeof(gSaveContext.scarecrowSpawnSong));
+            // the live copy is what the ocarina and the scarecrow actors read, it is only filled from the save on load
+            if (gScarecrowSpawnSongPtr != nullptr && data[0] != 0)
+                std::memcpy(gScarecrowSpawnSongPtr, gSaveContext.scarecrowSpawnSong,
+                            sizeof(gSaveContext.scarecrowSpawnSong));
+            break;
+        case STORY_LWW_SCARECROW_LONG:
+            if (data.size() != 1 + sizeof(gSaveContext.scarecrowLongSong))
+                return;
+            gSaveContext.scarecrowLongSongSet = data[0] != 0;
+            std::memcpy(gSaveContext.scarecrowLongSong, data.data() + 1, sizeof(gSaveContext.scarecrowLongSong));
+            if (gScarecrowCustomSongPtr != nullptr && data[0] != 0)
+                std::memcpy(gScarecrowCustomSongPtr, gSaveContext.scarecrowLongSong,
+                            sizeof(gSaveContext.scarecrowLongSong));
+            break;
+        default:
+            break;
+    }
+}
+
 int StoryPopCount(u32 v) {
     int n = 0;
     for (; v != 0; v &= v - 1)
@@ -250,12 +334,14 @@ void ZeldaOnlineClient::StoryRefreshState() {
         m_storyHasPending = false;
         m_storyPending = StoryProgress();
         m_storyLastSent = StoryProgress();
+        StoryResetLocalState();
     } else if (!active) {
         m_storySeedPending = false;
         m_storyDirty = false;
         m_storyHasPending = false;
         m_storyPending = StoryProgress();
         m_storyLastSent = StoryProgress();
+        StoryResetLocalState();
     }
 
     m_storyWasActive = active;
@@ -273,6 +359,7 @@ void ZeldaOnlineClient::StoryOnSaveChanged(bool loaded) {
     m_storyLastSent = StoryProgress();
     m_storyDirty = false;
     m_storySeedPending = false;
+    StoryResetLocalState();
 
     // dungeon progress belongs to the save that is gone, the next save gets it back from the team save
     std::memset(m_storyDungeonSwch, 0, sizeof(m_storyDungeonSwch));
@@ -288,6 +375,85 @@ void ZeldaOnlineClient::StoryOnSaveChanged(bool loaded) {
 
     if (loaded && StoryCoopActive())
         m_storySeedPending = true;
+}
+
+// Forgets what the last writer wins slots and the Big Poe counter looked like (a different save or party)
+void ZeldaOnlineClient::StoryResetLocalState() {
+    for (StoryLwwLocal& slot : m_storyLww)
+        slot = StoryLwwLocal();
+    m_storyPoeSeen = -1;
+}
+
+// This client's value of a slot changed (a seed read from the save has stamp 0, a real change takes the next stamp)
+void ZeldaOnlineClient::StoryLwwPublish(uint8_t id, const std::vector<uint8_t>& data, bool seed) {
+    if (id >= STORY_LWW_MAX_SLOTS)
+        return;
+
+    StoryLwwLocal& slot = m_storyLww[id];
+    if (slot.has && slot.data == data)
+        return;
+
+    if (!seed)
+        slot.stamp++;
+    slot.has = true;
+    slot.data = data;
+    m_storyDirty = true;
+}
+
+// The team's value of a slot is newer than ours (or ours was never set): take it
+void ZeldaOnlineClient::StoryLwwAdopt(const StoryLwwSlot& team) {
+    if (team.id >= STORY_LWW_MAX_SLOTS)
+        return;
+
+    StoryLwwLocal& slot = m_storyLww[team.id];
+    if (slot.has) {
+        StoryLwwSlot mine;
+        mine.id = team.id;
+        mine.stamp = slot.stamp;
+        mine.data = slot.data;
+        if (!StoryProgress::LwwWins(team, mine))
+            return;
+    }
+
+    StoryWriteLww(team.id, team.data);
+    slot.has = true;
+    slot.stamp = team.stamp;
+    slot.data = team.data;
+}
+
+// Polled state: Epona's parking spot, the scarecrow songs and the Big Poe counter. Runs right before a snapshot is
+// captured so a change is part of it, and a Big Poe delivery reaches the server before the snapshot that contains it.
+void ZeldaOnlineClient::StoryTrackLocalState() {
+    std::vector<uint8_t> now;
+    for (uint8_t id : { STORY_LWW_HORSE, STORY_LWW_SCARECROW_SPAWN, STORY_LWW_SCARECROW_LONG }) {
+        if (!StoryReadLww(id, now))
+            continue;
+        const StoryLwwLocal& slot = m_storyLww[id];
+        if (slot.has ? now != slot.data : !StoryLwwIsDefault(id, now))
+            StoryLwwPublish(id, now, !slot.has);
+    }
+
+    // A save that was played alone may already have a lowered Water Temple or a lowered Forest Temple elevator. While
+    // the dungeon is not loaded its saved switches are intact, so they seed the slots (stamp 0, any real change wins).
+    if (gPlayState != nullptr) {
+        if (!m_storyLww[STORY_LWW_WATER_LEVEL].has && gPlayState->sceneNum != SCENE_WATER_TEMPLE) {
+            u32 bits = (gSaveContext.sceneFlags[SCENE_WATER_TEMPLE].swch >> STORY_WATER_LEVEL_FIRST_SWITCH) & 7;
+            if (bits == 1 || bits == 2 || bits == 4)
+                StoryLwwPublish(STORY_LWW_WATER_LEVEL, { (uint8_t)(bits == 1 ? 1 : (bits == 2 ? 2 : 3)) }, true);
+        }
+        if (!m_storyLww[STORY_LWW_FOREST_ELEVATOR].has && gPlayState->sceneNum != SCENE_FOREST_TEMPLE &&
+            (gSaveContext.sceneFlags[SCENE_FOREST_TEMPLE].swch & (1u << STORY_FOREST_ELEVATOR_SWITCH)) != 0) {
+            StoryLwwPublish(STORY_LWW_FOREST_ELEVATOR, { 1 }, true);
+        }
+    }
+
+    int poe = gSaveContext.highScores[STORY_HS_POE_POINTS];
+    if (m_storyPoeSeen >= 0 && poe > m_storyPoeSeen) {
+        // points are a sum over all members: only the rise is sent, the server adds it up
+        WritePacket(newPacket(CLIENT_PACKET_STORY_ADD_COUNTER)
+                    << PackedUInt1(STORY_COUNTER_POE_POINTS) << PackedUInt2((u16)(poe - m_storyPoeSeen)));
+    }
+    m_storyPoeSeen = poe;
 }
 
 void ZeldaOnlineClient::StoryMarkDirty() {
@@ -321,6 +487,17 @@ void ZeldaOnlineClient::StoryOnDungeonFlag(int sceneNum, int flagType, int flag,
     if (!StoryCoopActive() || sceneNum < 0 || sceneNum >= STORY_SCENE_COUNT || flag < 0 || flag >= 32 ||
         !StoryIsPartyScene(sceneNum))
         return;
+
+    // The Water Temple level is whichever of switches 0x1C-0x1E was switched on last, the elevator follows 0x1B. The
+    // actors set and clear these themselves when the scene loads and when the level changes.
+    if (flagType == FLAG_SCENE_SWITCH) {
+        if (sceneNum == SCENE_WATER_TEMPLE && set && flag >= STORY_WATER_LEVEL_FIRST_SWITCH &&
+            flag < STORY_WATER_LEVEL_FIRST_SWITCH + 3) {
+            StoryLwwPublish(STORY_LWW_WATER_LEVEL, { (uint8_t)(flag - STORY_WATER_LEVEL_FIRST_SWITCH + 1) });
+        } else if (sceneNum == SCENE_FOREST_TEMPLE && flag == STORY_FOREST_ELEVATOR_SWITCH) {
+            StoryLwwPublish(STORY_LWW_FOREST_ELEVATOR, { (uint8_t)(set ? 1 : 0) });
+        }
+    }
 
     uint32_t bit = 1u << flag;
     if (flagType == FLAG_SCENE_SWITCH) {
@@ -435,6 +612,21 @@ StoryProgress ZeldaOnlineClient::StoryCapture() {
     if (IS_RANDO) {
         size_t words = sizeof(gSaveContext.ship.randomizerInf) / sizeof(gSaveContext.ship.randomizerInf[0]);
         p.randomizerInf.assign(gSaveContext.ship.randomizerInf, gSaveContext.ship.randomizerInf + words);
+        p.randoTriforcePieces = gSaveContext.ship.quest.data.randomizer.triforcePiecesCollected;
+        p.randoBombchuLevel = gSaveContext.ship.quest.data.randomizer.bombchuUpgradeLevel;
+    }
+
+    p.worldMapAreaData = gSaveContext.worldMapAreaData;
+    for (int i = 0; i < STORY_HS_COUNT; i++) {
+        if (StoryHighScoreShared(i))
+            p.highScores[i] = gSaveContext.highScores[i];
+    }
+    // the pond owner's hat follows the age of whoever fishes, it is not part of the shared record
+    p.highScores[STORY_HS_FISHING] &= ~0x0000F000;
+
+    for (uint8_t id = 0; id < STORY_LWW_MAX_SLOTS; id++) {
+        if (m_storyLww[id].has)
+            p.SetLww(id, m_storyLww[id].stamp, m_storyLww[id].data);
     }
 
     for (int s = 0; s < STORY_SCENE_COUNT; s++) {
@@ -446,6 +638,8 @@ StoryProgress ZeldaOnlineClient::StoryCapture() {
         scene.swch = saved.swch;
         scene.clear = saved.clear;
         scene.collect = saved.collect;
+        scene.rooms = saved.rooms;
+        scene.floors = saved.floors;
 
         // the loaded scene keeps its live flags in the actor context until it is saved on exit
         if (gPlayState != nullptr && gPlayState->sceneNum == s) {
@@ -519,7 +713,28 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
         size_t words = sizeof(gSaveContext.ship.randomizerInf) / sizeof(gSaveContext.ship.randomizerInf[0]);
         for (size_t i = 0; i < team.randomizerInf.size() && i < words; i++)
             gSaveContext.ship.randomizerInf[i] |= team.randomizerInf[i];
+        auto& rando = gSaveContext.ship.quest.data.randomizer;
+        if (rando.triforcePiecesCollected < team.randoTriforcePieces)
+            rando.triforcePiecesCollected = team.randoTriforcePieces;
+        if (rando.bombchuUpgradeLevel < team.randoBombchuLevel)
+            rando.bombchuUpgradeLevel = team.randoBombchuLevel;
     }
+
+    // map areas visited, best scores and records (what StoryHighScoreShared lists), Epona's spot and the scarecrow songs
+    gSaveContext.worldMapAreaData |= team.worldMapAreaData;
+    const int poeBefore = gSaveContext.highScores[STORY_HS_POE_POINTS];
+    for (int i = 0; i < STORY_HS_COUNT; i++) {
+        if (StoryHighScoreShared(i))
+            gSaveContext.highScores[i] = StoryMergeHighScore(i, gSaveContext.highScores[i], team.highScores[i]);
+    }
+    // A rise that comes from the team is not a delivery of this player. A delivery that was not sent yet (local value
+    // above m_storyPoeSeen) stays pending, otherwise it would be swallowed when the team's sum arrives first.
+    if (m_storyPoeSeen < 0)
+        m_storyPoeSeen = gSaveContext.highScores[STORY_HS_POE_POINTS];
+    else if (gSaveContext.highScores[STORY_HS_POE_POINTS] > poeBefore)
+        m_storyPoeSeen += gSaveContext.highScores[STORY_HS_POE_POINTS] - poeBefore;
+    for (const StoryLwwSlot& slot : team.lww)
+        StoryLwwAdopt(slot);
 
     // gold skulltulas
     int tokens = 0;
@@ -707,6 +922,8 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
         saved.collect |= collect;
         saved.swch |= swch;
         saved.clear |= clear;
+        saved.rooms |= scene.rooms;
+        saved.floors |= scene.floors;
 
         if (play->sceneNum == scene.sceneNum) {
             play->actorCtx.flags.chest |= chest;
@@ -758,6 +975,7 @@ void ZeldaOnlineClient::StoryUpdate() {
     // upload first, so a joining member contributes its own progress before the team save is merged into it
     bool poll = m_storyDirty || (m_storyFrame % 20) == 0;
     if ((m_storySeedPending || poll) && m_storySendCooldown == 0) {
+        StoryTrackLocalState();
         StoryProgress now = StoryCapture();
         if (m_storySeedPending) {
             StorySendProgress(now, true);
