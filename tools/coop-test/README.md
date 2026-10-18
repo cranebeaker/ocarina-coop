@@ -49,9 +49,9 @@ frames):
 | --- | --- |
 | `wait_play` | wait until a save is loaded and no transition is running |
 | `connect` | connect to the server (the nickname and endpoint come from the scenario) |
-| `warp` | `entrance`, `scene` (waits until that scene is up) |
+| `warp` | `entrance`, `scene` (waits until that scene is up), optional `cutscene` (a cutscene layer index such as 65521, like a blue warp; then it is done once the cutscene runs) |
 | `wait_scene` | `scene` |
-| `wait_until` | `cond`: `connected`, `net_id`, `other_players` (`n`), `has_party`, `invite_pending`, `party_size` (`n`), `story_active` (`value`), `party_admin` (`value`), `peers_in_scene` (`n`), `peer_puppets` (`n`), `flag` (`type`, `flag`, `value`), `item` (`slot`, `value`), `ammo` (`slot`, `n`), `rupees` / `health` / `health_capacity` (`n`), `quest_bit` (`bit`, `value`), `field` (`field`, `value`, `cmp` `eq`/`ge`/`le`/`ne`), `share_ammo_setting` / `story_coop_setting` (`value`), `story_code_set`, `disconnected` |
+| `wait_until` | `cond`: `in_cutscene` (`scene`), `cutscene_done` (`scene`), `cs_received` (`n`), `connected`, `net_id`, `other_players` (`n`), `has_party`, `invite_pending`, `party_size` (`n`), `story_active` (`value`), `party_admin` (`value`), `peers_in_scene` (`n`), `peer_puppets` (`n`), `flag` (`type`, `flag`, `value`), `item` (`slot`, `value`), `ammo` (`slot`, `n`), `rupees` / `health` / `health_capacity` (`n`), `quest_bit` (`bit`, `value`), `field` (`field`, `value`, `cmp` `eq`/`ge`/`le`/`ne`), `share_ammo_setting` / `story_coop_setting` (`value`), `story_code_set`, `disconnected` |
 | `create_party` | optional `story_coop`, `share_ammo`, `private_dungeons`, `story_code` (`"auto"` generates one like the party window; omit it to let the server generate one); creates the party with those settings |
 | `invite` | optional `name`; invites every listed player not in the party |
 | `accept_invite` | accepts the first pending invite |

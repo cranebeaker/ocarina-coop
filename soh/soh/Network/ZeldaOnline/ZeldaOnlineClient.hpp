@@ -153,6 +153,23 @@ class ZeldaOnlineClient : public ZNetworking {
     int m_storyTotal = 0;
     std::vector<std::string> m_storyMissing;
 
+    // Story Co-op cutscenes watched together: a story cutscene that starts here is started for the members in the same
+    // scene too (a scripted cutscene by its resource path, a scene cutscene by the transition that loads it)
+    std::string m_storyCsPath;               // keeps the path alive while csCtx.segment points at it
+    bool m_storyCsWasActive = false;         // csCtx was running last frame
+    bool m_storyCsTransitionSeen = false;    // the current transition was already looked at
+    int m_storyCsRemoteFrames = 0;           // a cutscene was just started for a member; do not announce it again
+    int m_storyCsSent = 0;
+    int m_storyCsReceived = 0;
+    int m_storyCsStarted = 0;
+    bool m_storyCsHasPending = false;
+    int m_storyCsPendingWait = 0;
+    uint8_t m_storyCsPendingKind = 0;
+    uint16_t m_storyCsPendingEntrance = 0;
+    uint16_t m_storyCsPendingIndex = 0;
+    std::string m_storyCsPendingPath;
+
+
     void ReportBandwidth();
     bool NextPacket(ByteStream& out);
     void SendPacket_PlayerUpdate();
@@ -199,6 +216,10 @@ class ZeldaOnlineClient : public ZNetworking {
     void OnStoryVoteStatus(ByteStream& packet);
     void OnStoryTravel(ByteStream& packet);
     void OnStorySetEra(ByteStream& packet);
+    void StoryWatchCutscenes();
+    void StoryStartRemoteCutscene();
+    void OnStoryCutscene(ByteStream& packet);
+
 
   public:
     static ZeldaOnlineClient* Instance;

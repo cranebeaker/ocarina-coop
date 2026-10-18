@@ -90,6 +90,15 @@ struct AutoTestAccess {
     static int VoteCount() {
         return C()->m_storyVoted;
     }
+    static int CsSent() {
+        return C()->m_storyCsSent;
+    }
+    static int CsReceived() {
+        return C()->m_storyCsReceived;
+    }
+    static int CsStarted() {
+        return C()->m_storyCsStarted;
+    }
     static int VoteTotal() {
         return C()->m_storyTotal;
     }
@@ -328,6 +337,9 @@ bool WriteFlag(const std::string& type, int flag) {
 bool UnwriteFlag(const std::string& type, int flag) {
     if (type == "switch") Flags_UnsetSwitch(gPlayState, flag);
     else if (type == "clear") Flags_UnsetClear(gPlayState, flag);
+    else if (type == "event_chk_inf") Flags_UnsetEventChkInf(flag);
+    else if (type == "inf_table") Flags_UnsetInfTable(flag);
+    else if (type == "item_get_inf") Flags_UnsetItemGetInf(flag);
     else return false;
     return true;
 }
@@ -396,6 +408,10 @@ json Observe(const json& step) {
     o["story_active"] = AutoTestAccess::StoryActive();
     o["story_hold"] = AutoTestAccess::HoldingAtPedestal();
     o["vote_count"] = AutoTestAccess::VoteCount();
+    o["cs_sent"] = AutoTestAccess::CsSent();
+    o["cs_received"] = AutoTestAccess::CsReceived();
+    o["cs_started"] = AutoTestAccess::CsStarted();
+    o["cs_index"] = (int)gSaveContext.cutsceneIndex;
     o["vote_total"] = AutoTestAccess::VoteTotal();
     o["move_era"] = AutoTestAccess::MoveEra();
     o["peer_puppets"] = AutoTestAccess::PlayerPuppets();
@@ -677,11 +693,17 @@ bool RunStep(const json& step) {
             }
             sState.warpTargetScene = step.value("scene", -1);
             gPlayState->nextEntranceIndex = step.value("entrance", 0);
+            if (step.contains("cutscene"))
+                gSaveContext.nextCutsceneIndex = step.value("cutscene", 0xFFEF);
             gPlayState->transitionTrigger = TRANS_TRIGGER_START;
             gPlayState->transitionType = TRANS_TYPE_INSTANT;
             gSaveContext.nextTransitionType = TRANS_TYPE_FADE_BLACK_FAST;
             Event("warp to entrance " + std::to_string(step.value("entrance", 0)));
             return false;
+        }
+        if (gPlayState != nullptr && step.contains("cutscene") && gPlayState->sceneNum == sState.warpTargetScene &&
+            gPlayState->csCtx.state != CS_STATE_IDLE && sState.stepFrames > 5) {
+            return true;
         }
         if (PlayReady() && (sState.warpTargetScene < 0 || gPlayState->sceneNum == sState.warpTargetScene) &&
             sState.stepFrames > 5) {
@@ -737,6 +759,16 @@ bool RunStep(const json& step) {
             ok = AutoTestAccess::VoteCount() >= n;
         } else if (cond == "party_admin") {
             ok = AutoTestAccess::IsAdmin() == step.value("value", true);
+        } else if (cond == "in_cutscene") {
+            // a cutscene script runs (optionally in `scene`)
+            ok = gPlayState != nullptr && gPlayState->csCtx.state != CS_STATE_IDLE &&
+                 (!step.contains("scene") || gPlayState->sceneNum == step.value("scene", 0));
+        } else if (cond == "cutscene_done") {
+            // back to normal play after a cutscene (optionally in `scene`)
+            ok = PlayReady() && gPlayState->csCtx.state == CS_STATE_IDLE && !Player_InCsMode(gPlayState) &&
+                 sState.stepFrames > 20 && (!step.contains("scene") || gPlayState->sceneNum == step.value("scene", 0));
+        } else if (cond == "cs_received") {
+            ok = AutoTestAccess::CsReceived() >= n;
         } else if (PlayReady()) {
             if (cond == "peers_in_scene") {
                 ok = AutoTestAccess::PeersInScene(gPlayState->sceneNum) >= n;

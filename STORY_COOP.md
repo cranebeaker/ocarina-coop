@@ -37,6 +37,14 @@ Sharing is state based: clients send a compact progress snapshot, the server mer
 
 The party list shows each member's era (Adult or Child).
 
+## Story cutscenes together
+
+- When a story cutscene starts for one member, every member in the same scene watches it too: area intros, Zelda, Impa, Sheik, song lessons, the Sages, the Deku Tree, Kakariko burning and the rest.
+- It works for both ways the game starts a cutscene: a cutscene script played in the current scene, and a transition into a scene's cutscene layer (blue warps, the Chamber of Sages). There is no per cutscene list; only what belongs to one player stays with that player: fence jumps on Epona, being caught by the Gerudo, and the races and horseback archery you start yourself.
+- A member who is busy with a text box gets a short moment to finish it first. A member who is already in a cutscene or a transition is watching it already.
+- Members in other scenes are not pulled in. The first visit intro of an area is kept per player, so they still see it when they first get there.
+- If the member who started the cutscene disconnects, the others finish it and play on.
+
 ## Server save
 
 The team save is written to disk, so it survives a server restart. Clients still keep their own progress in their own saves and still re-seed the team save by union when they join, so nothing depends on the file being present.
