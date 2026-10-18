@@ -4,6 +4,7 @@
 // (or --coop-test-extract-only).
 #include "soh/Enhancements/AutoTest/AutoTest.h"
 #include "soh/Enhancements/game-interactor/GameInteractor.h"
+#include "soh/Enhancements/game-interactor/GameInteractor_Hooks.h"
 #include <fstream>
 #include <cstdlib>
 #include <cstring>
@@ -93,6 +94,22 @@ struct AutoTestAccess {
     }
     static const std::string& Nick() {
         return C()->m_nickName;
+    }
+    static int ServerDayTime() {
+        return C()->m_serverDayTime;
+    }
+    static bool HasWorldTime() {
+        return C()->m_hasWorldTime;
+    }
+    static int ServerTimeRate() {
+        return C()->m_serverTimeRate;
+    }
+    // Leader (owns the actor) or puppet (mirrors the leader's copy): -1 when the actor is not networked.
+    static int ActorRole(Actor* actor) {
+        if (actor == nullptr || actor->zoController == nullptr) {
+            return -1;
+        }
+        return static_cast<AbstractActorController*>(actor->zoController)->IsLeader() ? 1 : 0;
     }
 
     static void ApplySettings(const nlohmann::json& step) {
@@ -332,6 +349,25 @@ json Observe(const json& step) {
         o["link_age"] = gSaveContext.linkAge; // 0 adult, 1 child
         o["peers_in_scene"] = AutoTestAccess::PeersInScene(gPlayState->sceneNum);
         o["day_time"] = gSaveContext.dayTime;
+        o["night_flag"] = gSaveContext.nightFlag;
+        o["server_day_time"] = AutoTestAccess::ServerDayTime();
+        o["has_world_time"] = AutoTestAccess::HasWorldTime();
+        o["server_time_rate"] = AutoTestAccess::ServerTimeRate();
+        o["map_index"] = gSaveContext.mapIndex;
+        {
+            json keys = json::array();
+            for (int i = 0; i < 19; i++) {
+                keys.push_back(gSaveContext.inventory.dungeonKeys[i]);
+            }
+            o["dungeon_keys"] = keys;
+            // the live words of the loaded scene and the copy the save keeps for it
+            const ActorContext& ac = gPlayState->actorCtx;
+            const SavedSceneFlags& sv = gSaveContext.sceneFlags[gPlayState->sceneNum];
+            o["live"] = { { "swch", ac.flags.swch },       { "clear", ac.flags.clear },
+                          { "collect", ac.flags.collect }, { "chest", ac.flags.chest },
+                          { "temp_clear", ac.flags.tempClear } };
+            o["saved"] = { { "swch", sv.swch }, { "clear", sv.clear }, { "collect", sv.collect }, { "chest", sv.chest } };
+        }
         o["health"] = gSaveContext.health;
         o["health_capacity"] = gSaveContext.healthCapacity;
         o["rupees"] = gSaveContext.rupees;
@@ -355,6 +391,62 @@ json Observe(const json& step) {
         }
         if (p != nullptr) {
             o["link_pos"] = { p->actor.world.pos.x, p->actor.world.pos.y, p->actor.world.pos.z };
+        }
+        if (step.contains("chests")) {
+            // every chest of the loaded rooms: its flag, whether the save/actor context says it is open, and how far
+            // the open animation is (a chest that spawned already open starts at the last frame)
+            json chests = json::array();
+            for (Actor* a = gPlayState->actorCtx.actorLists[ACTORCAT_CHEST].head; a != nullptr; a = a->next) {
+                if (a->id != ACTOR_EN_BOX) continue;
+                EnBox* box = (EnBox*)a;
+                json cj;
+                cj["flag"] = a->params & 0x1F;
+                cj["room"] = a->room;
+                cj["type"] = box->type;
+                cj["open"] = Flags_GetTreasure(gPlayState, a->params & 0x1F) != 0;
+                cj["anim_frame"] = box->skelanime.curFrame;
+                cj["anim_end"] = box->skelanime.endFrame;
+                cj["anim_speed"] = box->skelanime.playSpeed;
+                cj["action"] = (uint32_t)(reinterpret_cast<uintptr_t>(box->actionFunc) & 0xFFFFFFFF);
+                cj["unk_1F4"] = box->unk_1F4;
+                cj["move_flags"] = box->movementFlags;
+                cj["alpha"] = box->alpha;
+                chests.push_back(cj);
+            }
+            o["chests"] = chests;
+        }
+        if (step.contains("actors")) {
+            // actors of the given ids near Link: position, distance, and leader/puppet role
+            json out = json::array();
+            Player* pl = GET_PLAYER(gPlayState);
+            for (auto& q : step["actors"]) {
+                const int id = q.value("id", -1);
+                const float radius = q.value("radius", 100000.0f);
+                for (int cat = 0; cat < ACTORCAT_MAX; cat++) {
+                    for (Actor* a = gPlayState->actorCtx.actorLists[cat].head; a != nullptr; a = a->next) {
+                        if (a->id != id) continue;
+                        if (q.contains("params") && a->params != q["params"].get<int>()) continue;
+                        float dx = a->world.pos.x - pl->actor.world.pos.x;
+                        float dz = a->world.pos.z - pl->actor.world.pos.z;
+                        float dist = sqrtf(dx * dx + dz * dz);
+                        if (dist > radius) continue;
+                        json aj;
+                        aj["id"] = id;
+                        aj["params"] = a->params;
+                        aj["x"] = a->world.pos.x;
+                        aj["y"] = a->world.pos.y;
+                        aj["z"] = a->world.pos.z;
+                        aj["dist"] = dist;
+                        aj["role"] = AutoTestAccess::ActorRole(a); // 1 leader, 0 puppet, -1 local only
+                        aj["speed"] = a->speedXZ;
+                        aj["rot_y"] = a->shape.rot.y;
+                        aj["hp"] = a->colChkInfo.health;
+                        out.push_back(aj);
+                    }
+                }
+            }
+            o["actors"] = out;
+            o["actor_count"] = out.size();
         }
         if (step.contains("flags")) {
             json flags = json::array();
@@ -591,6 +683,82 @@ bool RunStep(const json& step) {
         }
         return true;
     }
+    if (op == "open_chest") {
+        // What a chest does when it is opened: its treasure flag is set (the OnSceneFlagSet hook then tells the
+        // server which item was inside), plus the item itself when `give` is true like a real pickup.
+        if (!PlayReady()) return timedOut("open_chest not ready");
+        for (Actor* a = gPlayState->actorCtx.actorLists[ACTORCAT_CHEST].head; a != nullptr; a = a->next) {
+            if (a->id != ACTOR_EN_BOX) continue;
+            if (step.contains("flag") && (a->params & 0x1F) != step["flag"].get<int>()) continue;
+            Flags_SetTreasure(gPlayState, a->params & 0x1F);
+            Event("opened chest " + std::to_string(a->params & 0x1F));
+            return true;
+        }
+        Finish(false, "open_chest: no such chest in the loaded rooms");
+        return true;
+    }
+    if (op == "goto_room") {
+        // Load another room of the scene, like walking through a door (rooms load, their actors spawn).
+        if (!PlayReady()) return timedOut("goto_room not ready");
+        if (first) {
+            if (gPlayState->roomCtx.status != 0) return timedOut("goto_room: room load busy");
+            func_8009728C(gPlayState, &gPlayState->roomCtx, step.value("n", 0));
+            return false;
+        }
+        if (gPlayState->roomCtx.status == 0 && gPlayState->roomCtx.curRoom.num == step.value("n", 0) &&
+            sState.stepFrames > 5) {
+            if (step.contains("near_chest")) {
+                // Link keeps the coordinates of the room he came from: stand him in front of a chest of the new room
+                for (Actor* a = gPlayState->actorCtx.actorLists[ACTORCAT_CHEST].head; a != nullptr; a = a->next) {
+                    if (a->id != ACTOR_EN_BOX || (a->params & 0x1F) != step["near_chest"].get<int>() ||
+                        a->room != step.value("n", 0)) {
+                        continue;
+                    }
+                    Player* pl = GET_PLAYER(gPlayState);
+                    pl->actor.world.pos.x = a->world.pos.x + Math_SinS(a->shape.rot.y) * 70.0f;
+                    pl->actor.world.pos.y = a->world.pos.y + 5.0f;
+                    pl->actor.world.pos.z = a->world.pos.z + Math_CosS(a->shape.rot.y) * 70.0f;
+                    pl->actor.prevPos = pl->actor.world.pos;
+                    pl->actor.velocity.x = pl->actor.velocity.y = pl->actor.velocity.z = 0.0f;
+                    break;
+                }
+            }
+            return true;
+        }
+        return timedOut("room did not load");
+    }
+    if (op == "spawn_collectible") {
+        // A floor pickup that carries a collect flag (a key, heart piece, ...), placed a little way from Link.
+        if (!PlayReady()) return timedOut("spawn_collectible not ready");
+        Player* pl = GET_PLAYER(gPlayState);
+        const int type = step.value("type", ITEM00_SMALL_KEY);
+        const int flag = step.value("flag", 1);
+        Actor* a = Actor_Spawn(&gPlayState->actorCtx, gPlayState, ACTOR_EN_ITEM00, pl->actor.world.pos.x + 160.0f,
+                               pl->actor.world.pos.y + 20.0f, pl->actor.world.pos.z, 0, 0, 0,
+                               (s16)(type | (flag << 8)));
+        if (a == nullptr) {
+            Finish(false, "spawn_collectible: spawn failed");
+        }
+        return true;
+    }
+    if (op == "use_key") {
+        // A small key spent on a door: same hook the door actors run.
+        if (!PlayReady()) return timedOut("use_key not ready");
+        if (step.contains("map_index")) gSaveContext.mapIndex = step["map_index"].get<int>();
+        gSaveContext.inventory.dungeonKeys[gSaveContext.mapIndex]--;
+        GameInteractor_ExecuteOnDungeonKeyUsedHooks(gSaveContext.mapIndex);
+        return true;
+    }
+    if (op == "crash") {
+        // A hard process death with no cleanup (no disconnect packet, no save). The log is written first, as a pass,
+        // because dying here is what the scenario asked for.
+        Event("crashing on purpose");
+        sState.finished = true;
+        sState.pass = true;
+        WriteLog();
+        TerminateProcess(GetCurrentProcess(), 3);
+        return true;
+    }
     if (op == "reset_inventory") {
         if (!PlayReady()) return timedOut("reset_inventory not ready");
         ResetInventory();
@@ -645,6 +813,10 @@ void OnFrame() {
         gSaveContext.fileNum = 0;
     }
     sState.frame++;
+    // "god": keep Link alive, tests teleport him around rooms where he can fall out of the world
+    if (gPlayState != nullptr && sState.roleCfg.value("god", false) && GameInteractor::IsSaveLoaded(true)) {
+        gSaveContext.health = gSaveContext.healthCapacity;
+    }
     if (sState.finished) {
         // Window close is requested; if the process is still alive shortly after, leave the hard way.
         if (++sState.finishedFrames > 600) {

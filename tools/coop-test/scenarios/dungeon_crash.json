@@ -1,0 +1,596 @@
+{
+  "name": "dungeon_crash",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "stages": [
+    {
+      "name": "client_crash_mid_dungeon",
+      "server": "fresh",
+      "stop_server": "kill",
+      "kill_server_after_exit": {
+        "role": "B",
+        "seconds": 1.7
+      },
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "dc-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 443
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 432
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_frames",
+              "n": 300
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 594,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "goto_room",
+              "n": 10,
+              "near_chest": 6,
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 432
+            },
+            {
+              "op": "wait_frames",
+              "n": 120
+            },
+            {
+              "op": "open_chest",
+              "flag": 6
+            },
+            {
+              "op": "set_flag",
+              "type": "collect",
+              "flag": 9
+            },
+            {
+              "op": "set_flag",
+              "type": "switch",
+              "flag": 10
+            },
+            {
+              "op": "set_flag",
+              "type": "clear",
+              "flag": 7
+            },
+            {
+              "op": "give_item",
+              "item": 119,
+              "map_index": 0
+            },
+            {
+              "op": "wait_frames",
+              "n": 4
+            },
+            {
+              "op": "crash"
+            }
+          ]
+        }
+      },
+      "assertions": [],
+      "server_checks": [
+        {
+          "type": "files",
+          "glob": "data/story/*.bin",
+          "min": 1,
+          "label": "team save written before the server was killed"
+        }
+      ]
+    },
+    {
+      "name": "server_back_after_kill",
+      "server": "restart",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "dc-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 443
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 120
+            },
+            {
+              "op": "observe",
+              "name": "after_restart",
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 6
+                },
+                {
+                  "type": "collect",
+                  "flag": 9
+                },
+                {
+                  "type": "switch",
+                  "flag": 10
+                },
+                {
+                  "type": "clear",
+                  "flag": 7
+                }
+              ]
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 1800,
+              "type": "inf_table",
+              "flag": 443
+            },
+            {
+              "op": "warp",
+              "entrance": 0,
+              "scene": 0,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 120
+            },
+            {
+              "op": "observe",
+              "name": "after_restart",
+              "flags": [
+                {
+                  "type": "treasure",
+                  "flag": 6
+                },
+                {
+                  "type": "collect",
+                  "flag": 9
+                },
+                {
+                  "type": "switch",
+                  "flag": 10
+                },
+                {
+                  "type": "clear",
+                  "flag": 7
+                }
+              ]
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "A: chest set by the crashed client is back after a server crash",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "A: collect flag set by the crashed client is back after a server crash",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "A: switch set by the crashed client is back after a server crash",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "flags.3.value",
+          "op": "eq",
+          "value": true,
+          "label": "A: room clear set by the crashed client is back after a server crash",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "dungeon_keys.0",
+          "op": "eq",
+          "value": 1,
+          "label": "A: small key B picked up is back",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": true,
+          "label": "B: chest set by the crashed client is back after a server crash",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "flags.1.value",
+          "op": "eq",
+          "value": true,
+          "label": "B: collect flag set by the crashed client is back after a server crash",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "flags.2.value",
+          "op": "eq",
+          "value": true,
+          "label": "B: switch set by the crashed client is back after a server crash",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "flags.3.value",
+          "op": "eq",
+          "value": true,
+          "label": "B: room clear set by the crashed client is back after a server crash",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "after_restart",
+          "path": "dungeon_keys.0",
+          "op": "eq",
+          "value": 1,
+          "label": "B: small key B picked up is back",
+          "roles": [
+            "B"
+          ]
+        }
+      ],
+      "stop_server": true,
+      "server_checks": [
+        {
+          "type": "log_contains",
+          "text": "Story Co-op: loaded team save",
+          "label": "team save loaded from disk"
+        },
+        {
+          "type": "clean_exit",
+          "label": "clean stop"
+        }
+      ]
+    }
+  ]
+}

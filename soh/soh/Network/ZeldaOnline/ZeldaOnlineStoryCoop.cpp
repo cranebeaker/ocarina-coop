@@ -731,7 +731,7 @@ bool ZeldaOnlineClient::StoryApply(const StoryProgress& team) {
         saved.clear |= clear;
 
         if (play->sceneNum == scene.sceneNum) {
-            StoryRemoveCollected(play, collect & ~play->actorCtx.flags.collect);
+            // BASELINE-TEST StoryRemoveCollected(play, collect & ~play->actorCtx.flags.collect);
             play->actorCtx.flags.chest |= chest;
             play->actorCtx.flags.collect |= collect;
             play->actorCtx.flags.swch |= swch;
