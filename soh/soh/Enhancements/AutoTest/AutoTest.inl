@@ -885,6 +885,19 @@ bool RunStep(const json& step) {
         Event("kill_actor hit " + std::to_string(hit.size()));
         return true;
     }
+    if (op == "save_game") {
+        // The real save path (slot 0), as the pause menu save does.
+        gSaveContext.fileNum = 0;
+        Save_SaveFile();
+        Event("save written to slot 0");
+        return true;
+    }
+    if (op == "reload_save") {
+        // Reads slot 0 back from disk into the live save context.
+        SaveManager::Instance->LoadFile(0);
+        Event("save reloaded from slot 0");
+        return true;
+    }
     if (op == "leave_party") {
         AutoTestAccess::LeaveParty();
         return true;
