@@ -60,7 +60,7 @@ def main():
     ap.add_argument("--server-exe", default=None)
     ap.add_argument("--timeout", default="300")
     a = ap.parse_args()
-    server_exe = a.server_exe or os.path.join(a.work, "server_run", "OOTServer.exe")
+    server_exe = os.path.normpath(os.path.abspath(a.server_exe or os.path.join(a.work, "server_run", "OOTServer.exe")))
     log_path = os.path.join(os.path.dirname(server_exe), "OOTServer.log")
     if os.path.exists(log_path):
         os.remove(log_path)

@@ -262,6 +262,24 @@ def check(scenario, logs):
                 ok = len(la) >= a.get("min_count", 1) and len(lb) >= a.get("min_count", 1) and missing_a == 0 and missing_b == 0
                 results.append((ok, "%s: A sees %d, B sees %d, unmatched A=%d B=%d (tolerance %s)" % (
                     label, len(la), len(lb), missing_b, missing_a, tol)))
+        elif kind == "actors_vanish":
+            # every actor hit (listed in the `before` observation of either client) must disappear on every client:
+            # some observation named `<series>0` .. `<series>N-1` shows nothing within `radius` units of where it stood.
+            # Sampling densely (a few frames apart) is what keeps a quick respawn at the same spot from hiding a miss.
+            killed = []
+            for lg in logs.values():
+                ob = find_obs(lg, a["before"]) if lg else None
+                killed += (ob or {}).get("actors") or []
+            rad = a.get("radius", 30.0)
+            for role, lg in logs.items():
+                series = [find_obs(lg, "%s%d" % (a["series"], i)) if lg else None for i in range(a["count"])]
+                series = [o for o in series if o is not None]
+                stuck = [k for k in killed
+                         if not any(not any(abs(x["x"] - k["x"]) <= rad and abs(x["z"] - k["z"]) <= rad
+                                            for x in (o.get("actors") or [])) for o in series)]
+                results.append((len(series) == a["count"] and len(killed) >= a.get("min_killed", 1) and not stuck,
+                                "%s [%s]: %d actor(s) were hit, %d never vanished here (%d of %d samples)" % (
+                                    label, role, len(killed), len(stuck), len(series), a["count"])))
         elif kind == "cross_equal":
             # path_a in role A's observation must equal path_b in role B's observation
             oa = find_obs(logs.get("A"), a["obs"]) if logs.get("A") else None

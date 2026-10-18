@@ -18,6 +18,8 @@ void Sram_InitDebugSave(void);
 void Player_Action_8084F608(Player* player, PlayState* play);
 }
 #include "soh/Enhancements/SwitchAge.h"
+#include "soh/SaveManager.h"
+extern "C" void Save_SaveFile(void);
 extern "C" void GameInteractor_ExecuteOnLoadGame(int32_t fileNum);
 extern "C" void GameInteractor_ExecuteOnExitGame(int32_t fileNum);
 
@@ -165,6 +167,45 @@ struct AutoTestAccess {
             sent++;
         }
         return sent;
+    }
+    // Same packet as the player list "Teleport to" entry, for the first other player (optionally by name).
+    static bool TeleportTo(const std::string& name) {
+        for (auto& p : Players()) {
+            if (!name.empty() && p.name != name) {
+                continue;
+            }
+            return C()->WritePacket(newPacket(CLIENT_PACKET_TELEPORT_TO_PARTY_MEMBER) << PackedUInt2((uint16_t)p.networkID));
+        }
+        return false;
+    }
+    // Lands a lethal hit on every awake actor of this id that this client leads, the way a sword would: the collider
+    // reports a hit with damage equal to the remaining health, so the actor's own damage code runs. Only Stalchildren
+    // (En_Skb) for now, and only once they are out of the ground (action state 3 and up, earlier hits are ignored).
+    // role "leader" (default) only acts on actors this client leads, "any" acts on whatever is found.
+    // Returns where the hit actors stood.
+    static nlohmann::json KillActors(int id, const std::string& role) {
+        nlohmann::json hit = nlohmann::json::array();
+        if (gPlayState == nullptr) return hit;
+        for (int cat = 0; cat < ACTORCAT_MAX; cat++) {
+            for (Actor* a = gPlayState->actorCtx.actorLists[cat].head; a != nullptr; a = a->next) {
+                if (a->id != id) continue;
+                if (role != "any" && ActorRole(a) != 1) continue;
+                if (id == ACTOR_EN_SKB) {
+                    EnSkb* skb = reinterpret_cast<EnSkb*>(a);
+                    if (skb->actionState < 3 || skb->actor.colChkInfo.health == 0) continue;
+                    skb->actor.colChkInfo.damageEffect = 0;
+                    skb->actor.colChkInfo.damage = skb->actor.colChkInfo.health;
+                    skb->collider.base.acFlags |= 2;
+                    nlohmann::json h;
+                    h["id"] = id;
+                    h["x"] = a->world.pos.x;
+                    h["y"] = a->world.pos.y;
+                    h["z"] = a->world.pos.z;
+                    hit.push_back(h);
+                }
+            }
+        }
+        return hit;
     }
     static bool InvitePending() {
         for (auto& p : Players()) {
@@ -401,6 +442,7 @@ json Observe(const json& step) {
     o["peer_puppets"] = AutoTestAccess::PlayerPuppets();
     o["save_loaded"] = GameInteractor::IsSaveLoaded(true);
     o["file_num"] = gSaveContext.fileNum;
+    o["save_file_exists"] = SaveManager::Instance->SaveFile_Exist(0);
     json peers = json::array();
     for (auto& p : AutoTestAccess::Players()) {
         json pj;
@@ -523,6 +565,12 @@ json Observe(const json& step) {
                         aj["speed"] = a->speedXZ;
                         aj["rot_y"] = a->shape.rot.y;
                         aj["hp"] = a->colChkInfo.health;
+                        if (id == ACTOR_EN_SKB) {
+                            EnSkb* skb = reinterpret_cast<EnSkb*>(a);
+                            aj["skb_state"] = skb->actionState;
+                            aj["skb_ac"] = skb->collider.base.acFlags;
+                            aj["skb_dmg"] = skb->actor.colChkInfo.damage;
+                        }
                         out.push_back(aj);
                     }
                 }
@@ -811,6 +859,30 @@ bool RunStep(const json& step) {
         if (!AutoTestAccess::SendSettings(step)) {
             return timedOut("set_party_settings: not connected");
         }
+        return true;
+    }
+    if (op == "teleport_to") {
+        if (!AutoTestAccess::TeleportTo(step.value("name", ""))) {
+            return timedOut("teleport_to: nobody to teleport to");
+        }
+        Event("teleport request sent");
+        return true;
+    }
+    if (op == "kill_actor") {
+        // retries for up to `wait` frames (default 900) until this client leads an awake actor of the id; a client that
+        // leads none by then simply hits nothing. The hit actors are recorded as the observation `name` (default "kill").
+        json hit = AutoTestAccess::KillActors(step.value("id", -1), step.value("role", "leader"));
+        if (hit.empty() && sState.stepFrames < (uint32_t)step.value("wait", 900)) {
+            return false;
+        }
+        json o;
+        o["name"] = step.value("name", "kill");
+        o["frame"] = sState.frame;
+        o["actors"] = hit;
+        o["actor_count"] = hit.size();
+        sState.observations.push_back(o);
+        WriteLog();
+        Event("kill_actor hit " + std::to_string(hit.size()));
         return true;
     }
     if (op == "leave_party") {

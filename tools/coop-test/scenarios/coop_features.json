@@ -1,0 +1,1974 @@
+{
+  "name": "coop_features",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "stages": [
+    {
+      "name": "story_on",
+      "server": "fresh",
+      "server_config": {
+        "startTime": 51200,
+        "daySpeed": 0,
+        "nightSpeed": 0
+      },
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "feat-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "observe",
+              "name": "party"
+            },
+            {
+              "op": "wait_frames",
+              "n": 900
+            },
+            {
+              "op": "teleport_to"
+            },
+            {
+              "op": "wait_scene",
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "observe",
+              "name": "tp"
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 600
+            },
+            {
+              "op": "observe",
+              "name": "e1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "kill_actor",
+              "id": 432,
+              "role": "leader"
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s0",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s3",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s4",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s5",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s6",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s7",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s8",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s9",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s10",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s11",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s12",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s13",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s14",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s15",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s16",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s17",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s18",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s19",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s20",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s21",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s22",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s23",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s24",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "observe",
+              "name": "party"
+            },
+            {
+              "op": "wait_frames",
+              "n": 120
+            },
+            {
+              "op": "warp",
+              "entrance": 205,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 7200,
+              "n": 1
+            },
+            {
+              "op": "observe",
+              "name": "tp"
+            },
+            {
+              "op": "wait_frames",
+              "n": 600
+            },
+            {
+              "op": "observe",
+              "name": "e1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "kill_actor",
+              "id": 432,
+              "role": "leader"
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s0",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s3",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s4",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s5",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s6",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s7",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s8",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s9",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s10",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s11",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s12",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s13",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s14",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s15",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s16",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s17",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s18",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s19",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s20",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s21",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s22",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s23",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s24",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "party",
+          "path": "story_active",
+          "op": "eq",
+          "value": true,
+          "label": "story_on story_active matches the setting"
+        },
+        {
+          "type": "each",
+          "obs": "party",
+          "path": "party_size",
+          "op": "eq",
+          "value": 2,
+          "label": "story_on both in the party"
+        },
+        {
+          "type": "each",
+          "obs": "tp",
+          "path": "scene",
+          "op": "eq",
+          "value": 81,
+          "label": "story_on teleport to party member lands A in Hyrule Field (B is there)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "tp",
+          "path": "scene",
+          "op": "eq",
+          "value": 81,
+          "label": "story_on B in Hyrule Field",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "e1",
+          "path": "actor_count",
+          "op": "ge",
+          "value": 1,
+          "label": "story_on Stalchildren present before the hit"
+        },
+        {
+          "type": "actors_vanish",
+          "before": "kill",
+          "min_killed": 2,
+          "series": "s",
+          "count": 25,
+          "radius": 30,
+          "label": "story_on each Stalchild that was killed vanishes on both clients"
+        }
+      ]
+    },
+    {
+      "name": "story_off",
+      "server": "fresh",
+      "server_config": {
+        "startTime": 51200,
+        "daySpeed": 0,
+        "nightSpeed": 0
+      },
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": false
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "observe",
+              "name": "party"
+            },
+            {
+              "op": "wait_frames",
+              "n": 900
+            },
+            {
+              "op": "teleport_to"
+            },
+            {
+              "op": "wait_scene",
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "observe",
+              "name": "tp"
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 600
+            },
+            {
+              "op": "observe",
+              "name": "e1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "kill_actor",
+              "id": 432,
+              "role": "leader"
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s0",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s3",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s4",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s5",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s6",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s7",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s8",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s9",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s10",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s11",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s12",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s13",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s14",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s15",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s16",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s17",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s18",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s19",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s20",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s21",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s22",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s23",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s24",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "observe",
+              "name": "party"
+            },
+            {
+              "op": "wait_frames",
+              "n": 120
+            },
+            {
+              "op": "warp",
+              "entrance": 205,
+              "scene": 81,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 7200,
+              "n": 1
+            },
+            {
+              "op": "observe",
+              "name": "tp"
+            },
+            {
+              "op": "wait_frames",
+              "n": 600
+            },
+            {
+              "op": "observe",
+              "name": "e1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "kill_actor",
+              "id": 432,
+              "role": "leader"
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s0",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s1",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s2",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s3",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s4",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s5",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s6",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s7",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s8",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s9",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s10",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s11",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s12",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s13",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s14",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s15",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s16",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s17",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s18",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s19",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s20",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s21",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s22",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s23",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 6
+            },
+            {
+              "op": "observe",
+              "name": "s24",
+              "actors": [
+                {
+                  "id": 432,
+                  "radius": 100000
+                }
+              ]
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "party",
+          "path": "story_active",
+          "op": "eq",
+          "value": false,
+          "label": "story_off story_active matches the setting"
+        },
+        {
+          "type": "each",
+          "obs": "party",
+          "path": "party_size",
+          "op": "eq",
+          "value": 2,
+          "label": "story_off both in the party"
+        },
+        {
+          "type": "each",
+          "obs": "tp",
+          "path": "scene",
+          "op": "eq",
+          "value": 81,
+          "label": "story_off teleport to party member lands A in Hyrule Field (B is there)",
+          "roles": [
+            "A"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "tp",
+          "path": "scene",
+          "op": "eq",
+          "value": 81,
+          "label": "story_off B in Hyrule Field",
+          "roles": [
+            "B"
+          ]
+        },
+        {
+          "type": "each",
+          "obs": "e1",
+          "path": "actor_count",
+          "op": "ge",
+          "value": 1,
+          "label": "story_off Stalchildren present before the hit"
+        },
+        {
+          "type": "actors_vanish",
+          "before": "kill",
+          "min_killed": 2,
+          "series": "s",
+          "count": 25,
+          "radius": 30,
+          "label": "story_off each Stalchild that was killed vanishes on both clients"
+        }
+      ]
+    }
+  ]
+}

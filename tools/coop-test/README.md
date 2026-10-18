@@ -56,6 +56,9 @@ frames):
 | `invite` | optional `name`; invites every listed player not in the party |
 | `accept_invite` | accepts the first pending invite |
 | `set_party_settings` | same fields as `create_party`; sends a settings update (admin) |
+| `teleport_to` | optional `name`; sends the "Teleport to" request for another player |
+| `kill_actor` | `id` (only 432, the Stalchild, is implemented), optional `role` (`leader` default, `any`), `wait`, `name`; lands a lethal hit on every awake actor of that id this client leads, retrying up to `wait` frames until there is one, and records where they stood as observation `name` (default `kill`) |
+| `save_game`, `reload_save` | write save slot 0 through the real save manager, read it back from disk |
 | `leave_party` | |
 | `wait_frames` | `n` |
 | `observe` | `name`, optional `flags` (`type`, `flag`) and `fields` (names as for `set_field`) to record |
@@ -134,3 +137,14 @@ fresh Water Temple and Forest Temple instance start with the party's level and e
 `unit/story_progress_test.cpp` checks the team save wire format (a version 1 blob still loads, truncated input is rejected),
 the last writer wins rule, the high score merges and the Water and Forest Temple switch handling without a game or a
 network. The build line is in the file header.
+
+## Feature regression scenarios
+
+`coop_features` runs twice (Story Co-op on, then off) with a party of two: "Teleport to" a party member in another scene,
+and the enemy sync basic case. Both clients stand in Hyrule Field at night, each hits the Stalchildren it leads, and the
+run samples the field every 6 frames: each killed Stalchild must disappear on both clients (the `actors_vanish`
+assertion; a respawn at the same spot a hundred frames later does not count). `single_player` never connects, plays,
+writes save slot 0 and reads it back. `timetravel` is long: pass `--timeout 1100`.
+
+OOTSteamLink: `tools/steamlink/test/stream_test.py`, `e2e_test.py` and `launch_test.py` (the join tool starts `soh.exe` itself
+with `OOT_SERVER` set; the server must log the player) all run on the mock Steam DLL.

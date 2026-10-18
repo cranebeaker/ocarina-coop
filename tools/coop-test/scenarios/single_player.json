@@ -1,0 +1,115 @@
+{
+  "name": "single_player",
+  "server": {
+    "host": "127.0.0.1",
+    "port": 21650
+  },
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "roles": {
+    "A": {
+      "name": "Solo",
+      "steps": [
+        {
+          "op": "wait_play",
+          "timeout_frames": 1800
+        },
+        {
+          "op": "reset_inventory"
+        },
+        {
+          "op": "warp",
+          "entrance": 238,
+          "scene": 85,
+          "timeout_frames": 1800
+        },
+        {
+          "op": "set_rupees",
+          "n": 123
+        },
+        {
+          "op": "add_field",
+          "field": "gs_tokens",
+          "value": 3
+        },
+        {
+          "op": "observe",
+          "name": "before"
+        },
+        {
+          "op": "save_game"
+        },
+        {
+          "op": "wait_frames",
+          "n": 120
+        },
+        {
+          "op": "observe",
+          "name": "saved"
+        },
+        {
+          "op": "set_rupees",
+          "n": 5
+        },
+        {
+          "op": "reload_save"
+        },
+        {
+          "op": "wait_frames",
+          "n": 30
+        },
+        {
+          "op": "observe",
+          "name": "after"
+        },
+        {
+          "op": "quit"
+        }
+      ]
+    }
+  },
+  "assertions": [
+    {
+      "type": "each",
+      "obs": "before",
+      "path": "connected",
+      "op": "eq",
+      "value": false,
+      "label": "single player: never connected"
+    },
+    {
+      "type": "each",
+      "obs": "before",
+      "path": "scene",
+      "op": "eq",
+      "value": 85,
+      "label": "single player: plays (warped to Kokiri)"
+    },
+    {
+      "type": "each",
+      "obs": "before",
+      "path": "story_active",
+      "op": "eq",
+      "value": false,
+      "label": "single player: no story mode"
+    },
+    {
+      "type": "each",
+      "obs": "saved",
+      "path": "save_file_exists",
+      "op": "eq",
+      "value": true,
+      "label": "single player: save file written"
+    },
+    {
+      "type": "each",
+      "obs": "after",
+      "path": "rupees",
+      "op": "eq",
+      "value": 123,
+      "label": "single player: rupees restored from the save file"
+    }
+  ]
+}
