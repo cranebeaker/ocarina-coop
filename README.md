@@ -8,7 +8,7 @@ Story Co-op is a party mode for [Ship of Harkinian](https://github.com/HarbourMa
 Ocarina of Time) built on the online netcode of [ShipwrightOnline](https://github.com/lukegrahamSydney/ShipwrightOnline)
 by lukegrahamSydney. Two or more players go through the adventure together as one playthrough.
 
-## Play in three steps
+## How to play!
 
 1. Download the latest zip from [Releases](https://github.com/cranebeaker/ocarina-coop/releases/latest) and extract it.
    You need your own supported Ocarina of Time ROM (no game files are included; on the first start the game builds
@@ -39,16 +39,6 @@ ShipwrightOnline.
   joiners and reconnects catch up straight away. Every Story Co-op party has a team code shown in the party window.
 - **Enemies and bosses** are synced by the ShipwrightOnline netcode: everyone fights the same enemy.
 
-Details: [STORY_COOP.md](STORY_COOP.md) and the full list of what is shared in
-[STORY_COOP_SYNC_AUDIT.md](STORY_COOP_SYNC_AUDIT.md).
-
-## Status
-
-Every feature above is covered by automated tests that drive two real game clients against a real server: items,
-flags, catch-up and saves, dungeons, live dungeon progress, crash recovery, time of day and enemies, cutscenes, time
-travel, and the Steam relay. Results are in [QA.md](QA.md); how to run them is in
-[tools/coop-test/README.md](tools/coop-test/README.md).
-
 ## How it works
 
 - The client sends a compact progress snapshot; the server merges it into the party's team save and sends the result
@@ -56,12 +46,11 @@ travel, and the Steam relay. Results are in [QA.md](QA.md); how to run them is i
 - Story cutscenes are caught where the game starts them (a cutscene script, or a transition into a scene's cutscene
   layer) and started for the party members in the same scene.
 - The Master Sword pedestal runs a party vote on the server before anyone changes era.
-- `OOTSteamLink.exe` relays the game's TCP connection through Steam: [tools/steamlink/README.md](tools/steamlink/README.md).
+- `OOTSteamLink.exe` relays the game's TCP connection through Steam
 
 ## Part of Co-op Anything
 
-This mod is part of [Co-op Anything](https://github.com/cranebeaker/coop-anything), a playbook for turning
-single-player games into co-op with the help of coding agents.
+This mod is part of [Co-op Anything](https://github.com/cranebeaker/coop-anything)
 
 ## Credits
 
