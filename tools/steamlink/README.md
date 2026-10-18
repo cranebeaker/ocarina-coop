@@ -78,8 +78,11 @@ The helper loads Steam's runtime library from its own folder (no Steam SDK is ne
 
 - SHA-256 `eb17909a76668cf9ae0b92a618a34a50f6c73d3a6787cb4dd8ce36a8b10bfb75`
 
-On Linux use `libsteam_api.so` from the same release (folder `Linux-x64`; 64-bit). Its SHA-256 is not recorded here
-yet: add it after the first download, as for the DLL above. On Linux the Steam callback structs are packed to 4
+On Linux use `libsteam_api.so` from the same release (64-bit x86; in the source tree it is
+`com.rlabrecque.steamworks.net/Plugins/libsteam_api.so`):
+
+- SHA-256 `ec4797f76a206eb0af627af0f0788eb5a2eabf5dee38ee0a6affbaa44a645f4e`
+ On Linux the Steam callback structs are packed to 4
 bytes instead of 8 (see the `#pragma pack` in `ootsteamlink.c`).
 
 `steam_appid.txt` (containing `480`) is created next to the exe if missing. If Steam is not running, or the DLL is
