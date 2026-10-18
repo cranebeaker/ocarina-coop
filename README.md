@@ -28,6 +28,7 @@ Both players need Steam running. You can also run `OOTServer.exe` yourself and c
 ShipwrightOnline.
 
 https://github.com/user-attachments/assets/fedb77e0-4b35-44a7-9120-dce0d7005fcd
+
 <img width="1073" height="803" alt="image" src="https://github.com/user-attachments/assets/9d737741-d8ca-4d7c-bf03-0547e75d3ab9" />
 
 
