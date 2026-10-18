@@ -1,0 +1,22 @@
+name: upload-linux-release
+# Temporary: attaches a prebuilt Linux package to an existing release. Lives only on the tmp-release-upload branch.
+on:
+  push:
+    branches:
+      - tmp-release-upload
+
+permissions:
+  contents: write
+
+jobs:
+  upload:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Git Checkout
+      uses: actions/checkout@v4
+    - name: Attach to release
+      env:
+        GH_TOKEN: ${{ github.token }}
+      run: |
+        sha256sum release-staging/OcarinaStoryCoop-v1.0.1-linux.tar.gz
+        gh release upload v1.0.1 release-staging/OcarinaStoryCoop-v1.0.1-linux.tar.gz --clobber --repo "$GITHUB_REPOSITORY"
