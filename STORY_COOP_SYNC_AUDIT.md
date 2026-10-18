@@ -50,7 +50,7 @@ Legend
 | Adult trade slot | Per player | Pocket Egg to Claim Check is a chain where each step hands over the previous item, so the item and its itemGetInf flags are personal. What the chain unlocks is shared: Biggoron's Sword (`bgsFlag`, sword bit) and the flags the NPCs set in eventChkInf. |
 | Magic beans slot | Per player | Beans are bought and counted. Planted beans are switch flags of the scene and are shared. |
 | `inventory.ammo[]` | Per player | Unless "Share Ammo, Rupees & HP" is on. Unlocking a slot (first sticks, nuts, bombchus, slingshot) is shared. |
-| `inventory.equipment` (owned swords, shields, tunics, boots) | Shared | Excluding the Master Sword bit, which belongs to the time travel flow. Owning the Biggoron's Sword removes the broken knife bit. |
+| `inventory.equipment` (owned swords, shields, tunics, boots) | Shared, losses per player | Excluding the Master Sword bit, which belongs to the time travel flow, and the broken Giant's Knife bit, which is per player. Gear a player loses (a shield or tunic eaten by a Like Like, a burned Deku Shield) is lost for that player only: the client remembers the lost bits in its save file and the team union does not hand them back until the player buys or finds the item again. A loss is never sent as a removal, so the teammates keep theirs. Owning the Biggoron's Sword (with `bgsFlag`) removes the broken knife bit. |
 | `inventory.upgrades` (quiver, bomb bag, strength, scale, wallet, bullet bag, sticks, nuts) | Shared | Highest level wins. |
 | `inventory.questItems` | Shared | Medallions, stones, songs, Stone of Agony, Gerudo Card, Skull Token flag. Excluding the heart piece nibble (shared as `heartQuarters`). |
 | `inventory.dungeonItems` (map, compass, boss key) | Shared | |

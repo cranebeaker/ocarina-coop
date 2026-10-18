@@ -28,6 +28,14 @@ struct AutoTestAccess {
     static ZeldaOnlineClient* C() {
         return ZeldaOnlineClient::Instance;
     }
+    static void SetDlgTestActor(int id) {
+        if (C() != nullptr)
+            C()->m_storyDlgTestActor = id;
+    }
+    static void ResetEquipLost() {
+        if (C() != nullptr)
+            C()->StoryResetEquipLost();
+    }
     static ZeldaOnlineRoomWindow* W() {
         return ZeldaOnlineRoomWindow::Instance;
     }
@@ -95,6 +103,18 @@ struct AutoTestAccess {
     }
     static int CsReceived() {
         return C()->m_storyCsReceived;
+    }
+    static int DlgSent() {
+        return C()->m_storyDlgSent;
+    }
+    static int DlgReceived() {
+        return C()->m_storyDlgReceived;
+    }
+    static int DlgShown() {
+        return C()->m_storyDlgShown;
+    }
+    static bool DlgFollowing() {
+        return C()->m_storyDlgFollowing;
     }
     static int CsStarted() {
         return C()->m_storyCsStarted;
@@ -411,6 +431,10 @@ json Observe(const json& step) {
     o["cs_sent"] = AutoTestAccess::CsSent();
     o["cs_received"] = AutoTestAccess::CsReceived();
     o["cs_started"] = AutoTestAccess::CsStarted();
+    o["dlg_sent"] = AutoTestAccess::DlgSent();
+    o["dlg_received"] = AutoTestAccess::DlgReceived();
+    o["dlg_shown"] = AutoTestAccess::DlgShown();
+    o["dlg_following"] = AutoTestAccess::DlgFollowing();
     o["cs_index"] = (int)gSaveContext.cutsceneIndex;
     o["vote_total"] = AutoTestAccess::VoteTotal();
     o["move_era"] = AutoTestAccess::MoveEra();
@@ -483,6 +507,8 @@ json Observe(const json& step) {
             o["state2"] = p->stateFlags2;
             o["cs_state"] = gPlayState->csCtx.state;
             o["msg_mode"] = gPlayState->msgCtx.msgMode;
+            o["msg_text_id"] = gPlayState->msgCtx.textId;
+            o["frozen"] = (p->stateFlags1 & PLAYER_STATE1_IN_CUTSCENE) != 0;
             o["carrying"] = (p->stateFlags1 & PLAYER_STATE1_CARRYING_ACTOR) != 0;
             o["held_actor"] = p->heldActor != nullptr;
             o["link_pos"] = { p->actor.world.pos.x, p->actor.world.pos.y, p->actor.world.pos.z };
@@ -577,6 +603,7 @@ void ResetInventory() {
         inv.ammo[i] = 0;
     }
     inv.equipment = 0;
+    AutoTestAccess::ResetEquipLost();
     inv.upgrades = 0;
     inv.questItems = 0;
     for (int i = 0; i < 20; i++) {
@@ -658,8 +685,17 @@ Actor* FindPedestal() {
 }
 
 // Returns true when the step is complete.
+// hide_ui: keeps the online window closed once connected (for recordings)
+static bool sHideUi = false;
+
 bool RunStep(const json& step) {
     const std::string op = step.value("op", "");
+    if (sHideUi && AutoTestAccess::Connected() && AutoTestAccess::W() != nullptr && AutoTestAccess::W()->IsVisible())
+        AutoTestAccess::W()->Hide();
+    if (op == "hide_ui") {
+        sHideUi = true;
+        return true;
+    }
     const uint32_t timeout = step.value("timeout_frames", 3600);
     const bool first = !sState.stepStarted;
     sState.stepStarted = true;
@@ -767,6 +803,15 @@ bool RunStep(const json& step) {
             // back to normal play after a cutscene (optionally in `scene`)
             ok = PlayReady() && gPlayState->csCtx.state == CS_STATE_IDLE && !Player_InCsMode(gPlayState) &&
                  sState.stepFrames > 20 && (!step.contains("scene") || gPlayState->sceneNum == step.value("scene", 0));
+        } else if (cond == "dlg_received") {
+            ok = AutoTestAccess::DlgReceived() >= n;
+        } else if (cond == "dlg_following") {
+            ok = AutoTestAccess::DlgFollowing() == step.value("value", true);
+        } else if (cond == "msg_text") {
+            ok = gPlayState != nullptr && gPlayState->msgCtx.msgMode != MSGMODE_NONE &&
+                 gPlayState->msgCtx.textId == step.value("value", 0);
+        } else if (cond == "msg_closed") {
+            ok = gPlayState != nullptr && gPlayState->msgCtx.msgMode == MSGMODE_NONE;
         } else if (cond == "cs_received") {
             ok = AutoTestAccess::CsReceived() >= n;
         } else if (PlayReady()) {
@@ -1116,6 +1161,25 @@ bool RunStep(const json& step) {
     if (op == "set_time") {
         if (step.contains("day_time")) gSaveContext.dayTime = step["day_time"].get<int>();
         if (step.contains("night_flag")) gSaveContext.nightFlag = step["night_flag"].get<int>();
+        return true;
+    }
+    if (op == "start_text") {
+        // opens a text box the way an NPC talk does; actor_id is the NPC the text belongs to (passed to the client
+        // as a test-only talk actor id, the text box itself has no actor)
+        if (!PlayReady()) return timedOut("start_text not ready");
+        AutoTestAccess::SetDlgTestActor(step.value("actor_id", -1));
+        Message_StartTextbox(gPlayState, (u16)step.value("text_id", 0), nullptr);
+        return true;
+    }
+    if (op == "continue_text") {
+        if (!PlayReady()) return timedOut("continue_text not ready");
+        Message_ContinueTextbox(gPlayState, (u16)step.value("text_id", 0));
+        return true;
+    }
+    if (op == "close_text") {
+        if (!PlayReady()) return timedOut("close_text not ready");
+        Message_CloseTextbox(gPlayState);
+        AutoTestAccess::SetDlgTestActor(-1);
         return true;
     }
     if (op == "log") {

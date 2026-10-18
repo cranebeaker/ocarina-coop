@@ -1,0 +1,1099 @@
+{
+  "name": "npc_shield",
+  "boot": {
+    "entrance": 238,
+    "age": "child"
+  },
+  "stages": [
+    {
+      "name": "gear_loss_is_per_player",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "npc-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 3600,
+              "type": "inf_table",
+              "flag": 458
+            },
+            {
+              "op": "wait_until",
+              "cond": "field",
+              "timeout_frames": 1200,
+              "field": "equipment",
+              "value": 817
+            },
+            {
+              "op": "observe",
+              "name": "a_has_all",
+              "fields": [
+                "equipment"
+              ]
+            },
+            {
+              "op": "set_field",
+              "field": "equipment",
+              "value": 257
+            },
+            {
+              "op": "wait_frames",
+              "n": 200
+            },
+            {
+              "op": "observe",
+              "name": "a_after_loss",
+              "fields": [
+                "equipment"
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 459
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 3600,
+              "type": "inf_table",
+              "flag": 460
+            },
+            {
+              "op": "wait_frames",
+              "n": 200
+            },
+            {
+              "op": "observe",
+              "name": "a_after_more_syncs",
+              "fields": [
+                "equipment"
+              ]
+            },
+            {
+              "op": "set_field",
+              "field": "equipment",
+              "value": 273
+            },
+            {
+              "op": "wait_frames",
+              "n": 200
+            },
+            {
+              "op": "observe",
+              "name": "a_after_rebuy",
+              "fields": [
+                "equipment"
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 461
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 3600,
+              "type": "inf_table",
+              "flag": 462
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "set_field",
+              "field": "equipment",
+              "value": 817
+            },
+            {
+              "op": "wait_frames",
+              "n": 20
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 458
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 3600,
+              "type": "inf_table",
+              "flag": 459
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "observe",
+              "name": "b_after_a_loss",
+              "fields": [
+                "equipment"
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 460
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "timeout_frames": 3600,
+              "type": "inf_table",
+              "flag": 461
+            },
+            {
+              "op": "wait_frames",
+              "n": 120
+            },
+            {
+              "op": "observe",
+              "name": "b_end",
+              "fields": [
+                "equipment"
+              ]
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 462
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "roles": [
+            "A"
+          ],
+          "obs": "a_has_all",
+          "path": "fields.equipment",
+          "op": "eq",
+          "value": 817,
+          "label": "A gets B's gear through the union"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "A"
+          ],
+          "obs": "a_after_loss",
+          "path": "fields.equipment",
+          "op": "eq",
+          "value": 257,
+          "label": "A stays without the shields and the Goron tunic"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_after_a_loss",
+          "path": "fields.equipment",
+          "op": "eq",
+          "value": 817,
+          "label": "B keeps every item A lost"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "A"
+          ],
+          "obs": "a_after_more_syncs",
+          "path": "fields.equipment",
+          "op": "eq",
+          "value": 257,
+          "label": "more syncs do not hand the lost gear back"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "A"
+          ],
+          "obs": "a_after_rebuy",
+          "path": "fields.equipment",
+          "op": "eq",
+          "value": 273,
+          "label": "buying the Deku Shield again sticks and nothing else returns"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_end",
+          "path": "fields.equipment",
+          "op": "eq",
+          "value": 817,
+          "label": "B still has everything at the end"
+        }
+      ]
+    },
+    {
+      "name": "key_dialogue_together",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "npc-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "start_text",
+              "actor_id": 62,
+              "text_id": 2309
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "observe",
+              "name": "a_speaking"
+            },
+            {
+              "op": "continue_text",
+              "text_id": 2310
+            },
+            {
+              "op": "wait_frames",
+              "n": 100
+            },
+            {
+              "op": "close_text"
+            },
+            {
+              "op": "wait_until",
+              "cond": "msg_closed",
+              "timeout_frames": 300
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "observe",
+              "name": "a_before_random"
+            },
+            {
+              "op": "start_text",
+              "actor_id": 355,
+              "text_id": 2309
+            },
+            {
+              "op": "wait_frames",
+              "n": 120
+            },
+            {
+              "op": "close_text"
+            },
+            {
+              "op": "wait_until",
+              "cond": "msg_closed",
+              "timeout_frames": 300
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "start_text",
+              "actor_id": 62,
+              "text_id": 2309
+            },
+            {
+              "op": "wait_frames",
+              "n": 80
+            },
+            {
+              "op": "disconnect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "disconnected",
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "wait_until",
+              "cond": "msg_text",
+              "timeout_frames": 1200,
+              "value": 2309
+            },
+            {
+              "op": "observe",
+              "name": "b_sees_first"
+            },
+            {
+              "op": "wait_until",
+              "cond": "msg_text",
+              "timeout_frames": 600,
+              "value": 2310
+            },
+            {
+              "op": "observe",
+              "name": "b_sees_second"
+            },
+            {
+              "op": "wait_until",
+              "cond": "msg_closed",
+              "timeout_frames": 600
+            },
+            {
+              "op": "wait_until",
+              "cond": "dlg_following",
+              "timeout_frames": 300,
+              "value": false
+            },
+            {
+              "op": "wait_frames",
+              "n": 5
+            },
+            {
+              "op": "observe",
+              "name": "b_released"
+            },
+            {
+              "op": "wait_frames",
+              "n": 120
+            },
+            {
+              "op": "observe",
+              "name": "b_during_random"
+            },
+            {
+              "op": "wait_until",
+              "cond": "msg_text",
+              "timeout_frames": 1200,
+              "value": 2309
+            },
+            {
+              "op": "observe",
+              "name": "b_sees_again"
+            },
+            {
+              "op": "wait_until",
+              "cond": "dlg_following",
+              "timeout_frames": 600,
+              "value": false
+            },
+            {
+              "op": "wait_until",
+              "cond": "msg_closed",
+              "timeout_frames": 300
+            },
+            {
+              "op": "wait_frames",
+              "n": 5
+            },
+            {
+              "op": "observe",
+              "name": "b_released_after_disconnect"
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "roles": [
+            "A"
+          ],
+          "obs": "a_speaking",
+          "path": "dlg_sent",
+          "op": "ge",
+          "value": 1,
+          "label": "A announces its Deku Tree conversation"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_sees_first",
+          "path": "msg_text_id",
+          "op": "eq",
+          "value": 2309,
+          "label": "B shows the same text id"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_sees_first",
+          "path": "dlg_following",
+          "op": "eq",
+          "value": true,
+          "label": "B follows the speaker"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_sees_first",
+          "path": "frozen",
+          "op": "eq",
+          "value": true,
+          "label": "B is held while the text is up"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_sees_second",
+          "path": "msg_text_id",
+          "op": "eq",
+          "value": 2310,
+          "label": "B moves on to the next text with A"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_released",
+          "path": "msg_mode",
+          "op": "eq",
+          "value": 0,
+          "label": "B's text box closes when A closes"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_released",
+          "path": "frozen",
+          "op": "eq",
+          "value": false,
+          "label": "B gets Link back"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_released",
+          "path": "dlg_following",
+          "op": "eq",
+          "value": false,
+          "label": "B stops following"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_during_random",
+          "path": "msg_mode",
+          "op": "eq",
+          "value": 0,
+          "label": "B sees nothing of a Kokiri conversation"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_during_random",
+          "path": "frozen",
+          "op": "eq",
+          "value": false,
+          "label": "B is not held for a Kokiri conversation"
+        },
+        {
+          "type": "rel",
+          "label": "a Kokiri conversation sends nothing to B",
+          "a": {
+            "role": "B",
+            "obs": "b_released",
+            "path": "dlg_received"
+          },
+          "b": {
+            "role": "B",
+            "obs": "b_during_random",
+            "path": "dlg_received"
+          },
+          "op": "eq"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_sees_again",
+          "path": "msg_text_id",
+          "op": "eq",
+          "value": 2309,
+          "label": "B joins a second conversation"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_released_after_disconnect",
+          "path": "dlg_following",
+          "op": "eq",
+          "value": false,
+          "label": "B is released when the speaker disconnects"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_released_after_disconnect",
+          "path": "msg_mode",
+          "op": "eq",
+          "value": 0,
+          "label": "B's text box is gone after the speaker disconnected"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_released_after_disconnect",
+          "path": "frozen",
+          "op": "eq",
+          "value": false,
+          "label": "B has Link back after the speaker disconnected"
+        }
+      ]
+    },
+    {
+      "name": "story_coop_off_mirrors_nothing",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": false,
+              "story_code": "npc-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "start_text",
+              "actor_id": 62,
+              "text_id": 2309
+            },
+            {
+              "op": "wait_frames",
+              "n": 150
+            },
+            {
+              "op": "observe",
+              "name": "a_speaking"
+            },
+            {
+              "op": "close_text"
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 40
+            },
+            {
+              "op": "wait_frames",
+              "n": 170
+            },
+            {
+              "op": "observe",
+              "name": "b_off"
+            },
+            {
+              "op": "wait_frames",
+              "n": 60
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "roles": [
+            "A"
+          ],
+          "obs": "a_speaking",
+          "path": "dlg_sent",
+          "op": "eq",
+          "value": 0,
+          "label": "A sends nothing with Story Co-op off"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_off",
+          "path": "dlg_received",
+          "op": "eq",
+          "value": 0,
+          "label": "B receives nothing"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_off",
+          "path": "msg_mode",
+          "op": "eq",
+          "value": 0,
+          "label": "B has no text box"
+        },
+        {
+          "type": "each",
+          "roles": [
+            "B"
+          ],
+          "obs": "b_off",
+          "path": "frozen",
+          "op": "eq",
+          "value": false,
+          "label": "B is not held"
+        }
+      ]
+    }
+  ]
+}

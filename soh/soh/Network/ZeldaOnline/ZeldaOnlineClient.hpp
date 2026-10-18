@@ -169,6 +169,24 @@ class ZeldaOnlineClient : public ZNetworking {
     uint16_t m_storyCsPendingIndex = 0;
     std::string m_storyCsPendingPath;
 
+    // Story Co-op key dialogue: the text boxes of story NPCs are shown to the members in the same scene
+    bool m_storyDlgSpeaking = false;         // this player has a key conversation open
+    uint16_t m_storyDlgSentText = 0;
+    int m_storyDlgBeat = 0;
+    bool m_storyDlgFollowing = false;        // another member's key conversation is on screen here
+    unsigned int m_storyDlgSpeaker = 0;
+    uint16_t m_storyDlgShownText = 0;
+    int m_storyDlgQuiet = 0;                 // frames since the speaker last said anything
+    bool m_storyDlgFroze = false;            // this client set the cutscene flag on the player
+    bool m_storyDlgHasPending = false;
+    uint8_t m_storyDlgPendingKind = 0;
+    uint16_t m_storyDlgPendingText = 0;
+    unsigned int m_storyDlgPendingSender = 0;
+    int m_storyDlgSent = 0;
+    int m_storyDlgReceived = 0;
+    int m_storyDlgShown = 0;
+    int m_storyDlgTestActor = -1;            // auto-test only: the NPC a text box without a talk actor belongs to
+
 
     void ReportBandwidth();
     bool NextPacket(ByteStream& out);
@@ -189,12 +207,17 @@ class ZeldaOnlineClient : public ZNetworking {
     void StoryRefreshState();
     void StoryOnSaveChanged(bool loaded);
     void StoryMarkDirty();
+  public:
+    void StoryResetEquipLost();
+  private:
     void StoryRememberDungeonFlags(int sceneNum, uint32_t swch, uint32_t clear);
     void StoryApplyDungeonFlags(PlayState* play);
     void StoryOnDungeonFlag(int sceneNum, int flagType, int flag, bool set);
     void StoryLwwPublish(uint8_t id, const std::vector<uint8_t>& data, bool seed = false);
     void StoryLwwAdopt(const StoryLwwSlot& slot);
     void StoryTrackLocalState();
+    void StoryTrackEquipment();
+    void StoryRegisterSave();
     void StoryResetLocalState();
     void OnStoryDungeonClear(ByteStream& packet);
     StoryProgress StoryCapture();
@@ -218,6 +241,9 @@ class ZeldaOnlineClient : public ZNetworking {
     void OnStorySetEra(ByteStream& packet);
     void StoryWatchCutscenes();
     void StoryStartRemoteCutscene();
+    void StoryWatchDialogue();
+    void StoryReleaseDialogue();
+    void OnStoryDialogue(ByteStream& packet);
     void OnStoryCutscene(ByteStream& packet);
 
 

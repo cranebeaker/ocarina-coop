@@ -44,6 +44,11 @@ The party list shows each member's era (Adult or Child).
 - A member who is busy with a text box gets a short moment to finish it first. A member who is already in a cutscene or a transition is watching it already.
 - Members in other scenes are not pulled in. The first visit intro of an area is kept per player, so they still see it when they first get there.
 - If the member who started the cutscene disconnects, the others finish it and play on.
+- Key story conversations that are plain text boxes are shared the same way: talking to the Great Deku Tree, Zelda, Saria, Impa, Darunia, King Zora, Ruto, Nabooru or Sheik shows the same text to the members in the same scene, at the speaker's pace. Their Link is held while the text is up. Questions are answered by the speaker. Talking to any other NPC stays personal. The others are let go when the speaker closes the text, leaves or disconnects.
+
+## Gear you lose
+
+A shield or tunic eaten by a Like Like, or a Deku Shield that burns, is lost for you only. Your teammates keep theirs, and the team save does not give it back to you: buy or find it again, like in single player.
 
 ## Server save
 
