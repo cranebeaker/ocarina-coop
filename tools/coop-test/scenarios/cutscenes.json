@@ -1,0 +1,1305 @@
+{
+  "name": "cutscenes",
+  "boot": {
+    "entrance": 187,
+    "age": "child"
+  },
+  "stages": [
+    {
+      "name": "area_intro_together",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "cs-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 401,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "unset_flag",
+              "type": "event_chk_inf",
+              "flag": 163
+            },
+            {
+              "op": "wait_frames",
+              "n": 90
+            },
+            {
+              "op": "warp",
+              "entrance": 219,
+              "scene": 82,
+              "cutscene_ok": true,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "observe",
+              "name": "after_trigger"
+            },
+            {
+              "op": "wait_until",
+              "cond": "cutscene_done",
+              "timeout_frames": 3600,
+              "mash": true,
+              "scene": 82
+            },
+            {
+              "op": "observe",
+              "name": "after",
+              "flags": [
+                {
+                  "type": "event_chk_inf",
+                  "flag": 163
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 401,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "unset_flag",
+              "type": "event_chk_inf",
+              "flag": 163
+            },
+            {
+              "op": "wait_until",
+              "cond": "cs_received",
+              "n": 1,
+              "timeout_frames": 2400
+            },
+            {
+              "op": "wait_until",
+              "cond": "in_cutscene",
+              "scene": 82,
+              "timeout_frames": 600
+            },
+            {
+              "op": "observe",
+              "name": "watching"
+            },
+            {
+              "op": "wait_until",
+              "cond": "cutscene_done",
+              "timeout_frames": 3600,
+              "mash": true,
+              "scene": 82
+            },
+            {
+              "op": "observe",
+              "name": "after",
+              "flags": [
+                {
+                  "type": "event_chk_inf",
+                  "flag": 163
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "after_trigger",
+          "path": "cs_sent",
+          "op": "ge",
+          "value": 1,
+          "roles": [
+            "A"
+          ],
+          "label": "A announces the Kakariko intro"
+        },
+        {
+          "type": "each",
+          "obs": "watching",
+          "path": "cs_started",
+          "op": "eq",
+          "value": 1,
+          "roles": [
+            "B"
+          ],
+          "label": "B starts the Kakariko intro once"
+        },
+        {
+          "type": "each",
+          "obs": "watching",
+          "path": "scene",
+          "op": "eq",
+          "value": 82,
+          "roles": [
+            "B"
+          ],
+          "label": "B watches it in Kakariko"
+        },
+        {
+          "type": "each",
+          "obs": "after",
+          "path": "cs_started",
+          "op": "eq",
+          "value": 0,
+          "roles": [
+            "A"
+          ],
+          "label": "A did not get its own intro back from B"
+        },
+        {
+          "type": "each",
+          "obs": "after",
+          "path": "flags.0.value",
+          "op": "truthy",
+          "value": true,
+          "label": "the intro counts as seen for both"
+        }
+      ]
+    },
+    {
+      "name": "scene_cutscene_together",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "cs-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 90
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "cutscene": 65521,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "observe",
+              "name": "after_trigger"
+            },
+            {
+              "op": "wait_until",
+              "cond": "cutscene_done",
+              "timeout_frames": 6000,
+              "mash": true
+            },
+            {
+              "op": "observe",
+              "name": "after"
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "cs_received",
+              "n": 1,
+              "timeout_frames": 2400
+            },
+            {
+              "op": "wait_until",
+              "cond": "in_cutscene",
+              "scene": 85,
+              "timeout_frames": 900
+            },
+            {
+              "op": "observe",
+              "name": "watching"
+            },
+            {
+              "op": "wait_until",
+              "cond": "cutscene_done",
+              "timeout_frames": 6000,
+              "mash": true
+            },
+            {
+              "op": "observe",
+              "name": "after"
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "after_trigger",
+          "path": "cs_sent",
+          "op": "ge",
+          "value": 1,
+          "roles": [
+            "A"
+          ],
+          "label": "A announces the Deku Tree cutscene"
+        },
+        {
+          "type": "each",
+          "obs": "watching",
+          "path": "cs_index",
+          "op": "eq",
+          "value": 65521,
+          "roles": [
+            "B"
+          ],
+          "label": "B loads the same cutscene layer"
+        },
+        {
+          "type": "each",
+          "obs": "watching",
+          "path": "cs_started",
+          "op": "eq",
+          "value": 1,
+          "roles": [
+            "B"
+          ],
+          "label": "B starts it once"
+        },
+        {
+          "type": "same",
+          "obs": "after",
+          "path": "scene",
+          "label": "both end up in the same scene"
+        },
+        {
+          "type": "each",
+          "obs": "after",
+          "path": "cs_started",
+          "op": "eq",
+          "value": 0,
+          "roles": [
+            "A"
+          ],
+          "label": "A did not get the cutscene back from B"
+        }
+      ]
+    },
+    {
+      "name": "absent_member_keeps_intro",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "cs-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 401,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "unset_flag",
+              "type": "event_chk_inf",
+              "flag": 163
+            },
+            {
+              "op": "wait_frames",
+              "n": 90
+            },
+            {
+              "op": "warp",
+              "entrance": 219,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "cutscene_done",
+              "timeout_frames": 3600,
+              "mash": true,
+              "scene": 82
+            },
+            {
+              "op": "set_flag",
+              "type": "inf_table",
+              "flag": 440
+            },
+            {
+              "op": "observe",
+              "name": "after",
+              "flags": [
+                {
+                  "type": "event_chk_inf",
+                  "flag": 163
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 600
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "unset_flag",
+              "type": "event_chk_inf",
+              "flag": 163
+            },
+            {
+              "op": "wait_until",
+              "cond": "flag",
+              "type": "inf_table",
+              "flag": 440,
+              "timeout_frames": 7200
+            },
+            {
+              "op": "wait_frames",
+              "n": 120
+            },
+            {
+              "op": "observe",
+              "name": "elsewhere",
+              "flags": [
+                {
+                  "type": "event_chk_inf",
+                  "flag": 163
+                }
+              ]
+            },
+            {
+              "op": "warp",
+              "entrance": 219,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "in_cutscene",
+              "scene": 82,
+              "timeout_frames": 600
+            },
+            {
+              "op": "observe",
+              "name": "own_intro"
+            },
+            {
+              "op": "wait_until",
+              "cond": "cutscene_done",
+              "timeout_frames": 3600,
+              "mash": true,
+              "scene": 82
+            },
+            {
+              "op": "observe",
+              "name": "after",
+              "flags": [
+                {
+                  "type": "event_chk_inf",
+                  "flag": 163
+                }
+              ]
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "elsewhere",
+          "path": "cs_received",
+          "op": "eq",
+          "value": 0,
+          "roles": [
+            "B"
+          ],
+          "label": "B in another scene is not pulled in"
+        },
+        {
+          "type": "each",
+          "obs": "elsewhere",
+          "path": "flags.0.value",
+          "op": "eq",
+          "value": false,
+          "roles": [
+            "B"
+          ],
+          "label": "A's intro does not mark it seen for B"
+        },
+        {
+          "type": "each",
+          "obs": "own_intro",
+          "path": "scene",
+          "op": "eq",
+          "value": 82,
+          "roles": [
+            "B"
+          ],
+          "label": "B gets the intro on its own first visit"
+        },
+        {
+          "type": "each",
+          "obs": "after",
+          "path": "flags.0.value",
+          "op": "truthy",
+          "value": true,
+          "label": "seen for both afterwards"
+        }
+      ]
+    },
+    {
+      "name": "trigger_drops_mid_cutscene",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": true,
+              "story_code": "cs-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 401,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "unset_flag",
+              "type": "event_chk_inf",
+              "flag": 163
+            },
+            {
+              "op": "wait_frames",
+              "n": 90
+            },
+            {
+              "op": "warp",
+              "entrance": 219,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_frames",
+              "n": 90
+            },
+            {
+              "op": "disconnect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "cutscene_done",
+              "timeout_frames": 3600,
+              "mash": true,
+              "scene": 82
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "story_active",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 401,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "in_cutscene",
+              "scene": 82,
+              "timeout_frames": 2400
+            },
+            {
+              "op": "wait_until",
+              "cond": "cutscene_done",
+              "timeout_frames": 3600,
+              "mash": true,
+              "scene": 82
+            },
+            {
+              "op": "observe",
+              "name": "after"
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "after",
+          "path": "scene",
+          "op": "eq",
+          "value": 82,
+          "roles": [
+            "B"
+          ],
+          "label": "B finishes the cutscene and plays on after A dropped"
+        }
+      ]
+    },
+    {
+      "name": "story_off_unchanged",
+      "server": "fresh",
+      "roles": {
+        "A": {
+          "name": "TestA",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "create_party",
+              "story_coop": false,
+              "story_code": "cs-qa-code"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 401,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "unset_flag",
+              "type": "event_chk_inf",
+              "flag": 163
+            },
+            {
+              "op": "wait_frames",
+              "n": 90
+            },
+            {
+              "op": "warp",
+              "entrance": 219,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "cutscene_done",
+              "timeout_frames": 3600,
+              "mash": true,
+              "scene": 82
+            },
+            {
+              "op": "observe",
+              "name": "after"
+            },
+            {
+              "op": "wait_frames",
+              "n": 300
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        },
+        "B": {
+          "name": "TestB",
+          "god": true,
+          "steps": [
+            {
+              "op": "wait_play",
+              "timeout_frames": 1800
+            },
+            {
+              "op": "reset_inventory"
+            },
+            {
+              "op": "connect"
+            },
+            {
+              "op": "wait_until",
+              "cond": "connected",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "net_id",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "warp",
+              "entrance": 238,
+              "scene": 85,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "other_players",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_until",
+              "cond": "invite_pending",
+              "timeout_frames": 3600
+            },
+            {
+              "op": "accept_invite"
+            },
+            {
+              "op": "wait_until",
+              "cond": "has_party",
+              "timeout_frames": 1200
+            },
+            {
+              "op": "wait_until",
+              "cond": "party_size",
+              "timeout_frames": 3600,
+              "n": 2
+            },
+            {
+              "op": "warp",
+              "entrance": 401,
+              "scene": 82,
+              "timeout_frames": 1800
+            },
+            {
+              "op": "wait_until",
+              "cond": "peers_in_scene",
+              "timeout_frames": 3600,
+              "n": 1
+            },
+            {
+              "op": "wait_frames",
+              "n": 900
+            },
+            {
+              "op": "observe",
+              "name": "after"
+            },
+            {
+              "op": "wait_frames",
+              "n": 30
+            },
+            {
+              "op": "quit"
+            }
+          ]
+        }
+      },
+      "assertions": [
+        {
+          "type": "each",
+          "obs": "after",
+          "path": "cs_sent",
+          "op": "eq",
+          "value": 0,
+          "roles": [
+            "A"
+          ],
+          "label": "Story Co-op off: nothing announced"
+        },
+        {
+          "type": "each",
+          "obs": "after",
+          "path": "cs_started",
+          "op": "eq",
+          "value": 0,
+          "roles": [
+            "B"
+          ],
+          "label": "Story Co-op off: B is not pulled in"
+        }
+      ]
+    }
+  ]
+}

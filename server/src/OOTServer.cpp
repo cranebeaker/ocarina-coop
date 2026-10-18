@@ -1996,6 +1996,26 @@ namespace ZeldaOnline
 		}
 		break;
 
+		case CLIENT_PACKET_STORY_CUTSCENE:
+		{
+			auto party = player->GetParty();
+			Scene* scene = player->CurrentScene();
+			if (!party || !party->StoryCoop() || scene == nullptr || data.BytesLeft() < 3 || data.BytesLeft() > 1100)
+				break;
+
+			auto kind = data.Read<PackedUInt1>().value();
+			auto entrance = data.Read<PackedUInt2>().value();
+			auto index = data.Read<PackedUInt2>().value();
+			auto path = data.ReadString(data.BytesLeft());
+
+			// a story cutscene started for this member: the members in the same scene watch it too
+			ByteStream packet = newPacket(SERVER_PACKET_STORY_CUTSCENE);
+			packet << PackedUInt2((unsigned int)player->NetworkID()) << PackedUInt1(kind) << PackedUInt2(entrance)
+			       << PackedUInt2(index) << path;
+			party->SendToScene(scene, packet, player);
+		}
+		break;
+
 		case CLIENT_PACKET_STORY_SHARE_ITEM:
 		{
 			auto party = player->GetParty();

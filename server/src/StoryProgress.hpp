@@ -69,7 +69,11 @@ namespace ZeldaOnline
 
 	// eventChkInf bit numbers set only by the Master Sword time travel flow
 	// (PULLED_MASTER_SWORD_FROM_PEDESTAL, ENTERED_MASTER_SWORD_CHAMBER, SHEIK_SPAWNED_AT_MASTER_SWORD_PEDESTAL, TIME_TRAVELED_TO_ADULT)
-	static const int STORY_EVENTCHKINF_EXCLUDE[] = { 0x45, 0x4F, 0xC5, 0xC9 };
+	// and the "first visit" area intro flags (ENTERED_HYRULE_FIELD 0xA0 ... ENTERED_GANONS_CASTLE_EXTERIOR 0xBA, the flyover
+	// that plays the first time a player enters an area). They only say "this player saw the intro": kept per player, a
+	// member who was elsewhere still gets the intro on the first visit, and members in the area watch it together.
+	static const int STORY_EVENTCHKINF_EXCLUDE[] = { 0x45, 0x4F, 0xC5, 0xC9, 0xA0, 0xA1, 0xA3, 0xA4, 0xA5, 0xA6, 0xA7, 0xA8,
+	                                                 0xB1, 0xB2, 0xB3, 0xB4, 0xB5, 0xB6, 0xB7, 0xB8, 0xB9, 0xBA };
 
 	// eventChkInf bits meaning "an NPC already gave this player an item that stays per player" (mask loans).
 	// Sharing them would stop the other members from ever receiving that item.

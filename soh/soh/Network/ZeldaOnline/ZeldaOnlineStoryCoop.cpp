@@ -994,6 +994,7 @@ void ZeldaOnlineClient::StoryUpdate() {
     if (m_storyApprovedFrames > 0 && --m_storyApprovedFrames == 0)
         StoryRestorePlayer();
     StoryMoveToEra();
+    StoryWatchCutscenes();
 
     // upload first, so a joining member contributes its own progress before the team save is merged into it
     bool poll = m_storyDirty || (m_storyFrame % 20) == 0;
@@ -1354,4 +1355,191 @@ void ZeldaOnlineClient::StoryMoveToEra() {
     m_storyAllowAgeChange = true;
     SwitchAge();
     m_storyAllowAgeChange = false;
+}
+
+// ---------------------------------------------------------------------------------------------------------------
+// Cutscenes watched together
+// ---------------------------------------------------------------------------------------------------------------
+//
+// The game starts its story cutscenes in two ways, and both are caught here without a per cutscene list:
+//  - a script cutscene: csCtx.segment gets the resource path of a cutscene script and the cutscene starts in the
+//    current scene (area intros, Sheik, song lessons, Zelda, the Sages ...). It is sent by its path.
+//  - a scene cutscene: a transition loads a scene in one of its cutscene layers (nextCutsceneIndex 0xFFF0 and up:
+//    the Deku Tree dying after Gohma, the Chamber of Sages, Kakariko burning ...). It is sent as that transition.
+// The server hands it to the party members in the same scene, who start the same thing unless they are already in a
+// cutscene or a transition (then they are watching it already: both triggered it at the same moment).
+// Story flags stay shared as before; only the area intro "seen" flags are per player (STORY_EVENTCHKINF_EXCLUDE).
+
+extern "C" int ResourceMgr_OTRSigCheck(char* imgData);
+
+namespace {
+
+const uint8_t STORY_CS_SCRIPT = 0;
+const uint8_t STORY_CS_TRANSITION = 1;
+const int STORY_CS_ECHO_FRAMES = 60;     // a cutscene started for a member is not announced back
+const int STORY_CS_PENDING_FRAMES = 100; // how long a received cutscene may wait for a text box to close
+
+// area intro flyovers: entrance and the per player flag that marks the intro as seen (sEntranceCutsceneTable)
+struct StoryIntroCutscene {
+    int entrance;
+    int flag;
+};
+const StoryIntroCutscene STORY_INTRO_CUTSCENES[] = {
+    { ENTR_HYRULE_FIELD_WOODED_EXIT, EVENTCHKINF_ENTERED_HYRULE_FIELD },
+    { ENTR_DEATH_MOUNTAIN_TRAIL_BOTTOM_EXIT, EVENTCHKINF_ENTERED_DEATH_MOUNTAIN_TRAIL },
+    { ENTR_KAKARIKO_VILLAGE_FRONT_GATE, EVENTCHKINF_ENTERED_KAKARIKO_VILLAGE },
+    { ENTR_ZORAS_DOMAIN_ENTRANCE, EVENTCHKINF_ENTERED_ZORAS_DOMAIN },
+    { ENTR_CASTLE_GROUNDS_SOUTH_EXIT, EVENTCHKINF_ENTERED_HYRULE_CASTLE },
+    { ENTR_GORON_CITY_UPPER_EXIT, EVENTCHKINF_ENTERED_GORON_CITY },
+    { ENTR_TEMPLE_OF_TIME_ENTRANCE, EVENTCHKINF_ENTERED_TEMPLE_OF_TIME },
+    { ENTR_DEKU_TREE_ENTRANCE, EVENTCHKINF_ENTERED_DEKU_TREE },
+    { ENTR_LAKE_HYLIA_NORTH_EXIT, EVENTCHKINF_ENTERED_LAKE_HYLIA },
+    { ENTR_GERUDO_VALLEY_EAST_EXIT, EVENTCHKINF_ENTERED_GERUDO_VALLEY },
+    { ENTR_GERUDOS_FORTRESS_EAST_EXIT, EVENTCHKINF_ENTERED_GERUDOS_FORTRESS },
+    { ENTR_LON_LON_RANCH_ENTRANCE, EVENTCHKINF_ENTERED_LON_LON_RANCH },
+    { ENTR_JABU_JABU_ENTRANCE, EVENTCHKINF_ENTERED_JABU_JABUS_BELLY },
+    { ENTR_GRAVEYARD_ENTRANCE, EVENTCHKINF_ENTERED_GRAVEYARD },
+    { ENTR_ZORAS_FOUNTAIN_TUNNEL_EXIT, EVENTCHKINF_ENTERED_ZORAS_FOUNTAIN },
+    { ENTR_DESERT_COLOSSUS_EAST_EXIT, EVENTCHKINF_ENTERED_DESERT_COLOSSUS },
+    { ENTR_DEATH_MOUNTAIN_CRATER_UPPER_EXIT, EVENTCHKINF_ENTERED_DEATH_MOUNTAIN_CRATER },
+    { ENTR_DEATH_MOUNTAIN_CRATER_GC_EXIT, EVENTCHKINF_ENTERED_DEATH_MOUNTAIN_CRATER },
+};
+
+// cutscenes that only make sense for the player who caused them
+bool StoryCutsceneIsPersonal(const std::string& path) {
+    // jumping a fence on Epona, being caught by the Gerudo
+    return path.find("EponaJump") != std::string::npos || path.find("Capture") != std::string::npos;
+}
+
+// transitions into a cutscene layer that start a minigame for the player who paid for it
+bool StoryTransitionIsPersonal(int entrance, int index) {
+    // Lon Lon Ranch races (Ingo, Malon's obstacle course) and horseback archery at the Gerudo Fortress
+    return index == 0xFFF0 && (entrance == ENTR_LON_LON_RANCH_ENTRANCE || entrance == ENTR_GERUDOS_FORTRESS_EAST_EXIT);
+}
+
+} // namespace
+
+// Called every frame from StoryUpdate: announces cutscenes that start here, starts the ones members announced.
+void ZeldaOnlineClient::StoryWatchCutscenes() {
+    PlayState* play = gPlayState;
+    // TRANS_TRIGGER_START is a scene change on its way; TRANS_TRIGGER_END is only the fade in after a load
+    const bool transitioning = play->transitionTrigger == TRANS_TRIGGER_START;
+    const bool csActive = play->csCtx.state != CS_STATE_IDLE;
+
+    if (m_storyCsRemoteFrames > 0)
+        m_storyCsRemoteFrames--;
+
+    // time travel runs through the pedestal vote, every member starts that sequence on its own
+    const bool canAnnounce =
+        m_storyCsRemoteFrames == 0 && !m_storyHold && m_storyApprovedFrames == 0 && m_storyMoveEra < 0 && m_partyID != 0;
+
+    // a transition into a scene cutscene layer
+    if (!transitioning) {
+        m_storyCsTransitionSeen = false;
+    } else if (!m_storyCsTransitionSeen) {
+        m_storyCsTransitionSeen = true;
+        const uint16_t index = gSaveContext.nextCutsceneIndex;
+        if (canAnnounce && index >= 0xFFF0 && play->linkAgeOnLoad == gSaveContext.linkAge &&
+            !StoryTransitionIsPersonal((u16)play->nextEntranceIndex, index)) {
+            WritePacket(newPacket(CLIENT_PACKET_STORY_CUTSCENE)
+                        << PackedUInt1(STORY_CS_TRANSITION) << PackedUInt2((unsigned int)(u16)play->nextEntranceIndex)
+                        << PackedUInt2(index));
+            m_storyCsSent++;
+        }
+    }
+
+    // a script cutscene starting in this scene
+    if (csActive && !m_storyCsWasActive && canAnnounce && gSaveContext.cutsceneIndex >= 0xFFF0) {
+        char* segment = (char*)play->csCtx.segment;
+        if (segment != nullptr && ResourceMgr_OTRSigCheck(segment)) {
+            std::string path(segment);
+            if (!StoryCutsceneIsPersonal(path) && path.size() < 1024) {
+                WritePacket(newPacket(CLIENT_PACKET_STORY_CUTSCENE)
+                            << PackedUInt1(STORY_CS_SCRIPT)
+                            << PackedUInt2((unsigned int)(u16)gSaveContext.entranceIndex)
+                            << PackedUInt2((unsigned int)gSaveContext.cutsceneIndex) << path);
+                m_storyCsSent++;
+            }
+        }
+    }
+    m_storyCsWasActive = csActive;
+
+    StoryStartRemoteCutscene();
+}
+
+void ZeldaOnlineClient::StoryStartRemoteCutscene() {
+    if (!m_storyCsHasPending)
+        return;
+
+    PlayState* play = gPlayState;
+    Player* player = GET_PLAYER(play);
+
+    // already in a cutscene or on the way out: watching it already (or something of its own)
+    if (play->transitionTrigger == TRANS_TRIGGER_START || play->csCtx.state != CS_STATE_IDLE || m_storyHold ||
+        m_storyApprovedFrames > 0 || player == nullptr || gSaveContext.health <= 0) {
+        m_storyCsHasPending = false;
+        return;
+    }
+
+    // still fading in after a load, a text box or an item fanfare of its own: give it a moment
+    if (play->transitionTrigger != TRANS_TRIGGER_OFF || play->transitionMode != TRANS_MODE_OFF ||
+        play->msgCtx.msgMode != MSGMODE_NONE || Player_InCsMode(play)) {
+        if (++m_storyCsPendingWait >= STORY_CS_PENDING_FRAMES)
+            m_storyCsHasPending = false;
+        return;
+    }
+
+    m_storyCsHasPending = false;
+    m_storyCsRemoteFrames = STORY_CS_ECHO_FRAMES;
+    m_storyCsStarted++;
+
+    if (m_storyCsPendingKind == STORY_CS_TRANSITION) {
+        m_storyCsTransitionSeen = true;
+        play->nextEntranceIndex = m_storyCsPendingEntrance;
+        gSaveContext.nextCutsceneIndex = m_storyCsPendingIndex;
+        play->transitionTrigger = TRANS_TRIGGER_START;
+        play->transitionType = TRANS_TYPE_FADE_BLACK;
+    } else {
+        // an area intro watched with the party counts as seen for this player too
+        for (const auto& intro : STORY_INTRO_CUTSCENES) {
+            if (intro.entrance == m_storyCsPendingEntrance && m_storyCsPendingPath.find("Intro") != std::string::npos)
+                Flags_SetEventChkInf(intro.flag);
+        }
+        m_storyCsPath = m_storyCsPendingPath;
+        play->csCtx.segment = (void*)m_storyCsPath.c_str();
+        gSaveContext.cutsceneTrigger = 1;
+    }
+
+    if (m_storyNotifyCooldown == 0) {
+        Notification::Emit({ .message = "Story scene with the party" });
+        m_storyNotifyCooldown = 3 * 20;
+    }
+}
+
+void ZeldaOnlineClient::OnStoryCutscene(ByteStream& packet) {
+    if (packet.BytesLeft() < 4)
+        return;
+
+    packet.Read<PackedUInt2>(); // sender
+    uint8_t kind = (uint8_t)packet.Read<PackedUInt1>().value();
+    uint16_t entrance = (uint16_t)packet.Read<PackedUInt2>().value();
+    uint16_t index = (uint16_t)packet.Read<PackedUInt2>().value();
+    std::string path = kind == STORY_CS_SCRIPT ? packet.ReadString(packet.BytesLeft()) : std::string();
+
+    if (!StoryCoopActive() || gPlayState == nullptr)
+        return;
+    if (kind == STORY_CS_SCRIPT && (path.empty() || path.rfind("__OTR__", 0) != 0))
+        return;
+    if (kind == STORY_CS_TRANSITION && index < 0xFFF0)
+        return;
+    if (kind > STORY_CS_TRANSITION)
+        return;
+
+    m_storyCsReceived++;
+    m_storyCsHasPending = true;
+    m_storyCsPendingWait = 0;
+    m_storyCsPendingKind = kind;
+    m_storyCsPendingEntrance = entrance;
+    m_storyCsPendingIndex = index;
+    m_storyCsPendingPath = path;
 }

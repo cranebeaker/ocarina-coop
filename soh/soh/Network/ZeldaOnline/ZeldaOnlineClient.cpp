@@ -1715,6 +1715,10 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
             OnStoryDungeonClear(packet);
             break;
 
+        case SERVER_PACKET_STORY_CUTSCENE:
+            OnStoryCutscene(packet);
+            break;
+
         case SERVER_PACKET_STORY_VOTE_STATUS:
             OnStoryVoteStatus(packet);
             break;
