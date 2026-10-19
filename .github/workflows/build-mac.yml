@@ -1,0 +1,66 @@
+name: Build Mac app
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-mac-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: macos-14
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          submodules: true
+
+      - name: Install build dependencies
+        uses: melusina-org/setup-macports@v1
+        with:
+          parameters: .github/macports.yml
+
+      - name: Configure game
+        run: >-
+          cmake -S . -B build-cmake -G Ninja
+          -DCMAKE_BUILD_TYPE=Release
+          -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+
+      - name: Generate bundled assets
+        run: cmake --build build-cmake --target GenerateSohOtr --parallel 3
+
+      - name: Build game
+        run: cmake --build build-cmake --parallel 3
+
+      - name: Package app
+        working-directory: build-cmake
+        run: cpack
+
+      - name: Build co-op server
+        run: |
+          cmake -S server -B server/build -G Ninja \
+            -DCMAKE_BUILD_TYPE=Release \
+            -DCMAKE_OSX_ARCHITECTURES="x86_64;arm64"
+          cmake --build server/build --parallel 3
+
+      - name: Stage downloads
+        run: |
+          mkdir -p package/OcarinaStoryCoop-server
+          cp _packages/*.dmg package/OcarinaStoryCoop-mac.dmg
+          cp server/build/OOTServer server/config.json package/OcarinaStoryCoop-server/
+          cp scripts/macos/start-server.command "package/OcarinaStoryCoop-server/Start Server.command"
+          chmod +x "package/OcarinaStoryCoop-server/Start Server.command"
+          cp docs/MAC.md "package/Read me.txt"
+          ditto -c -k --keepParent package/OcarinaStoryCoop-server package/OcarinaStoryCoop-server-mac.zip
+          rm -r package/OcarinaStoryCoop-server
+
+      - name: Upload Mac downloads
+        uses: actions/upload-artifact@v7
+        with:
+          name: OcarinaStoryCoop-mac
+          path: package/
+          if-no-files-found: error
