@@ -1205,7 +1205,7 @@ bool RunStep(const json& step) {
         sState.finished = true;
         sState.pass = true;
         WriteLog();
-        TerminateProcess(GetCurrentProcess(), 3);
+        std::_Exit(3);
         return true;
     }
     if (op == "reset_inventory") {
