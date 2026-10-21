@@ -395,6 +395,53 @@ static void stop_server(void)
     g_server = NULL;
 }
 
+/* The game is started by a second copy of this program that is spawned before Steam is initialised. Once
+   SteamAPI_Init has run, every child of this process inherits Steam's overlay and its settings for AppID 480,
+   including SDL_GAMECONTROLLER_IGNORE_DEVICES, which makes SDL in the game ignore every real controller. */
+static HANDLE g_launcher, g_launcher_in;
+
+static void start_launcher(void)
+{
+    if (g_no_game) return;
+    char self[MAX_PATH], cmd[MAX_PATH + 32];
+    GetModuleFileNameA(NULL, self, sizeof(self));
+    snprintf(cmd, sizeof(cmd), "\"%s\" --launcher", self);
+    SECURITY_ATTRIBUTES sa = { sizeof(sa), NULL, TRUE };
+    HANDLE rd, wr;
+    if (!CreatePipe(&rd, &wr, &sa, 0)) return;
+    SetHandleInformation(wr, HANDLE_FLAG_INHERIT, 0);
+    STARTUPINFOA si; PROCESS_INFORMATION pi;
+    memset(&si, 0, sizeof(si)); si.cb = sizeof(si);
+    si.dwFlags = STARTF_USESTDHANDLES;
+    si.hStdInput = rd;
+    si.hStdOutput = GetStdHandle(STD_OUTPUT_HANDLE);
+    si.hStdError = GetStdHandle(STD_ERROR_HANDLE);
+    SetHandleInformation(si.hStdOutput, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+    SetHandleInformation(si.hStdError, HANDLE_FLAG_INHERIT, HANDLE_FLAG_INHERIT);
+    BOOL ok = CreateProcessA(self, cmd, NULL, NULL, TRUE, 0, NULL, NULL, &si, &pi);
+    CloseHandle(rd);
+    if (!ok) { CloseHandle(wr); return; } /* start_game falls back to starting the game itself */
+    CloseHandle(pi.hThread);
+    g_launcher = pi.hProcess;
+    g_launcher_in = wr;
+}
+
+/* --launcher: wait for the game path and server address, start the game, exit when it closes. */
+static int run_launcher(void)
+{
+    char exe[MAX_PATH], addr[128];
+    SetConsoleCtrlHandler(NULL, TRUE); /* Ctrl+C is for the main window, not for us */
+    if (!fgets(exe, sizeof(exe), stdin) || !fgets(addr, sizeof(addr), stdin)) return 0; /* no game was started */
+    exe[strcspn(exe, "\r\n")] = 0;
+    addr[strcspn(addr, "\r\n")] = 0;
+    SetEnvironmentVariableA("OOT_SERVER", addr); /* the game connects here instead of its saved server */
+    HANDLE game = spawn(exe, "", 0, NULL, NULL);
+    DWORD code = 0;
+    WaitForSingleObject(game, INFINITE);
+    GetExitCodeProcess(game, &code);
+    return (int)code;
+}
+
 static void start_game(const char *host, int port)
 {
     if (g_no_game) return;
@@ -410,8 +457,18 @@ static void start_game(const char *host, int port)
     }
     char addr[128];
     snprintf(addr, sizeof(addr), "%s:%d", host, port);
-    SetEnvironmentVariableA("OOT_SERVER", addr); /* the game connects here instead of its saved server */
-    g_game = spawn(g_game_exe, "", 0, NULL, NULL);
+    if (g_launcher) {
+        char line[MAX_PATH + 160];
+        DWORD n;
+        int len = snprintf(line, sizeof(line), "%s\n%s\n", g_game_exe, addr);
+        WriteFile(g_launcher_in, line, len, &n, NULL);
+        CloseHandle(g_launcher_in);
+        g_launcher_in = NULL;
+        g_game = g_launcher; /* the launcher exits when the game does */
+    } else {
+        SetEnvironmentVariableA("OOT_SERVER", addr); /* the game connects here instead of its saved server */
+        g_game = spawn(g_game_exe, "", 0, NULL, NULL);
+    }
     printf("Started the game (server %s).\n", addr);
 }
 
@@ -936,6 +993,7 @@ static int run_join(u64 lobby)
 int main(int argc, char **argv)
 {
     const char *mode = NULL, *arg = NULL;
+    if (argc == 2 && !strcmp(argv[1], "--launcher")) return run_launcher();
     SetConsoleTitleA("Ocarina of Time Co-op (Steam)");
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--port") && i + 1 < argc) g_port = atoi(argv[++i]);
@@ -956,6 +1014,7 @@ int main(int argc, char **argv)
     g_console = GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &cm) != 0;
     WSADATA w;
     WSAStartup(MAKEWORD(2, 2), &w);
+    start_launcher(); /* before steam_start, see start_launcher */
     steam_start();
     relay_config();
     printf("Ocarina of Time Co-op over Steam - signed in as %s\n\n", S.GetPersonaName(g_friends));

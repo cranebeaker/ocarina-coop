@@ -53,6 +53,9 @@ OOTSteamLink.exe join [lobby id] [--local-port <n>] [--game-exe <path>] [--no-la
   16000 bytes and sent as reliable, ordered Steam messages (channel 0), then rebuilt in order on the other side, so
   large transfers and partial reads are handled. Open and close of a connection are carried too, so a closed game
   connection closes the server connection and the other way round, and the game can reconnect at any time.
+- The game is started by a second copy of the helper that is spawned before Steam is set up. A process that is
+  signed in to Steam passes Steam's overlay and its controller settings for AppID 480 on to every program it
+  starts, and those settings make the game ignore every real controller.
 - Channel 1 carries a keep-alive every second and a goodbye. A peer that is silent for 20 seconds is dropped and
   its connections are closed.
 
