@@ -244,7 +244,7 @@ ZeldaOnlineClient::ZeldaOnlineClient() {
 }
 
 void ZeldaOnlineClient::Connect() {
-    m_host = CVarGetString("gZeldaOnline.Host", "awu.fks.mybluehost.me");
+    m_host = ZeldaOnline::SavedHost();
     m_port = CVarGetInteger("gZeldaOnline.Port", 21050);
     m_nickName = CVarGetString("gZeldaOnline.Nickname", "Player");
     // OOTSteamLink (tools/steamlink) starts the game with OOT_SERVER=host:port to route the connection through its
@@ -672,6 +672,18 @@ void ZeldaOnlineClient::OnIncomingPacket(ByteStream& packet) {
         case SERVER_PACKET_DISCONNECT: {
             auto reason = packet.ReadString();
             m_autoReconnect = false;
+            if (reason.rfind("Invalid client version", 0) == 0) {
+                // A ShipwrightOnline server, or a Story Co-op server from another release
+                Messagebox_ShowErrorBox(
+                    "Wrong server version",
+                    ("This server runs a different version of the online mode (" + reason +
+                     ", this game is " + CURRENT_VERSION +
+                     ").\n\nStory Co-op only works with the server from the same Story Co-op download. Use Host over "
+                     "Steam / Join over Steam, or start OOTServer from this download and connect to its address. "
+                     "Everyone needs the same release.")
+                        .c_str());
+                break;
+            }
             Messagebox_ShowErrorBox("Disconnected",
                                     ("You have been disconnected from the server. Reason:" + reason).c_str());
         } break;

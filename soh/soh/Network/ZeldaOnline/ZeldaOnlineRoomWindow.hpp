@@ -17,6 +17,15 @@
 const char* ResolveSceneID(int sceneID, int roomID);
 
 namespace ZeldaOnline {
+// Story Co-op speaks a newer protocol than the public ShipwrightOnline server, which turns it away, so the default
+// host is a server on this machine (OOTServer from the download, or the relay of Host/Join over Steam).
+inline std::string SavedHost() {
+    std::string host = CVarGetString("gZeldaOnline.Host", "127.0.0.1");
+    if (host == "awu.fks.mybluehost.me") // the public server, saved by v1.0.2 and older
+        host = "127.0.0.1";
+    return host;
+}
+
 struct SkinOption {
     std::string displayName;
     std::string referenceName;
@@ -1125,7 +1134,7 @@ class ZeldaOnlineRoomWindow : public Ship::GuiWindow {
         if (m_fieldsLoaded)
             return;
 
-        snprintf(m_hostBuffer, sizeof(m_hostBuffer), "%s", CVarGetString("gZeldaOnline.Host", "awu.fks.mybluehost.me"));
+        snprintf(m_hostBuffer, sizeof(m_hostBuffer), "%s", SavedHost().c_str());
         m_portValue = CVarGetInteger("gZeldaOnline.Port", 21050);
         snprintf(m_nameBuffer, sizeof(m_nameBuffer), "%s", CVarGetString("gZeldaOnline.Nickname", "Player"));
         snprintf(m_fileServerBuffer, sizeof(m_fileServerBuffer), "%s",
