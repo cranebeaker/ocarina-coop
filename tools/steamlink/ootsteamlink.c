@@ -1079,6 +1079,8 @@ static int run_host(void)
             if (now - p->last_heard > PEER_TIMEOUT_MS) drop_peer(p, "timed out");
         }
         if (g_server && proc_exited(g_server)) { printf("OOTServer stopped.\n"); break; }
+        /* no terminal to press Q in (a Steam shortcut, e.g. Steam Deck game mode): closing the game stops hosting */
+        if (!g_console && g_game && game_exited()) { printf("The game was closed.\n"); break; }
         if (key_hit()) { int c = key_get(); if (c == 'q' || c == 'Q') break; }
         if (g_stop) break;
         Sleep(1);

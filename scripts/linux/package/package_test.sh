@@ -15,7 +15,7 @@ fails=0
 pass() { echo "PASS  $*"; }
 fail() { echo "FAIL  $*"; fails=$((fails + 1)); }
 
-pacman -Sy --noconfirm --needed xorg-server-xvfb xorg-xauth mesa which >/dev/null 2>&1 || { echo "pacman failed"; exit 2; }
+pacman -Sy --noconfirm --needed xorg-server-xvfb xorg-xauth mesa which procps-ng >/dev/null 2>&1 || { echo "pacman failed"; exit 2; }
 T=$(mktemp -d)
 tar -C "$T" -xzf "$TARBALL"
 P=$(echo "$T"/OcarinaStoryCoop-*-linux)
@@ -71,6 +71,8 @@ chmod +x "$M/soh.appimage"
 # 3 launcher
 (cd / && SteamAppId=777 STEAMLINK_MOCK_NAME=Host timeout 30 "$M/OOTSteamLink" host --no-server --quiet-errors \
     </dev/null >"$T/link.out" 2>&1)
+code=$?
+[ $code -ne 124 ] && pass "host without a terminal stops when the game closes (exit $code)"     || fail "host without a terminal still running 30 s after the game closed"
 if grep -q "^OOT_SERVER=127.0.0.1:21050$" "$M/game_env.txt" 2>/dev/null && grep -q "^SteamAppId=777$" "$M/game_env.txt" \
    && [ "$(cat "$M/game_cwd.txt")" = "$M" ]; then
     pass "launcher: game started in its folder with OOT_SERVER and the original SteamAppId"
@@ -90,6 +92,9 @@ mv "$M/libsteam_api.so.off" "$M/libsteam_api.so"
 
 # 5 Steam shortcut path of the launcher script, with the real server
 (cd / && SteamGameId=12345 STEAMLINK_MOCK_NAME=Host timeout 40 sh "$M/Host over Steam.sh" </dev/null >/dev/null 2>&1)
+code=$?
+[ $code -ne 124 ] && pass "Host over Steam.sh from a Steam shortcut ends with the game (exit $code)"     || fail "Host over Steam.sh from a Steam shortcut still running 40 s after the game closed"
+grep -q "The game was closed" "$M/OOTSteamLink.log" 2>/dev/null && ! pgrep -x OOTServer >/dev/null     && pass "server stopped with it" || fail "server left running after the game closed"
 if grep -q "Server running on port 21050" "$M/OOTSteamLink.log" 2>/dev/null && [ -f "$M/game_env.txt" ] \
    && grep -q "^SteamGameId=12345$" "$M/game_env.txt"; then
     pass "Host over Steam.sh from a Steam shortcut: server, game and OOTSteamLink.log"
