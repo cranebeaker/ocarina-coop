@@ -1525,6 +1525,14 @@ bool VerifyArchiveVersion(OTRVersion version) {
 }
 
 extern "C" void InitOTR(int argc, char* argv[]) {
+#if defined(__linux__)
+    // Started from the AppImage: keep oot.o2r, saves and settings next to the .appimage file. A double click in a
+    // file manager, or a Steam shortcut, can start it in another folder (often the home folder).
+    if (const char* appImage = getenv("APPIMAGE"); appImage != nullptr && getenv("SHIP_HOME") == nullptr) {
+        std::error_code ec;
+        std::filesystem::current_path(std::filesystem::path(appImage).parent_path(), ec);
+    }
+#endif
     OTRGlobals::Instance = new OTRGlobals();
     AutoTest::ParseArgs(argc, argv);
     OTRGlobals::Instance->RunExtract(argc, argv);
