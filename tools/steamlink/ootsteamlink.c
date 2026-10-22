@@ -15,8 +15,9 @@
  *   'O' open stream, 'D' data, 'C' close stream
  * Channel 1 carries a 1 s keep-alive ('K') and a goodbye ('B').
  *
- * steam_api64.dll is loaded at runtime through the flat C API (no SDK headers), see
- * spacewar.md. Needs steam_appid.txt = 480 next to the exe (written if missing).
+ * steam_api64.dll (Windows) / libsteam_api.so (Linux) is loaded at runtime through the flat C API
+ * (no SDK headers), see spacewar.md. Needs steam_appid.txt = 480 next to the exe (written if missing).
+ * One source file for both platforms; on Linux the helper is called OOTSteamLink, the game soh.appimage (or soh.elf from a source build).
  *
  *   OOTSteamLink.exe                    menu
  *   OOTSteamLink.exe host               host
@@ -26,16 +27,65 @@
  *          --no-server (relay to a server that is already running)
  *          --no-game / --no-launch (do not start soh.exe)
  */
-#define WIN32_LEAN_AND_MEAN
-#include <winsock2.h>
-#include <ws2tcpip.h>
-#include <windows.h>
+#ifndef _WIN32
+#define _GNU_SOURCE /* pipe2 */
+#endif
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <ws2tcpip.h>
+#include <windows.h>
 #include <conio.h>
+#define STEAM_LIB "steam_api64.dll"
+#define EXE_SUFFIX ".exe"
+#define GAME_EXE "soh.exe"
+#define PATH_SEP "\\"
+#else
+#include <errno.h>
+#include <fcntl.h>
+#include <limits.h>
+#include <poll.h>
+#include <signal.h>
+#include <strings.h>
+#include <termios.h>
+#include <time.h>
+#include <unistd.h>
+#include <dlfcn.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <netinet/tcp.h>
+#include <sys/prctl.h>
+#include <sys/socket.h>
+#include <sys/stat.h>
+#include <sys/types.h>
+#include <sys/wait.h>
+#define STEAM_LIB "libsteam_api.so"
+#define EXE_SUFFIX ""
+#define GAME_EXE "soh.elf"
+#define PATH_SEP "/"
+#define MAX_PATH PATH_MAX
+#define __cdecl
+typedef int SOCKET;
+typedef uint32_t DWORD;
+typedef pid_t HANDLE;
+typedef uint16_t u_short;
+#define CREATE_NEW_PROCESS_GROUP 1 /* spawn(): own process group, and the child dies with this tool */
+#define INVALID_SOCKET (-1)
+#define closesocket close
+#define Sleep(ms) usleep((ms) * 1000)
+#define _stricmp strcasecmp
+static DWORD GetTickCount(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (DWORD)(ts.tv_sec * 1000u + ts.tv_nsec / 1000000u);
+}
+#endif
 
 typedef uint64_t u64;
 typedef uint32_t u32;
@@ -47,7 +97,12 @@ typedef uint32_t u32;
 /* ---------------------------------------------------------------- steam flat api */
 
 typedef struct { int32_t user; int32_t callback; uint8_t *param; int32_t param_size; } CallbackMsg;
+/* Steam's callback structs are packed to 8 bytes on Windows and to 4 bytes on Linux and macOS. */
+#ifdef _WIN32
 #pragma pack(push, 8)
+#else
+#pragma pack(push, 4)
+#endif
 typedef struct { u64 call; int32_t callback; uint32_t param_size; } APICallCompleted;
 typedef struct { int32_t result; u64 lobby; } LobbyCreated;
 typedef struct { u64 lobby; uint32_t perms; bool locked; uint32_t response; } LobbyEnter;
@@ -120,6 +175,7 @@ static int32_t g_pipe;
 static u64 g_me;
 
 /* Keyboard only when stdin is a real console (tests and services run without one). */
+#ifdef _WIN32
 static volatile LONG g_stop, g_done; /* set by Ctrl+C / Ctrl+Break / closing the window */
 static BOOL WINAPI on_ctrl(DWORD type)
 {
@@ -132,49 +188,136 @@ static BOOL WINAPI on_ctrl(DWORD type)
 static bool g_console;
 static bool key_hit(void) { return g_console && _kbhit(); }
 static int key_get(void) { return g_console ? _getch() : -1; }
+#else
+static volatile sig_atomic_t g_stop, g_done; /* set by Ctrl+C / SIGTERM / SIGHUP (closing the terminal) */
+static void on_signal(int sig) { (void)sig; g_stop = 1; }
+
+static bool g_console;
+static struct termios g_saved_tio;
+static void restore_tty(void) { if (g_console) tcsetattr(STDIN_FILENO, TCSANOW, &g_saved_tio); }
+
+/* Single key presses without Enter and without echo, like conio's _kbhit/_getch. Ctrl+C still raises SIGINT. */
+static void tty_raw(void)
+{
+    struct termios t;
+    if (tcgetattr(STDIN_FILENO, &g_saved_tio) != 0) return;
+    t = g_saved_tio;
+    t.c_lflag &= ~(ICANON | ECHO);
+    t.c_cc[VMIN] = 1; t.c_cc[VTIME] = 0;
+    tcsetattr(STDIN_FILENO, TCSANOW, &t);
+    atexit(restore_tty);
+}
+
+static bool key_hit(void)
+{
+    struct pollfd p = { STDIN_FILENO, POLLIN, 0 };
+    return g_console && poll(&p, 1, 0) > 0 && (p.revents & POLLIN);
+}
+
+static int key_get(void)
+{
+    unsigned char c;
+    if (!g_console) return -1;
+    if (read(STDIN_FILENO, &c, 1) != 1) return -1;
+    return c == '\n' ? '\r' : c;
+}
+#endif
 static bool g_quiet_fail; /* tests: do not wait for a key press on errors */
+
+#ifndef _WIN32
+/* Started without a terminal (a Steam shortcut, or a double click): show the error in a desktop dialog. */
+static void error_dialog(const char *msg)
+{
+    const char *tools[][3] = { { "kdialog", "--error", NULL }, { "zenity", "--error", "--text" } };
+    for (int i = 0; i < 2; i++) {
+        pid_t child = fork();
+        if (child < 0) return;
+        if (child == 0) {
+            int null = open("/dev/null", O_WRONLY);
+            if (null >= 0) { dup2(null, 1); dup2(null, 2); }
+            if (tools[i][2]) execlp(tools[i][0], tools[i][0], tools[i][1], tools[i][2], msg, "--title", "OOTSteamLink", (char *)NULL);
+            else execlp(tools[i][0], tools[i][0], tools[i][1], msg, "--title", "OOTSteamLink", (char *)NULL);
+            _exit(127);
+        }
+        int status = 0;
+        waitpid(child, &status, 0);
+        if (WIFEXITED(status) && WEXITSTATUS(status) != 127) return;
+    }
+}
+#endif
 
 static void fail(const char *msg)
 {
     printf("\n%s\n", msg);
+#ifndef _WIN32
+    if (!g_console && !g_quiet_fail) { error_dialog(msg); exit(1); }
+#endif
     if (!g_quiet_fail) { printf("\nPress a key to close.\n"); key_get(); }
     exit(1);
 }
 
-static FARPROC need(HMODULE m, const char *name)
+#ifdef _WIN32
+typedef FARPROC SymPtr;
+#define SYM(m, name) GetProcAddress(m, name)
+#else
+typedef void *SymPtr;
+typedef void *HMODULE;
+#define SYM(m, name) dlsym(m, name)
+#endif
+
+static SymPtr need(HMODULE m, const char *name)
 {
-    FARPROC p = GetProcAddress(m, name);
+    SymPtr p = SYM(m, name);
     if (!p) {
         char buf[300];
-        snprintf(buf, sizeof(buf), "steam_api64.dll is missing %s (too old?).", name);
+        snprintf(buf, sizeof(buf), STEAM_LIB " is missing %s (too old?).", name);
         fail(buf);
     }
     return p;
 }
 
-#define LOAD(field, name) *(FARPROC *)&S.field = need(m, name)
-#define LOAD_OPT(field, name) *(FARPROC *)&S.field = GetProcAddress(m, name)
+#define LOAD(field, name) *(SymPtr *)&S.field = need(m, name)
+#define LOAD_OPT(field, name) *(SymPtr *)&S.field = SYM(m, name)
 
 static void exe_dir(char *out, size_t size)
 {
     char *slash;
+#ifdef _WIN32
     GetModuleFileNameA(NULL, out, (DWORD)size);
     if ((slash = strrchr(out, '\\'))) *slash = 0;
+#else
+    ssize_t n = readlink("/proc/self/exe", out, size - 1);
+    out[n > 0 ? n : 0] = 0;
+    if ((slash = strrchr(out, '/'))) *slash = 0;
+#endif
 }
 
 static void steam_start(void)
 {
     char dir[MAX_PATH], path[MAX_PATH];
     exe_dir(dir, sizeof(dir));
+#ifdef _WIN32
     SetCurrentDirectoryA(dir); /* steam_appid.txt and the DLL live next to the exe */
-    snprintf(path, sizeof(path), "%s\\steam_appid.txt", dir);
+#else
+    if (chdir(dir) != 0) fail("Could not enter the folder of OOTSteamLink.");
+#endif
+    snprintf(path, sizeof(path), "%s" PATH_SEP "steam_appid.txt", dir);
     FILE *f = fopen(path, "r");
     if (f) fclose(f);
     else if ((f = fopen(path, "w"))) { fputs("480", f); fclose(f); }
 
-    snprintf(path, sizeof(path), "%s\\steam_api64.dll", dir);
+    snprintf(path, sizeof(path), "%s" PATH_SEP STEAM_LIB, dir);
+#ifdef _WIN32
     HMODULE m = LoadLibraryA(path);
-    if (!m) fail("steam_api64.dll not found next to OOTSteamLink.exe.");
+    if (!m) fail(STEAM_LIB " not found next to OOTSteamLink" EXE_SUFFIX ".");
+#else
+    HMODULE m = dlopen(path, RTLD_NOW | RTLD_GLOBAL);
+    if (!m) {
+        char buf[1200];
+        snprintf(buf, sizeof(buf), STEAM_LIB " not found next to OOTSteamLink (%s).", dlerror());
+        fail(buf);
+    }
+#endif
     LOAD(IsSteamRunning, "SteamAPI_IsSteamRunning");
     LOAD(InitFlat, "SteamAPI_InitFlat");
     LOAD(Shutdown, "SteamAPI_Shutdown");
@@ -215,11 +358,18 @@ static void steam_start(void)
     LOAD(SetConfigInt, "SteamAPI_ISteamNetworkingUtils_SetGlobalConfigValueInt32");
     LOAD_OPT(InitRelay, "SteamAPI_ISteamNetworkingUtils_InitRelayNetworkAccess");
 
-    if (!S.IsSteamRunning()) fail("Steam is not running. Start Steam, log in, and try again.");
+#ifndef _WIN32
+    /* Started from a Steam shortcut (Steam Deck game mode) the shortcut's own AppID is in the environment and
+       would win over steam_appid.txt. The game was forked off before this and keeps the shortcut's settings. */
+    setenv("SteamAppId", "480", 1);
+    setenv("SteamGameId", "480", 1);
+#endif
     char err[1024] = "";
     int r = S.InitFlat(err);
     if (r != 0) {
         char buf[1200];
+        /* only asked after a failure: on Linux it just reads ~/.steam/steam.pid and can be wrong */
+        if (!S.IsSteamRunning()) fail("Steam is not running. Start Steam, log in, and try again.");
         snprintf(buf, sizeof(buf), "Could not connect to Steam (code %d): %s", r, err);
         fail(buf);
     }
@@ -290,23 +440,35 @@ static char g_server_exe[MAX_PATH], g_game_exe[MAX_PATH];
 static int g_port = 21050, g_local_port;
 static bool g_no_server, g_no_game;
 static HANDLE g_server, g_game;
+#ifdef _WIN32
 static DWORD g_server_pid;
+#endif
 
 static void find_exe(char *out, const char *name, const char *subdirs[])
 {
     char dir[MAX_PATH];
     exe_dir(dir, sizeof(dir));
     for (int i = 0; subdirs[i]; i++) {
-        char p[MAX_PATH], full[MAX_PATH];
-        snprintf(p, sizeof(p), "%s\\%s%s%s", dir, subdirs[i], subdirs[i][0] ? "\\" : "", name);
+        char p[MAX_PATH];
+        snprintf(p, sizeof(p), "%s" PATH_SEP "%s%s", dir, subdirs[i], name);
+#ifdef _WIN32
+        char full[MAX_PATH];
         if (GetFileAttributesA(p) != INVALID_FILE_ATTRIBUTES) {
             GetFullPathNameA(p, sizeof(full), full, NULL);
             snprintf(out, MAX_PATH, "%s", full);
             return;
         }
+#else
+        char full[PATH_MAX];
+        if (access(p, X_OK) == 0 && realpath(p, full)) {
+            snprintf(out, MAX_PATH, "%s", full);
+            return;
+        }
+#endif
     }
 }
 
+#ifdef _WIN32
 static HANDLE spawn(const char *exe, const char *args, DWORD flags, DWORD *pid, const char *logname)
 {
     char cmd[2048], cwd[MAX_PATH], *slash;
@@ -340,6 +502,59 @@ static HANDLE spawn(const char *exe, const char *args, DWORD flags, DWORD *pid, 
     return pi.hProcess;
 }
 
+static bool proc_exited(HANDLE h) { return h && WaitForSingleObject(h, 0) == WAIT_OBJECT_0; }
+#else
+/* Starts exe in its own folder; args is split on spaces. Returns the pid. */
+static HANDLE spawn(const char *exe, const char *args, int flags, int *pid, const char *logname)
+{
+    char *argv[16], argbuf[256], cwd[MAX_PATH], *slash;
+    int argc = 0, errpipe[2];
+    argv[argc++] = (char *)exe;
+    snprintf(argbuf, sizeof(argbuf), "%s", args);
+    for (char *t = strtok(argbuf, " "); t && argc < 15; t = strtok(NULL, " ")) argv[argc++] = t;
+    argv[argc] = NULL;
+    snprintf(cwd, sizeof(cwd), "%s", exe);
+    if ((slash = strrchr(cwd, '/'))) *slash = 0;
+    if (pipe2(errpipe, O_CLOEXEC) != 0) fail("Could not start a program (pipe failed).");
+    pid_t child = fork();
+    if (child < 0) fail("Could not start a program (fork failed).");
+    if (child == 0) {
+        if (flags & CREATE_NEW_PROCESS_GROUP) {
+            setpgid(0, 0); /* Ctrl+C in the terminal must not reach it before we can stop it cleanly */
+            prctl(PR_SET_PDEATHSIG, SIGTERM); /* safety net: if this tool is killed, the server goes with it */
+        }
+        if (logname) { /* send the child's console output to a log file in its folder */
+            char path[MAX_PATH + 64];
+            snprintf(path, sizeof(path), "%s/%s", cwd, logname);
+            int fd = open(path, O_WRONLY | O_CREAT | O_APPEND, 0644);
+            if (fd >= 0) { dup2(fd, 1); dup2(fd, 2); close(fd); }
+        }
+        if (chdir(cwd) == 0) execv(exe, argv);
+        int e = errno;
+        (void)!write(errpipe[1], &e, sizeof(e));
+        _exit(127);
+    }
+    close(errpipe[1]);
+    int e = 0;
+    if (read(errpipe[0], &e, sizeof(e)) == (ssize_t)sizeof(e)) {
+        char buf[MAX_PATH + 100];
+        waitpid(child, NULL, 0);
+        snprintf(buf, sizeof(buf), "Could not start %s (%s).", exe, strerror(e));
+        fail(buf);
+    }
+    close(errpipe[0]);
+    if (pid) *pid = child;
+    return child;
+}
+
+static bool proc_exited(HANDLE h)
+{
+    if (h <= 0) return false;
+    pid_t r = waitpid(h, NULL, WNOHANG);
+    return r == h || (r < 0 && errno == ECHILD);
+}
+#endif
+
 static bool tcp_port_open(int port)
 {
     SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
@@ -354,10 +569,11 @@ static void start_server(void)
 {
     if (g_no_server) return;
     if (!g_server_exe[0]) {
-        const char *tries[] = { "", "server\\", "..\\server\\", "..\\server\\build\\", NULL };
-        find_exe(g_server_exe, "OOTServer.exe", tries);
+        const char *tries[] = { "", "server" PATH_SEP, ".." PATH_SEP "server" PATH_SEP,
+                                ".." PATH_SEP "server" PATH_SEP "build" PATH_SEP, NULL };
+        find_exe(g_server_exe, "OOTServer" EXE_SUFFIX, tries);
     }
-    if (!g_server_exe[0]) fail("OOTServer.exe not found. Put it next to OOTSteamLink.exe or use --server-exe <path>.");
+    if (!g_server_exe[0]) fail("OOTServer" EXE_SUFFIX " not found. Put it next to OOTSteamLink" EXE_SUFFIX " or use --server-exe <path>.");
     if (tcp_port_open(g_port)) {
         char buf[200];
         snprintf(buf, sizeof(buf), "Port %d is already in use. Close the other server or use --port <number>.", g_port);
@@ -366,6 +582,7 @@ static void start_server(void)
     char args[64];
     snprintf(args, sizeof(args), "--port %d", g_port);
     /* own process group so Ctrl+Break can stop it cleanly (it saves team progress on exit) */
+#ifdef _WIN32
     g_server = spawn(g_server_exe, args, CREATE_NEW_PROCESS_GROUP, &g_server_pid, "OOTServer.log");
     /* safety net: if this tool is killed, the server goes with it */
     HANDLE job = CreateJobObjectA(NULL, NULL);
@@ -376,28 +593,81 @@ static void start_server(void)
         SetInformationJobObject(job, JobObjectExtendedLimitInformation, &info, sizeof(info));
         AssignProcessToJobObject(job, g_server);
     }
+#else
+    g_server = spawn(g_server_exe, args, CREATE_NEW_PROCESS_GROUP, NULL, "OOTServer.log");
+#endif
     for (int i = 0; i < 100; i++) {
         if (tcp_port_open(g_port)) { printf("Server running on port %d.\n", g_port); return; }
-        if (WaitForSingleObject(g_server, 0) == WAIT_OBJECT_0) fail("OOTServer.exe stopped right after starting.");
+        if (proc_exited(g_server)) fail("OOTServer" EXE_SUFFIX " stopped right after starting.");
         Sleep(100);
     }
-    fail("OOTServer.exe did not open its port.");
+    fail("OOTServer" EXE_SUFFIX " did not open its port.");
 }
 
 static void stop_server(void)
 {
     if (!g_server) return;
-    if (WaitForSingleObject(g_server, 0) != WAIT_OBJECT_0) {
+    if (!proc_exited(g_server)) {
+#ifdef _WIN32
         GenerateConsoleCtrlEvent(CTRL_BREAK_EVENT, g_server_pid);
         if (WaitForSingleObject(g_server, 10000) != WAIT_OBJECT_0) TerminateProcess(g_server, 1);
+#else
+        kill(g_server, SIGINT); /* the server saves team progress on SIGINT/SIGTERM */
+        for (int i = 0; i < 100 && !proc_exited(g_server); i++) Sleep(100);
+        if (!proc_exited(g_server)) { kill(g_server, SIGKILL); waitpid(g_server, NULL, 0); }
+#endif
     }
+#ifdef _WIN32
     CloseHandle(g_server);
-    g_server = NULL;
+#endif
+    g_server = 0;
 }
 
 /* The game is started by a second copy of this program that is spawned before Steam is initialised. Once
    SteamAPI_Init has run, every child of this process inherits Steam's overlay and its settings for AppID 480,
-   including SDL_GAMECONTROLLER_IGNORE_DEVICES, which makes SDL in the game ignore every real controller. */
+   including SDL_GAMECONTROLLER_IGNORE_DEVICES, which makes SDL in the game ignore every real controller.
+   On Linux the launcher is a fork that waits on a pipe and then execs the game, so the game keeps the
+   environment this tool was started with (for a Steam Deck shortcut, that shortcut's Steam Input setup). */
+#ifndef _WIN32
+static HANDLE g_launcher;
+static int g_launcher_in = -1;
+
+static void start_launcher(void)
+{
+    if (g_no_game) return;
+    int fds[2];
+    if (pipe(fds) != 0) return; /* start_game falls back to starting the game itself */
+    pid_t child = fork();
+    if (child < 0) { close(fds[0]); close(fds[1]); return; }
+    if (child == 0) {
+        close(fds[1]);
+        signal(SIGINT, SIG_IGN); /* Ctrl+C is for the main window, not for the game */
+        char buf[MAX_PATH + 160];
+        size_t len = 0;
+        ssize_t n;
+        while (len < sizeof(buf) - 1 && (n = read(fds[0], buf + len, sizeof(buf) - 1 - len)) > 0) len += (size_t)n;
+        buf[len] = 0;
+        char *exe = buf, *addr = strchr(buf, '\n');
+        if (!addr) _exit(0); /* no game was started */
+        *addr++ = 0;
+        addr[strcspn(addr, "\r\n")] = 0;
+        setenv("OOT_SERVER", addr, 1); /* the game connects here instead of its saved server */
+        /* AppImages need FUSE; without it they can still run by unpacking themselves first */
+        if (access("/dev/fuse", F_OK) != 0) setenv("APPIMAGE_EXTRACT_AND_RUN", "1", 0);
+        char cwd[MAX_PATH], *slash;
+        snprintf(cwd, sizeof(cwd), "%s", exe);
+        if ((slash = strrchr(cwd, '/'))) *slash = 0;
+        char *argv[] = { exe, NULL };
+        if (chdir(cwd) == 0) execv(exe, argv);
+        fprintf(stderr, "Could not start %s (%s).\n", exe, strerror(errno));
+        _exit(127);
+    }
+    close(fds[0]);
+    fcntl(fds[1], F_SETFD, FD_CLOEXEC); /* the server must not hold the pipe open */
+    g_launcher = child;
+    g_launcher_in = fds[1];
+}
+#else
 static HANDLE g_launcher, g_launcher_in;
 
 static void start_launcher(void)
@@ -441,16 +711,25 @@ static int run_launcher(void)
     GetExitCodeProcess(game, &code);
     return (int)code;
 }
+#endif
 
 static void start_game(const char *host, int port)
 {
     if (g_no_game) return;
     if (!g_game_exe[0]) {
+#ifdef _WIN32
         const char *tries[] = { "", "..\\", NULL };
-        find_exe(g_game_exe, "soh.exe", tries);
+#else
+        const char *tries[] = { "", "../", NULL };
+#endif
+#ifndef _WIN32
+        find_exe(g_game_exe, "soh.appimage", tries); /* the release ships the AppImage, a source build soh.elf */
+        if (!g_game_exe[0])
+#endif
+        find_exe(g_game_exe, GAME_EXE, tries);
     }
     if (!g_game_exe[0]) {
-        printf("soh.exe not found next to OOTSteamLink.exe: start the game yourself.\n"
+        printf(GAME_EXE " not found next to OOTSteamLink" EXE_SUFFIX ": start the game yourself.\n"
                "Set the environment variable OOT_SERVER=%s:%d for it, or enter that host and port in the online window.\n",
                host, port);
         return;
@@ -459,20 +738,30 @@ static void start_game(const char *host, int port)
     snprintf(addr, sizeof(addr), "%s:%d", host, port);
     if (g_launcher) {
         char line[MAX_PATH + 160];
-        DWORD n;
         int len = snprintf(line, sizeof(line), "%s\n%s\n", g_game_exe, addr);
+#ifdef _WIN32
+        DWORD n;
         WriteFile(g_launcher_in, line, len, &n, NULL);
         CloseHandle(g_launcher_in);
         g_launcher_in = NULL;
+#else
+        (void)!write(g_launcher_in, line, len);
+        close(g_launcher_in);
+        g_launcher_in = -1;
+#endif
         g_game = g_launcher; /* the launcher exits when the game does */
     } else {
+#ifdef _WIN32
         SetEnvironmentVariableA("OOT_SERVER", addr); /* the game connects here instead of its saved server */
+#else
+        setenv("OOT_SERVER", addr, 1);
+#endif
         g_game = spawn(g_game_exe, "", 0, NULL, NULL);
     }
     printf("Started the game (server %s).\n", addr);
 }
 
-static bool game_exited(void) { return g_game && WaitForSingleObject(g_game, 0) == WAIT_OBJECT_0; }
+static bool game_exited(void) { return proc_exited(g_game); }
 
 /* ---------------------------------------------------------------- relayed streams */
 
@@ -515,9 +804,21 @@ static void free_link(Link *l)
     memset(l, 0, sizeof(*l));
 }
 
+#ifdef _WIN32
+#define SOCK_WOULD_BLOCK() (WSAGetLastError() == WSAEWOULDBLOCK)
+#define SEND_FLAGS 0
+#else
+#define SOCK_WOULD_BLOCK() (errno == EWOULDBLOCK || errno == EAGAIN || errno == EINTR)
+#define SEND_FLAGS MSG_NOSIGNAL /* a closed local socket must not kill us with SIGPIPE */
+#endif
+
 static void set_nonblocking(SOCKET s)
 {
+#ifdef _WIN32
     u_long nb = 1; ioctlsocket(s, FIONBIO, &nb);
+#else
+    fcntl(s, F_SETFL, fcntl(s, F_GETFL, 0) | O_NONBLOCK);
+#endif
     int one = 1; setsockopt(s, IPPROTO_TCP, TCP_NODELAY, (char *)&one, sizeof(one));
 }
 
@@ -573,11 +874,11 @@ static void link_append(Link *l, const unsigned char *data, int len)
 static bool link_flush(Link *l)
 {
     while (l->outlen > 0 && l->s != INVALID_SOCKET) {
-        int n = send(l->s, (char *)l->out, (int)(l->outlen > 65536 ? 65536 : l->outlen), 0);
+        int n = send(l->s, (char *)l->out, (int)(l->outlen > 65536 ? 65536 : l->outlen), SEND_FLAGS);
         if (n > 0) {
             memmove(l->out, l->out + n, l->outlen - n);
             l->outlen -= n;
-        } else if (n < 0 && WSAGetLastError() == WSAEWOULDBLOCK) break;
+        } else if (n < 0 && SOCK_WOULD_BLOCK()) break;
         else return false;
     }
     return true;
@@ -601,7 +902,7 @@ static void links_read_local(void)
                 g_bytes_up += got;
                 if (!send_frame(l->peer, 'D', l->id, buf, got)) { close_link(l, true); break; }
                 if (!l->used) break;
-            } else if (got == 0 || WSAGetLastError() != WSAEWOULDBLOCK) {
+            } else if (got == 0 || !SOCK_WOULD_BLOCK()) {
                 close_link(l, true); /* local game closed the connection */
                 break;
             } else break;
@@ -777,7 +1078,7 @@ static int run_host(void)
             if (now - p->last_ping > 1000) { p->last_ping = now; send_control(p->sid, 'K'); }
             if (now - p->last_heard > PEER_TIMEOUT_MS) drop_peer(p, "timed out");
         }
-        if (g_server && WaitForSingleObject(g_server, 0) == WAIT_OBJECT_0) { printf("OOTServer stopped.\n"); break; }
+        if (g_server && proc_exited(g_server)) { printf("OOTServer stopped.\n"); break; }
         if (key_hit()) { int c = key_get(); if (c == 'q' || c == 'Q') break; }
         if (g_stop) break;
         Sleep(1);
@@ -883,11 +1184,20 @@ static SOCKET listen_local(int port, int *bound)
     SOCKET s = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
     struct sockaddr_in a; memset(&a, 0, sizeof(a));
     a.sin_family = AF_INET; a.sin_addr.s_addr = htonl(INADDR_LOOPBACK); a.sin_port = htons((u_short)port);
+#ifndef _WIN32
+    /* a restarted helper must get its port back while old connections linger in TIME_WAIT (on Windows
+       SO_REUSEADDR would allow port hijacking, and bind() already succeeds there) */
+    int reuse = 1; setsockopt(s, SOL_SOCKET, SO_REUSEADDR, &reuse, sizeof(reuse));
+#endif
     if (s == INVALID_SOCKET || bind(s, (struct sockaddr *)&a, sizeof(a)) != 0 || listen(s, 8) != 0) {
         if (s != INVALID_SOCKET) closesocket(s);
         return INVALID_SOCKET;
     }
+#ifdef _WIN32
     int len = sizeof(a);
+#else
+    socklen_t len = sizeof(a);
+#endif
     getsockname(s, (struct sockaddr *)&a, &len);
     *bound = ntohs(a.sin_port);
     set_nonblocking(s);
@@ -916,7 +1226,15 @@ static int run_join(u64 lobby)
 
     int port = 0;
     SOCKET ls = listen_local(g_local_port, &port);
-    if (ls == INVALID_SOCKET) fail("Could not open the local relay port (try --local-port <number>).");
+    if (ls == INVALID_SOCKET) {
+        char buf[200];
+#ifdef _WIN32
+        snprintf(buf, sizeof(buf), "Could not open the local relay port (try --local-port <number>).");
+#else
+        snprintf(buf, sizeof(buf), "Could not open the local relay port (%s). Try --local-port <number>.", strerror(errno));
+#endif
+        fail(buf);
+    }
     printf("Relay listening on 127.0.0.1:%d\n", port);
     start_game("127.0.0.1", port);
     printf("Relaying 127.0.0.1:%d <-> %s over Steam. Keep this window open. Close the game to stop.\n",
@@ -993,8 +1311,10 @@ static int run_join(u64 lobby)
 int main(int argc, char **argv)
 {
     const char *mode = NULL, *arg = NULL;
+#ifdef _WIN32
     if (argc == 2 && !strcmp(argv[1], "--launcher")) return run_launcher();
     SetConsoleTitleA("Ocarina of Time Co-op (Steam)");
+#endif
     for (int i = 1; i < argc; i++) {
         if (!strcmp(argv[i], "--port") && i + 1 < argc) g_port = atoi(argv[++i]);
         else if (!strcmp(argv[i], "--local-port") && i + 1 < argc) g_local_port = atoi(argv[++i]);
@@ -1009,17 +1329,29 @@ int main(int argc, char **argv)
     }
 
     setvbuf(stdout, NULL, _IONBF, 0);
+#ifdef _WIN32
     SetConsoleCtrlHandler(on_ctrl, TRUE);
     DWORD cm;
     g_console = GetConsoleMode(GetStdHandle(STD_INPUT_HANDLE), &cm) != 0;
     WSADATA w;
     WSAStartup(MAKEWORD(2, 2), &w);
+#else
+    start_launcher(); /* before the signal handlers and raw terminal, which the game must not inherit */
+    signal(SIGPIPE, SIG_IGN);
+    signal(SIGINT, on_signal);
+    signal(SIGTERM, on_signal);
+    signal(SIGHUP, on_signal);
+    g_console = isatty(STDIN_FILENO);
+    if (g_console) tty_raw();
+#endif
+#ifdef _WIN32
     start_launcher(); /* before steam_start, see start_launcher */
+#endif
     steam_start();
     relay_config();
     printf("Ocarina of Time Co-op over Steam - signed in as %s\n\n", S.GetPersonaName(g_friends));
 
-    if (!mode && !g_console) fail("Usage: OOTSteamLink.exe [host | join [lobby id]]");
+    if (!mode && !g_console) fail("Usage: OOTSteamLink" EXE_SUFFIX " [host | join [lobby id]]");
     if (!mode) {
         printf("  1) Host a game\n  2) Join a friend's game\n\nChoose 1 or 2: ");
         for (;;) {
@@ -1033,9 +1365,13 @@ int main(int argc, char **argv)
     int r;
     if (!_stricmp(mode, "host")) r = run_host();
     else if (!_stricmp(mode, "join")) r = run_join(arg ? strtoull(arg, NULL, 10) : 0);
-    else fail("Usage: OOTSteamLink.exe [host | join [lobby id]]");
+    else fail("Usage: OOTSteamLink" EXE_SUFFIX " [host | join [lobby id]]");
     printf("Relayed %llu bytes from the game and %llu bytes to the game.\n", g_bytes_up, g_bytes_down);
     S.Shutdown();
+#ifdef _WIN32
     InterlockedExchange(&g_done, 1);
+#else
+    g_done = 1;
+#endif
     return r;
 }

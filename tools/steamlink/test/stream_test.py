@@ -1,7 +1,8 @@
 #!/usr/bin/env python3
 """OOTSteamLink stream tests over the mock steam_api64.dll (one PC, no Steam needed).
 
-Needs two folders, each with OOTSteamLink.exe and the mock DLL renamed to steam_api64.dll:
+Needs two folders, each with OOTSteamLink(.exe) and the mock library renamed to steam_api64.dll
+(Windows) or libsteam_api.so (Linux):
   <work>/H (host side), <work>/J (join side)
 Usage: python stream_test.py --work <dir with H and J> [--quick]
 
@@ -24,6 +25,10 @@ import subprocess
 import sys
 import threading
 import time
+
+WIN = os.name == "nt"
+EXE = "OOTSteamLink.exe" if WIN else "OOTSteamLink"
+STEAM_LIB = "steam_api64.dll" if WIN else "libsteam_api.so"
 
 ECHO_PORT = 22150
 LOCAL_PORT = 22151
@@ -77,9 +82,9 @@ class Echo(threading.Thread):
 
 def spawn(folder, name, args):
     env = dict(os.environ, STEAMLINK_MOCK_NAME=name, STEAMLINK_MOCK_PORT_BASE=MOCK_BASE)
-    p = subprocess.Popen([os.path.join(folder, "OOTSteamLink.exe")] + args + ["--quiet-errors"], cwd=folder, env=env,
-                         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True,
-                         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP)
+    flags = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP} if WIN else {"start_new_session": True}
+    p = subprocess.Popen([os.path.join(folder, EXE)] + args + ["--quiet-errors"], cwd=folder, env=env,
+                         stdin=subprocess.DEVNULL, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, text=True, **flags)
     p.lines = []
 
     def pump():
@@ -138,7 +143,10 @@ def roundtrip(s, data, chunk=100000):
 
 def kill(p):
     if p and p.poll() is None:
-        subprocess.run(["taskkill", "/F", "/PID", str(p.pid)], capture_output=True)
+        if WIN:
+            subprocess.run(["taskkill", "/F", "/PID", str(p.pid)], capture_output=True)
+        else:
+            p.kill()
         try:
             p.wait(10)
         except subprocess.TimeoutExpired:
@@ -150,6 +158,7 @@ def main():
     ap.add_argument("--work", required=True)
     ap.add_argument("--quick", action="store_true")
     a = ap.parse_args()
+    a.work = os.path.abspath(a.work)
     H, J = os.path.join(a.work, "H"), os.path.join(a.work, "J")
     echo = Echo(ECHO_PORT)
     echo.start()

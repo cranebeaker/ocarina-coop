@@ -1,0 +1,43 @@
+name: build-steamlink
+on:
+  push:
+    paths:
+      - 'tools/steamlink/**'
+      - '.github/workflows/build-steamlink.yml'
+  pull_request:
+    paths:
+      - 'tools/steamlink/**'
+      - '.github/workflows/build-steamlink.yml'
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-steamlink-linux:
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Git Checkout
+      uses: actions/checkout@v4
+
+    - name: Build
+      run: sh tools/steamlink/build.sh
+
+    - name: Stream tests (mock Steam)
+      run: |
+        mkdir -p work/H work/J
+        for d in H J; do cp tools/steamlink/out/OOTSteamLink tools/steamlink/out/libsteam_api.so work/$d/; done
+        python3 tools/steamlink/test/stream_test.py --work work
+
+    - name: Stage package
+      run: |
+        mkdir -p package
+        cp tools/steamlink/out/OOTSteamLink package/
+        cp "tools/steamlink/Host over Steam.sh" "tools/steamlink/Join over Steam.sh" package/
+
+    - name: Upload build
+      uses: actions/upload-artifact@v4
+      with:
+        name: ootsteamlink-linux
+        path: package

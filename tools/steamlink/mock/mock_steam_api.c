@@ -1,5 +1,5 @@
 /*
- * Mock steam_api64.dll for testing OOTSteamLink with a host and a joiner on one machine, without Steam.
+ * Mock steam_api64.dll (libsteam_api.so on Linux) for testing OOTSteamLink with a host and a joiner on one machine, without Steam.
  * Derived from the HXCoop / KeeperFX mock (same fake lobby and message design), built as a 64 bit DLL.
  *
  * It exports the subset of the Steamworks flat C API that OOTSteamLink uses and fakes:
@@ -12,23 +12,50 @@
  * Set STEAMLINK_MOCK_LOG=1 to write mock_steam.log in the working directory.
  * STEAMLINK_MOCK_PORT_BASE moves the UDP port range so that test runs can happen side by side.
  */
-#define WIN32_LEAN_AND_MEAN
-#include <winsock2.h>
-#include <windows.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <winsock2.h>
+#include <windows.h>
 #define API __declspec(dllexport)
+#define NET_RESET() (WSAGetLastError() == WSAECONNRESET)
+#else
+#include <errno.h>
+#include <fcntl.h>
+#include <strings.h>
+#include <time.h>
+#include <arpa/inet.h>
+#include <netinet/in.h>
+#include <sys/socket.h>
+#include <unistd.h>
+#define API __attribute__((visibility("default")))
+#define NET_RESET() (errno == ECONNREFUSED)
+typedef int SOCKET;
+typedef uint32_t DWORD;
+typedef uint16_t u_short;
+#define INVALID_SOCKET (-1)
+#define _stricmp strcasecmp
+static DWORD GetTickCount(void)
+{
+    struct timespec ts;
+    clock_gettime(CLOCK_MONOTONIC, &ts);
+    return (DWORD)(ts.tv_sec * 1000u + ts.tv_nsec / 1000000u);
+}
+#endif
 #define STEAMID_BASE 76561198000000000ULL
 #define LOBBY_BASE 0x0186000000000000ULL
 
 typedef uint64_t u64;
 
-static int g_inited, g_wsa, g_log;
+static int g_inited, g_log;
+#ifdef _WIN32
+static int g_wsa;
+#endif
 static unsigned g_num;
 static unsigned g_port_base = 47000;
 static u64 g_sid;
@@ -64,7 +91,11 @@ static void init_identity(void)
     const char *env = getenv("STEAMLINK_MOCK_NAME");
     if (env) snprintf(name, sizeof(name), "%s", env);
     else {
+#ifdef _WIN32
         const char *cl = GetCommandLineA();
+#else
+        const char *cl = "";
+#endif
         const char *p = strstr(cl, "-nick ");
         if (p) {
             p += 6;
@@ -118,7 +149,11 @@ static void post_cb(int id, const void *data, int size)
     g_cb_tail = c;
 }
 
+#ifdef _WIN32
 #pragma pack(push, 8)
+#else
+#pragma pack(push, 4) /* Steam packs its callback structs to 4 bytes on Linux */
+#endif
 typedef struct { int32_t user; int32_t callback; uint8_t *param; int32_t param_size; } CallbackMsg;
 typedef struct { u64 call; int32_t callback; uint32_t param_size; } APICallCompleted;
 typedef struct { int32_t result; u64 lobby; } LobbyCreatedCb;
@@ -160,17 +195,23 @@ typedef struct { uint32_t magic; uint8_t type; u64 from; u64 lobby; int32_t chan
 static void net_start(void)
 {
     if (g_sock != INVALID_SOCKET) return;
+#ifdef _WIN32
     WSADATA w;
     if (!g_wsa) { WSAStartup(MAKEWORD(2, 2), &w); g_wsa = 1; }
+#endif
     g_sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
     int rb = 16 * 1024 * 1024; setsockopt(g_sock, SOL_SOCKET, SO_RCVBUF, (char *)&rb, sizeof(rb));
     int sb = 16 * 1024 * 1024; setsockopt(g_sock, SOL_SOCKET, SO_SNDBUF, (char *)&sb, sizeof(sb));
     struct sockaddr_in a; memset(&a, 0, sizeof(a));
     a.sin_family = AF_INET; a.sin_addr.s_addr = htonl(INADDR_LOOPBACK); a.sin_port = htons((u_short)(g_port_base + g_num));
-    if (bind(g_sock, (struct sockaddr *)&a, sizeof(a)) != 0) logf_("bind failed %d", WSAGetLastError());
+    if (bind(g_sock, (struct sockaddr *)&a, sizeof(a)) != 0) logf_("bind failed");
+#ifdef _WIN32
     u_long nb = 1; ioctlsocket(g_sock, FIONBIO, &nb);
     /* ignore ICMP port unreachable resets on UDP (SIO_UDP_CONNRESET) */
     DWORD bytes; BOOL off = FALSE; WSAIoctl(g_sock, 0x9800000C, &off, sizeof(off), NULL, 0, &bytes, NULL, NULL);
+#else
+    fcntl(g_sock, F_SETFL, fcntl(g_sock, F_GETFL, 0) | O_NONBLOCK);
+#endif
 }
 
 static void net_send(u64 to, int type, u64 lobby, int channel, int flags, const void *data, int size)
@@ -221,7 +262,7 @@ static void net_pump(void)
     }
     for (;;) {
         int n = recv(g_sock, (char *)buf, sizeof(buf), 0);
-        if (n < (int)sizeof(PktHdr)) { if (n < 0 && WSAGetLastError() == WSAECONNRESET) continue; break; }
+        if (n < (int)sizeof(PktHdr)) { if (n < 0 && NET_RESET()) continue; break; }
         PktHdr h; memcpy(&h, buf, sizeof(h));
         if (h.magic != 0x4D4F434Bu) continue;
         const unsigned char *payload = buf + sizeof(h); int psize = n - (int)sizeof(h);
@@ -435,4 +476,6 @@ API bool SteamAPI_ISteamNetworkingMessages_CloseSessionWithUser(void *self, cons
 }
 API void SteamAPI_SteamNetworkingMessage_t_Release(void *msg) { free(msg); }
 
+#ifdef _WIN32
 BOOL WINAPI DllMain(HINSTANCE h, DWORD reason, LPVOID r) { return TRUE; }
+#endif

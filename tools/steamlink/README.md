@@ -10,7 +10,7 @@ relays that TCP stream through Steam. The only client change is an optional envi
 (`host:port`), which the helper sets so the game connects to the helper instead of its saved server. When it is not
 set, the game behaves exactly as before.
 
-## Using it
+## Using it (Windows)
 
 Put these files in one folder, next to `soh.exe` (the host also needs `OOTServer.exe`, with its `config.json`, in the
 same folder or in a `server` subfolder):
@@ -45,6 +45,20 @@ OOTSteamLink.exe join [lobby id] [--local-port <n>] [--game-exe <path>] [--no-la
   `OOT_SERVER=127.0.0.1:<port>` (the join window prints the port), or type that host and port into the online window.
 - The server's console output goes to `OOTServer.log` in the server folder.
 
+## Using it (Linux)
+
+Same idea, with the Linux names. Put these files in one folder, next to `soh.elf` (the host also needs `OOTServer`,
+with its `config.json`, in the same folder or in a `server` subfolder):
+
+- `OOTSteamLink` (built by `build.sh`, or from a release)
+- `libsteam_api.so` (see below)
+- `Host over Steam.sh` and `Join over Steam.sh` (make them executable: `chmod +x *.sh OOTSteamLink`)
+
+Run `./Host over Steam.sh` or `./Join over Steam.sh` in a terminal; everything above works the same way
+(press `Q` to stop, Ctrl+C also stops hosting cleanly and the server saves team progress). The command line is the
+same without `.exe`: `./OOTSteamLink host [--port 21050] [--server-exe <path>] [--game-exe <path>] ...`.
+Steam (the Linux client) must be running and logged in.
+
 ## What it does
 
 - The host creates a friends-only lobby tagged `ootsteam=1` with the relay version, and sets the Steam rich presence
@@ -59,13 +73,20 @@ OOTSteamLink.exe join [lobby id] [--local-port <n>] [--game-exe <path>] [--no-la
 - Channel 1 carries a keep-alive every second and a goodbye. A peer that is silent for 20 seconds is dropped and
   its connections are closed.
 
-## steam_api64.dll
+## steam_api64.dll (Windows) / libsteam_api.so (Linux)
 
 The helper loads Steam's runtime library from its own folder (no Steam SDK is needed to build). Use
 `steam_api64.dll` from the Steamworks.NET "Standalone" release 2025.164.1
 (`github.com/rlabrecque/Steamworks.NET/releases`, folder `Windows-x64`). It is a 64-bit DLL:
 
 - SHA-256 `eb17909a76668cf9ae0b92a618a34a50f6c73d3a6787cb4dd8ce36a8b10bfb75`
+
+On Linux use `libsteam_api.so` from the same release (64-bit x86; in the source tree it is
+`com.rlabrecque.steamworks.net/Plugins/libsteam_api.so`):
+
+- SHA-256 `ec4797f76a206eb0af627af0f0788eb5a2eabf5dee38ee0a6affbaa44a645f4e`
+ On Linux the Steam callback structs are packed to 4
+bytes instead of 8 (see the `#pragma pack` in `ootsteamlink.c`).
 
 `steam_appid.txt` (containing `480`) is created next to the exe if missing. If Steam is not running, or the DLL is
 missing, the helper says so in plain words and exits.
@@ -74,6 +95,10 @@ missing, the helper says so in plain words and exits.
 
 `build.bat` builds `out\OOTSteamLink.exe` and the mock `out\mock_steam_api64.dll` with Visual Studio 2022
 (64-bit, plain C, no dependencies).
+
+On Linux, `sh build.sh` builds `out/OOTSteamLink` and the mock `out/libsteam_api.so` with gcc or clang (plain C,
+needs only libdl). It is the same source file: the Windows and Linux differences (sockets, process start, keyboard,
+library loading) are `#ifdef _WIN32` blocks in `ootsteamlink.c`.
 
 ## Tests (one PC, no Steam accounts needed)
 
@@ -86,6 +111,10 @@ over UDP and fakes lobbies and a friends list. Put it next to a copy of `OOTStea
 - `python test/e2e_test.py --work <dir> --build-dir <soh.exe dir> --o2r <oot.o2r>`: starts the real `OOTServer.exe`
   through the host helper and runs the two-client `tools/coop-test` smoke scenario with both real game clients
   connected through the join helper.
+
+On Linux: `sh build.sh`, copy `out/OOTSteamLink` and `out/libsteam_api.so` into both folders, then
+`python3 test/stream_test.py --work <dir with H and J>`. (`e2e_test.py` and `launch_test.py` still assume the
+Windows layout.)
 
 Which environment variables the mock reads: `STEAMLINK_MOCK_NAME` (`Host` or `Client`),
 `STEAMLINK_MOCK_PORT_BASE`, `STEAMLINK_MOCK_LOG`.
