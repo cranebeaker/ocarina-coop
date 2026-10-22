@@ -29,5 +29,8 @@ int main(int argc, char** argv)
 #ifdef SIGBREAK
     std::signal(SIGBREAK, onSignal); // Windows: Ctrl+Break and CTRL_BREAK_EVENT (used by the test runner)
 #endif
+#ifdef SIGHUP
+    std::signal(SIGHUP, onSignal); // Linux: its terminal window was closed
+#endif
     return server.run();
 }
