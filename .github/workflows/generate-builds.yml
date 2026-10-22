@@ -204,6 +204,41 @@ jobs:
         key: ${{ steps.restore-cache-deps.outputs.cache-primary-key }}
         path: deps
 
+  package-linux:
+    needs: build-linux
+    runs-on: ubuntu-22.04
+    steps:
+    - name: Git Checkout
+      uses: actions/checkout@v7
+    - name: Download soh-linux
+      uses: actions/download-artifact@v8
+      with:
+        name: soh-linux
+        path: soh-linux
+    - name: Build server and Steam helper
+      run: |
+        cmake -S server -B server/build -DCMAKE_BUILD_TYPE=Release
+        cmake --build server/build --config Release -j
+        sh tools/steamlink/build.sh
+    - name: Get libsteam_api.so
+      run: |
+        wget -q https://github.com/rlabrecque/Steamworks.NET/releases/download/2025.164.1/Steamworks.NET-Standalone_2025.164.1.zip
+        unzip -j Steamworks.NET-Standalone_2025.164.1.zip OSX-Linux-x64/libsteam_api.so -d steamworks
+    - name: Package
+      run: |
+        if [ "${{ github.ref_type }}" = tag ]; then VERSION="${{ github.ref_name }}"; else VERSION="dev-$(git rev-parse --short HEAD)"; fi
+        sh scripts/linux/package/package.sh soh-linux/soh.appimage server/build/OOTServer tools/steamlink/out/OOTSteamLink \
+          steamworks/libsteam_api.so "$VERSION" dist
+    - name: Test on Arch Linux (SteamOS base)
+      run: |
+        docker run --rm -v "$PWD:/w" archlinux:latest bash /w/scripts/linux/package/package_test.sh \
+          "/w/$(ls dist/*.tar.gz)" /w/tools/steamlink/out/libsteam_api.so
+    - name: Upload package
+      uses: actions/upload-artifact@v7
+      with:
+        name: ocarina-story-coop-linux
+        path: dist/*.tar.gz
+
   build-windows:
     needs: generate-soh-otr
     runs-on: windows-latest
