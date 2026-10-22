@@ -27,8 +27,10 @@ No IP addresses or port forwarding: the connection goes through Steam's relay ne
 Both players need Steam running. You can also run `OOTServer.exe` yourself and connect by address as in
 ShipwrightOnline.
 
-**Linux:** use `Host over Steam.sh` / `Join over Steam.sh` instead of the `.bat` files, with `soh.elf`, `OOTServer`
-and `OOTSteamLink` (see [tools/steamlink](tools/steamlink/README.md)).
+**Linux and Steam Deck:** download the `linux.tar.gz` instead. The game is `soh.appimage` (nothing to install), and
+`Host over Steam.sh` / `Join over Steam.sh` take the place of the `.bat` files. For Steam Deck Game Mode, add
+`Join over Steam.sh` (or `Host over Steam.sh`) to Steam as a non-Steam game: in Desktop Mode, Steam > Games > Add a
+Non-Steam Game > Browse, with the file type set to All Files. The README.txt in the download has the details.
 
 https://github.com/user-attachments/assets/fedb77e0-4b35-44a7-9120-dce0d7005fcd
 
