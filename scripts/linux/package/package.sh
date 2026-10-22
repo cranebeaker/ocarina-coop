@@ -11,7 +11,7 @@ set -e
 [ $# -eq 6 ] || { sed -n 4p "$0"; exit 2; }
 APPIMAGE=$1 SERVER=$2 STEAMLINK=$3 STEAMLIB=$4 VERSION=$5 OUT=$6
 STEAMLIB_SHA256=ec4797f76a206eb0af627af0f0788eb5a2eabf5dee38ee0a6affbaa44a645f4e
-ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+ROOT="$(cd "$(dirname "$0")/../../.." && pwd)"
 
 echo "$STEAMLIB_SHA256  $STEAMLIB" | sha256sum -c -
 
