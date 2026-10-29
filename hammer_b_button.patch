@@ -1,0 +1,82 @@
+diff -ruN a/soh/soh/SohGui/SohMenuEnhancements.cpp b/soh/soh/SohGui/SohMenuEnhancements.cpp
+--- a/soh/soh/SohGui/SohMenuEnhancements.cpp	2026-10-29 19:33:42.687861878 +0000
++++ b/soh/soh/SohGui/SohMenuEnhancements.cpp	2026-10-29 19:33:42.695667152 +0000
+@@ -508,6 +508,24 @@
+     AddWidget(path, "King Zora Speed: %.2fx", WIDGET_CVAR_SLIDER_FLOAT)
+         .CVar(CVAR_ENHANCEMENT("MweepSpeed"))
+         .Options(FloatSliderOptions().Min(0.1f).Max(5.0f).DefaultValue(1.0f).Format("%.2fx"));
++    AddWidget(path, "Kokiri Sword Slot Is Megaton Hammer", WIDGET_CVAR_CHECKBOX)
++        .CVar(CVAR_ENHANCEMENT("KokiriSwordIsHammer"))
++        .Options(CheckboxOptions().Tooltip("The Kokiri Sword (B button) acts as the Megaton Hammer instead."));
++    AddWidget(path, "Hammer Icon For Kokiri Sword", WIDGET_CVAR_CHECKBOX)
++        .CVar(CVAR_ENHANCEMENT("KokiriSwordHammerIcon"))
++        .Options(CheckboxOptions().Tooltip("Shows the Megaton Hammer icon in place of the Kokiri Sword icon (HUD and menus)."));
++    AddWidget(path, "Fast Hammer Swing", WIDGET_CVAR_CHECKBOX)
++        .CVar(CVAR_ENHANCEMENT("FastHammerSwing"))
++        .Options(CheckboxOptions().Tooltip("Makes the Megaton Hammer swing faster."));
++    AddWidget(path, "Hammer Swing Speed: %.2fx", WIDGET_CVAR_SLIDER_FLOAT)
++        .CVar(CVAR_ENHANCEMENT("FastHammerSwingSpeed"))
++        .Options(FloatSliderOptions().Min(1.0f).Max(4.0f).DefaultValue(2.0f).Format("%.2fx"));
++    AddWidget(path, "Fast Hammer Recovery", WIDGET_CVAR_CHECKBOX)
++        .CVar(CVAR_ENHANCEMENT("FastHammerRecovery"))
++        .Options(CheckboxOptions().Tooltip("Speeds up the Megaton Hammer's recovery animation after a swing."));
++    AddWidget(path, "Hammer Recovery Speed: %.2fx", WIDGET_CVAR_SLIDER_FLOAT)
++        .CVar(CVAR_ENHANCEMENT("FastHammerRecoverySpeed"))
++        .Options(FloatSliderOptions().Min(1.0f).Max(4.0f).DefaultValue(2.0f).Format("%.2fx"));
+     AddWidget(path, "Faster Pause Menu", WIDGET_CVAR_CHECKBOX)
+         .CVar(CVAR_ENHANCEMENT("FasterPauseMenu"))
+         .Options(CheckboxOptions().Tooltip("Speeds up animation of the pause menu, similar to Majora's Mask"));
+diff -ruN a/soh/src/code/z_parameter.c b/soh/src/code/z_parameter.c
+--- a/soh/src/code/z_parameter.c	2026-10-29 19:33:42.688250793 +0000
++++ b/soh/src/code/z_parameter.c	2026-10-29 19:33:42.697687366 +0000
+@@ -5063,6 +5063,11 @@
+ 
+ void Interface_Draw(PlayState* play) {
+ 
++    // Optionally show the Megaton Hammer icon wherever the Kokiri Sword icon is drawn (B button, menus, textboxes)
++    gItemIcons[ITEM_SWORD_KOKIRI] = CVarGetInteger(CVAR_ENHANCEMENT("KokiriSwordHammerIcon"), 0)
++                                        ? (void*)gItemIconHammerTex
++                                        : (void*)gItemIconSwordKokiriTex;
++
+     static s16 magicArrowEffectsR[] = { 255, 100, 255 };
+     static s16 magicArrowEffectsG[] = { 0, 100, 255 };
+     static s16 magicArrowEffectsB[] = { 0, 255, 100 };
+diff -ruN a/soh/src/overlays/actors/ovl_player_actor/z_player.c b/soh/src/overlays/actors/ovl_player_actor/z_player.c
+--- a/soh/src/overlays/actors/ovl_player_actor/z_player.c	2026-10-29 19:33:42.686374015 +0000
++++ b/soh/src/overlays/actors/ovl_player_actor/z_player.c	2026-10-29 19:33:42.693986941 +0000
+@@ -2229,6 +2229,9 @@
+ s8 Player_ItemToItemAction(s32 item) {
+     if (GameInteractor_Should(VB_ITEM_ACTION_BE_NONE, item >= ITEM_NONE_FE, item)) {
+         return PLAYER_IA_NONE;
++    } else if (item == ITEM_SWORD_KOKIRI && CVarGetInteger(CVAR_ENHANCEMENT("KokiriSwordIsHammer"), 0)) {
++        // Kokiri Sword slot behaves as the Megaton Hammer (B button swings the hammer)
++        return PLAYER_IA_HAMMER;
+     } else if (item == ITEM_LAST_USED) {
+         return PLAYER_IA_SWORD_CS;
+     } else if (item == ITEM_FISHING_POLE) {
+@@ -15111,6 +15114,12 @@
+ 
+     this->stateFlags2 |= PLAYER_STATE2_DISABLE_ROTATION_Z_TARGET;
+ 
++    if ((this->heldItemAction == PLAYER_IA_HAMMER) && CVarGetInteger(CVAR_ENHANCEMENT("FastHammerSwing"), 0)) {
++        // Faster hammer swing; the attack-window and OnFrame checks are speed-aware so hit timing still works
++        this->skelAnime.playSpeed =
++            PLAYER_ANIM_ADJUSTED_SPEED * CVarGetFloat(CVAR_ENHANCEMENT("FastHammerSwingSpeed"), 2.0f);
++    }
++
+     if (!func_80842DF4(play, this)) {
+         func_8084285C(this, 0.0f, sp44->unk_0C, sp44->unk_0D);
+ 
+@@ -15148,6 +15157,12 @@
+ 
+                 func_8083A098(this, sp3C, play);
+ 
++                if ((this->heldItemAction == PLAYER_IA_HAMMER) &&
++                    CVarGetInteger(CVAR_ENHANCEMENT("FastHammerRecovery"), 0)) {
++                    // Speed up the recovery animation that plays after the swing
++                    this->skelAnime.playSpeed *= CVarGetFloat(CVAR_ENHANCEMENT("FastHammerRecoverySpeed"), 2.0f);
++                }
++
+                 this->skelAnime.movementFlags = sp43;
+                 this->stateFlags3 |= PLAYER_STATE3_FINISHED_ATTACKING;
+             }
