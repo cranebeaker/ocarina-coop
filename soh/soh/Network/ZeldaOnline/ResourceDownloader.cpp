@@ -23,6 +23,7 @@ const size_t MAX_NAME_LEN = 64;
 const size_t MAX_BODY_BYTES = 64u * 1024u * 1024u;
 const int READ_CHUNK = 16 * 1024;
 const int READ_TIMEOUT_SECONDS = 15;
+const int MAX_REDIRECTS = 5;
 
 void SetReadTimeout(SoxHandle sock) {
 #if defined(_WIN32) || defined(WIN32)
@@ -76,7 +77,7 @@ bool SplitUrl(const std::string& url, std::string& host, int& port, std::string&
     return !host.empty();
 }
 
-int ReadHeaders(SoxHandle sock, std::string& bodyStart, long& contentLength) {
+int ReadHeaders(SoxHandle sock, std::string& bodyStart, long& contentLength, std::string& location) {
     std::string head;
     char buf[READ_CHUNK];
     size_t split = std::string::npos;
@@ -120,7 +121,47 @@ int ReadHeaders(SoxHandle sock, std::string& bodyStart, long& contentLength) {
         contentLength = atol(headers.c_str() + cl + strlen("\r\ncontent-length:"));
     }
 
+    location.clear();
+    size_t loc = lower.find("\r\nlocation:");
+    if (loc != std::string::npos) {
+        size_t start = loc + strlen("\r\nlocation:");
+        size_t end = headers.find("\r\n", start);
+        location = headers.substr(start, end == std::string::npos ? std::string::npos : end - start);
+
+        size_t first = location.find_first_not_of(" \t");
+        size_t last = location.find_last_not_of(" \t");
+        location = (first == std::string::npos) ? "" : location.substr(first, last - first + 1);
+    }
+
     return status;
+}
+
+// Resolves a Location header against the url it answered. Only http:// targets are followable.
+std::string ResolveRedirect(const std::string& url, const std::string& location) {
+    if (location.compare(0, 7, "http://") == 0 || location.compare(0, 8, "https://") == 0) {
+        return location;
+    }
+
+    size_t authorityStart = url.find("://");
+    if (authorityStart == std::string::npos || location.empty()) {
+        return "";
+    }
+    authorityStart += 3;
+
+    if (location.compare(0, 2, "//") == 0) {
+        return "http:" + location;
+    }
+
+    size_t pathStart = url.find('/', authorityStart);
+    std::string origin = (pathStart == std::string::npos) ? url : url.substr(0, pathStart);
+
+    if (location[0] == '/') {
+        return origin + location;
+    }
+
+    std::string dir = (pathStart == std::string::npos) ? "/" : url.substr(pathStart);
+    dir = dir.substr(0, dir.rfind('/') + 1);
+    return origin + dir + location;
 }
 
 } // namespace
@@ -252,62 +293,102 @@ DownloadedFile ResourceDownloader::Fetch(ResourceDownloader* self, const std::st
     result.fileName = fileName;
     result.success = false;
 
-    std::string host, path;
-    int port = 80;
-
-    if (!SplitUrl(url, host, port, path)) {
-        result.error = "malformed url (http:// only)";
-        return result;
-    }
-
-    struct addrinfo* address = NULL;
-    if (!soxResolveHost(host.c_str(), &address)) {
-        result.error = "could not resolve " + host;
-        return result;
-    }
-
-    SoxHandle sock = soxCreateTcpSocket(address);
-    if (sock == INVALID_SOCKET) {
-        soxReleaseAddress(address);
-        result.error = "could not create socket";
-        return result;
-    }
-
-    if (!soxTcpConnect(sock, address, port)) {
-        soxReleaseAddress(address);
-        soxCloseSocket(sock);
-        result.error = "could not connect to " + host;
-        return result;
-    }
-    soxReleaseAddress(address);
-    SetReadTimeout(sock);
-
-    // 1.0 so the server never uses chunked encoding; close terminates the body.
-    std::string request = "GET " + path +
-                          " HTTP/1.0\r\n"
-                          "Host: " +
-                          host +
-                          "\r\n"
-                          "User-Agent: ZeldaOnline\r\n"
-                          "Connection: close\r\n"
-                          "\r\n";
-
-    if (soxTcpWriteString(sock, request.c_str()) <= 0) {
-        soxCloseSocket(sock);
-        result.error = "could not send request";
+    // A file that is already on disk (downloaded earlier, or dropped in by hand) needs no network.
+    std::error_code ec;
+    std::string finalPath = std::string(DownloadDir()) + "/" + fileName;
+    if (std::filesystem::exists(finalPath, ec)) {
+        result.filePath = finalPath;
+        result.success = true;
         return result;
     }
 
     std::string body;
     long contentLength = -1;
-    int status = ReadHeaders(sock, body, contentLength);
+    std::string currentUrl = url;
+    SoxHandle sock = INVALID_SOCKET;
 
-    if (status != 200) {
+    // Some hosts and networks answer with a redirect, so follow a few of them.
+    for (int hop = 0;; hop++) {
+        std::string host, path;
+        int port = 80;
+
+        if (!SplitUrl(currentUrl, host, port, path)) {
+            result.error = hop == 0 ? "malformed url (http:// only)"
+                                    : "redirected to " + currentUrl + " (only http:// is supported)";
+            return result;
+        }
+
+        struct addrinfo* address = NULL;
+        if (!soxResolveHost(host.c_str(), &address)) {
+            result.error = "could not resolve " + host;
+            return result;
+        }
+
+        sock = soxCreateTcpSocket(address);
+        if (sock == INVALID_SOCKET) {
+            soxReleaseAddress(address);
+            result.error = "could not create socket";
+            return result;
+        }
+
+        if (!soxTcpConnect(sock, address, port)) {
+            soxReleaseAddress(address);
+            soxCloseSocket(sock);
+            result.error = "could not connect to " + host;
+            return result;
+        }
+        soxReleaseAddress(address);
+        SetReadTimeout(sock);
+
+        // 1.0 so the server never uses chunked encoding; close terminates the body.
+        std::string request = "GET " + path +
+                              " HTTP/1.0\r\n"
+                              "Host: " +
+                              host +
+                              "\r\n"
+                              "User-Agent: ZeldaOnline\r\n"
+                              "Connection: close\r\n"
+                              "\r\n";
+
+        if (soxTcpWriteString(sock, request.c_str()) <= 0) {
+            soxCloseSocket(sock);
+            result.error = "could not send request";
+            return result;
+        }
+
+        std::string location;
+        body.clear();
+        contentLength = -1;
+        int status = ReadHeaders(sock, body, contentLength, location);
+
+        if (status == 200) {
+            result.error.clear();
+            break;
+        }
+
         soxCloseSocket(sock);
+        sock = INVALID_SOCKET;
+
         char buf[64];
         snprintf(buf, sizeof(buf), "http status %d", status);
         result.error = buf;
-        return result;
+
+        bool isRedirect = status == 301 || status == 302 || status == 303 || status == 307 || status == 308;
+        if (!isRedirect || location.empty()) {
+            return result;
+        }
+
+        result.error += " -> " + location;
+
+        if (hop >= MAX_REDIRECTS) {
+            result.error += " (too many redirects)";
+            return result;
+        }
+
+        currentUrl = ResolveRedirect(currentUrl, location);
+        if (currentUrl.empty()) {
+            return result;
+        }
     }
 
     if (contentLength > (long)MAX_BODY_BYTES) {
@@ -349,10 +430,8 @@ DownloadedFile ResourceDownloader::Fetch(ResourceDownloader* self, const std::st
         return result;
     }
 
-    std::error_code ec;
     std::filesystem::create_directories(DownloadDir(), ec);
 
-    std::string finalPath = std::string(DownloadDir()) + "/" + fileName;
     std::string tempPath = finalPath + "." + std::to_string(CurrentProcessId()) + ".part";
 
     if (std::filesystem::exists(finalPath, ec)) {
