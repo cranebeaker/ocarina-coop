@@ -353,7 +353,7 @@ namespace ZeldaOnline
 
 		// only members standing in the party's era may vote; the others are moved there first
 		const uint8_t era = EffectiveEra();
-		if (era != ERA_UNKNOWN && player->Age() != era)
+		if (era != ERA_UNKNOWN && player->Age() < 2 && player->Age() != era)
 		{
 			player->SendPacket(newPacket(SERVER_PACKET_STORY_SET_ERA) << PackedUInt1(era));
 			SendVoteStatusTo(player, false);
@@ -423,7 +423,7 @@ namespace ZeldaOnline
 
 		for (Player* member : m_members)
 		{
-			if (member->Age() != m_era)
+			if (member->Age() < 2 && member->Age() != m_era)
 				member->SendPacket(newPacket(SERVER_PACKET_STORY_SET_ERA) << PackedUInt1(m_era));
 		}
 
@@ -440,7 +440,7 @@ namespace ZeldaOnline
 
 		// a late joiner stands in the party's era
 		uint8_t era = EffectiveEra();
-		if (era != ERA_UNKNOWN && player->Age() != era)
+		if (era != ERA_UNKNOWN && player->Age() < 2 && player->Age() != era)
 			player->SendPacket(newPacket(SERVER_PACKET_STORY_SET_ERA) << PackedUInt1(era));
 
 		// N changed: votes cast so far no longer cover everybody
@@ -500,7 +500,7 @@ namespace ZeldaOnline
 		// the party era is the one most members are in (a tie keeps the current era); a member standing
 		// in the other era is moved back by the late joiner path and loses its vote
 		m_era = ComputeEra();
-		if (player && player->Age() != m_era)
+		if (player && player->Age() < 2 && player->Age() != m_era)
 		{
 			for (size_t i = 0; i < m_votes.size(); i++)
 			{
