@@ -118,7 +118,9 @@ void HookshotPuppet_Draw(Actor* thisx, PlayState* play) {
 
 void PlayerPuppetController::ApplyAppearance(const ByteStream& blob) {
     ByteStream data = blob;
-    m_linkAge = (u8)(data.Read<PackedUInt1>().value());
+     u8 newAge = (u8)(data.Read<PackedUInt1>().value());
+    if (newAge < 2)
+        m_linkAge = newAge;
     m_skinRef = data.ReadString(data.Read<PackedUInt1>().value());
 
     std::vector<std::string> archives;
